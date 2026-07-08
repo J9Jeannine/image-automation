@@ -1,0 +1,57 @@
+{
+  "_comment": "Pflichtfelder mit 'TODO' muessen ausgefuellt werden, bevor der Trigger aktiviert wird. Der Workflow bricht sonst kontrolliert ab (siehe docs/workflow.md, Schritt 0).",
+
+  "advertiser": {
+    "search_term": "TODO",
+    "page_id": null,
+    "country": "TODO (z.B. DE, FR, BE)",
+    "max_ads_per_run": 15
+  },
+
+  "target_markets": [
+    {
+      "market_code": "TODO (z.B. DE, FR-BE, NL-BE)",
+      "language": "TODO (z.B. de, fr, nl)"
+    }
+  ],
+
+  "cadence": {
+    "mode": "weekly",
+    "cron": "15 8 * * 1",
+    "note": "Default: woechentlich montags 08:15. Alternativen: 'daily' oder 'on_new_ads' (dann taeglich pruefen, aber nur bei tatsaechlich neuen Ads Schritte 3-8 ausfuehren). Anpassen und Trigger per update_trigger neu konfigurieren."
+  },
+
+  "foundation_phase": {
+    "mode": "translation_only",
+    "note": "Optionen: 'translation_only' (Schritte 1-5 jeder Lauf, Foundation-Phase separat/spaeter), 'combined' (jeder Lauf macht Uebersetzung UND woechentliche 48+12-Konzept-Produktion aus den Foundation-Dokumenten), 'foundation_once_then_weekly_json' (Foundation-Dokumente einmalig separat pflegen, danach kombiniert Uebersetzung + woechentliche JSON-Produktion).",
+    "concepts_per_run": {
+      "new_concepts": 48,
+      "top_performer_iterations": 12
+    }
+  },
+
+  "product": {
+    "exact_name": "TODO (inkl. (R)/(TM) falls zutreffend)",
+    "product_image_drive_file_id": "TODO",
+    "winning_ad_copy": {
+      "headline": "TODO",
+      "primary_text": "TODO"
+    }
+  },
+
+  "drive": {
+    "base_folder_id": "1RH4nagTulPEPXPp5fSwTeccvL-GlMI5-",
+    "base_folder_url": "https://drive.google.com/drive/folders/1RH4nagTulPEPXPp5fSwTeccvL-GlMI5-",
+    "project_folder_name": "TODO (z.B. Produktname)",
+    "note": "Bestehende Unterordner State/, Funnel-PDFs/, QA-Reports/ gehoeren zu einer anderen Automatisierung und werden nicht veraendert."
+  },
+
+  "foundation_documents": {
+    "research_doc_id": null,
+    "avatar_sheet_id": null,
+    "offer_brief_id": null,
+    "necessary_beliefs_id": null,
+    "swipe_file_id": null,
+    "note": "Optional. Falls vorhanden, IDs/Links eintragen; werden als Kontext fuer die Foundation-Phase genutzt (siehe docs/skills/foundation-to-higgsfield.md)."
+  }
+}
