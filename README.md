@@ -8,19 +8,29 @@ Läuft als wiederkehrende Routine (Trigger), nicht als einmaliger Task. Siehe
 `automation/trigger-prompt.md` für den Prompt, der bei jedem Lauf ausgeführt wird, und
 `docs/workflow.md` für die vollständige Schritt-für-Schritt-Logik.
 
-## Status: Setup unvollständig
+## Status: Setup unvollständig — Trigger noch NICHT angelegt
 
-Diese Automatisierung wurde ohne Live-Rückfrage angelegt (nicht-interaktive Session).
-Der wiederkehrende Trigger ist bereits erstellt, aber **deaktiviert**, bis die
-Pflichtfelder in `config/automation.config.json` ausgefüllt sind:
+Diese Automatisierung wurde in einer nicht-interaktiven Session gebaut (Rückfragen und
+das Anlegen eines Triggers erfordern eine Live-Berechtigung, die hier nicht verfügbar
+war). Der Code/die Playbooks liegen vollständig vor, aber die wiederkehrende Routine
+selbst wurde noch **nicht erstellt**. Zwei offene Punkte, bevor sie live gehen kann:
 
-- `advertiser.search_term` — welcher Advertiser/welche Marke in der Meta Ad Library beobachtet wird
-- `target_markets` — Zielmarkt/-sprache(n) für die Lokalisierung
-- `foundation_phase.mode` — ob/wie die foundation-to-higgsfield-Wochenproduktion mitläuft
+1. **Config ausfüllen** — `config/automation.config.json` enthält noch `"TODO"` in
+   Pflichtfeldern:
+   - `advertiser.search_term`/`advertiser.country` — welcher Advertiser/welche Marke in
+     der Meta Ad Library beobachtet wird
+   - `target_markets` — Zielmarkt/-sprache(n) für die Lokalisierung
+   - `product.exact_name`, `product.product_image_drive_file_id` — Produktdaten
+   - `drive.project_folder_name` — Name des neuen Projektordners
+   - `foundation_phase.mode` — ob/wie die foundation-to-higgsfield-Wochenproduktion mitläuft
 
-Solange diese Felder `"TODO"` enthalten, bricht der Lauf sofort mit einer Erinnerung ab,
-anstatt mit Platzhalterdaten zu arbeiten. Sobald die Config ausgefüllt ist, den Trigger
-mit `update_trigger(enabled: true)` aktivieren (oder den Nutzer bitten, das zu tun).
+   Solange diese Felder `"TODO"` enthalten, bricht `docs/workflow.md` Schritt 0
+   jeden Lauf sofort mit einer Erinnerung ab, statt mit Platzhalterdaten zu arbeiten.
+
+2. **Trigger anlegen** — in einer interaktiven Session (z. B. hier im Chat) einfach
+   sagen "lege die image-automation Routine an" bzw. "aktiviere die Automatisierung" —
+   dann wird `create_trigger` mit dem Prompt aus `automation/trigger-prompt.md` und dem
+   Cron-Ausdruck aus `config/automation.config.json` → `cadence.cron` aufgerufen.
 
 ## Ordnerstruktur
 
@@ -83,6 +93,7 @@ verfügbar, werden nur die Prompt-Texte erzeugt und in Drive abgelegt.
 1. `config/automation.config.json` ausfüllen (Advertiser, Zielmärkte, Cadence, Foundation-Modus).
 2. Google-Drive-Connector in dieser Cowork-Umgebung autorisiert lassen (bereits der Fall,
    da der Basis-Ordner oben lesbar war).
-3. Trigger aktivieren: den Nutzer bitten "aktiviere die image-automation Routine" —
-   dann wird `update_trigger(trigger_id, enabled: true)` aufgerufen.
+3. In einer interaktiven Session sagen "lege die image-automation Routine an" —
+   dann wird `create_trigger` mit dem Prompt aus `automation/trigger-prompt.md` und dem
+   Cron-Ausdruck aus der Config aufgerufen (der Trigger existiert vorher nicht).
 4. Ersten Lauf beobachten (Drive-Projektordner + ggf. Chat-Nachricht prüfen).
