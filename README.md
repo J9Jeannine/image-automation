@@ -3,7 +3,7 @@
 Wiederkehrende Automatisierung: liest kuratierte Meta-Ad-Library-Links aus dem
 bestehenden **"Funnel Sheet"** (Google Sheets), holt die referenzierten
 Konkurrenz-Anzeigen, lokalisiert sie und erzeugt daraus fertige **Higgsfield (Nano
-Banana)** Prompts für die Bildgenerierung.
+Banana)** Bilder in der passenden Zielsprache.
 
 Läuft als wiederkehrende Routine (Trigger), nicht als einmaliger Task. Siehe
 `automation/trigger-prompt.md` für den Prompt, der bei jedem Lauf ausgeführt wird, und
@@ -13,67 +13,81 @@ Läuft als wiederkehrende Routine (Trigger), nicht als einmaliger Task. Siehe
 
 Quelle ist **nicht** eine freie Ad-Library-Suche, sondern das bestehende Sheet
 [`Funnel Sheet`](https://docs.google.com/spreadsheets/d/1SkD7jrC-othtbwTYyz1VCK1HPIkEKHxc_hSAvRp2iL8/edit),
-Tabs `FI` (ab Zeile 52) und `FRCA` (ab Zeile 33):
+Tabs `FI` (ab Zeile 52) und `FRCA` (ab Zeile 33) — Spaltenbelegung an **beiden** Tabs
+verifiziert:
 
 - **Spalte D** (`Competitor URL / Content`) — Link zum Competitor-Funnel/-Artikel.
 - **Spalte G** (`new PR NAME`) — unser eigener Produktname, exakt inkl. ®/™.
+- **Spalte J** (`Bundle/deal offer`) — Preisstufen in Marktwährung (EUR für FI, CAD für FRCA).
 - **Spalte M** (`Competitor Ad Link/Drive Link`) — die eigentlichen Meta-Ad-Library-Links
   stehen hier **als Zell-Kommentar** (Kopf-Kommentar + alle Replies verschiedener
   Teammitglieder), nicht als Zellwert.
 
 Pro Zeile mit einem neuen/unverarbeiteten Kommentar-Thread:
 
-1. Alle Ad-Library-Permalinks aus dem Kommentar-Thread öffnen, Anzeige herunterladen
-   oder screenshotten (`scripts/fetch_ad_permalink.py`).
-2. Die Competitor-Funnel-Seite aus Spalte D screenshotten, um das Produktbild als
-   Referenz zu bekommen (`scripts/screenshot_page.py`) — das Foto bleibt visuell wie
-   beim Competitor, nur der Produktname wird auf Spalte G geändert.
-3. Lokalisieren über den echten, im Account aktivierten Skill **`image-ad-prompt-generator`**
-   (per `Skill`-Tool aufgerufen — `docs/skills/image-ad-prompt-generator.md` in diesem
-   Repo ist nur eine Referenz-Zusammenfassung/Fallback): Layout/Szene/Gesichter
-   beibehalten, Overlay-Text idiomatisch in die Zielsprache des Tabs übersetzen
-   (`FI` → Finnisch, `FRCA` → Quebec-Französisch), Produktname/-bild tauschen. Dieser
-   Skill wird **ausschließlich für Übersetzungen** genutzt, nie für
-   Varianten/Iterationen/New Concepts (das ist Sache der separaten, aktuell inaktiven
-   Foundation-Phase).
-4. Output (Batch-Prompt + Headline/Primary Text, ggf. Renders) in den Drive-Projektordner
+1. **Einmal pro Zeile** (nicht pro Ad!): Produktfoto von der Competitor-Funnel-Seite
+   (Spalte D) laden, per Higgsfield den Produktnamen darauf auf Spalte G ändern. Dieses
+   eine Bild wird für alle Ads dieser Zeile wiederverwendet.
+2. Für jede Ad aus dem M-Kommentar-Thread: über den echten, im Account aktivierten Skill
+   **`image-ad-prompt-generator`** (per `Skill`-Tool, nicht die lokale Doku-Kopie in
+   `docs/skills/`) lokalisieren — Layout/Szene/Gesichter beibehalten, Text idiomatisch in
+   die Zielsprache des Tabs übersetzen (`FI` → Finnisch, `FRCA` → Quebec-Französisch),
+   korrekten Preis aus Spalte J verwenden, das eine Produktbild aus Schritt 1 **nur**
+   einsetzen, wenn die Quell-Ad tatsächlich ein Produkt zeigt, sonst Ad visuell
+   unverändert lassen. Output exakt im Seitenverhältnis der Quell-Anzeige. Dieser Skill
+   ist ausschließlich für Übersetzungen da, nie für Varianten/Iterationen/New Concepts.
+3. Ergebnis (Bilder + übersetzte Headline/Primary Text) in den Drive-Projektordner
    ablegen.
 
 Details und Randfälle: `docs/workflow.md`.
 
-## Offene Annahme
+## Bekannte Einschränkung: Meta Ad Library nicht erreichbar
 
-Die Spaltenbelegung (D/G/M) wurde am `FRCA`-Tab verifiziert (inkl. Kommentar-Anker
-`FRCA!M33` etc.). Der `FI`-Tab wird als strukturell identisch angenommen (laut Sheet
-selbst per Kommentar aus einer "FRCA Template" hervorgegangen) — bitte kurz
-gegenchecken und melden, falls die Spalten dort abweichen.
+In der Sandbox, in der diese Automatisierung läuft, ist `facebook.com` durch die
+Netzwerk-Policy blockiert (403 direkt vom Proxy — bestätigt, kein Retry-Fall). Die
+Competitor-Funnel-Domains (Spalte D) sind dagegen normal per `curl` erreichbar.
+Zusätzlich funktioniert Playwright/Chromium in dieser Sandbox unabhängig davon bei
+**jeder** HTTPS-Seite nicht (Connection Reset über den Proxy) — deshalb holt die
+Pipeline Produktbilder per `curl` + HTML-Parsing statt per Screenshot.
 
-## Status: Trigger ist aktiv
+**Praktische Konsequenz:** Ein Lauf, der die Ad-Library-Permalinks aus Spalte M nicht
+öffnen kann, muss den Nutzer aktiv um die direkten Bild-/Video-URLs der betroffenen Ads
+bitten — nicht stumm überspringen oder wiederholt versuchen. Details:
+`config/automation.config.json` → `network_access`.
 
-Die Config (`config/automation.config.json`) ist vollständig ausgefüllt (Sheet-ID,
-Spalten, Start-Zeilen, Zielsprachen, Cadence = täglich). Der wiederkehrende Trigger
-(`trig_01JiUEtPumdHwdzDawU7X1LD`, "image-automation: Competitor Ad Localization (Funnel
-Sheet)") läuft täglich um 07:40 UTC und feuert in diese Chat-Session zurück
-(`persistent_session_id: session_01F8Bw6DQR4mk9S5WZHAcPZH`). Ändert sich der Prompt in
-`automation/trigger-prompt.md`, muss der Trigger neu angelegt werden (der Prompt-Text
-lässt sich über `update_trigger` nicht nachträglich ändern, nur Name/Cadence/Enabled).
+## Status: Trigger ist aktiv, echter Testlauf teilweise durchgeführt
+
+Trigger `trig_013rHHhQkPL2Zfrne2M3xkaY` ("image-automation: Competitor Ad Localization
+(Funnel Sheet)") läuft **täglich um 6:00 Uhr Lisbon-Zeit** (Cron `0 5 * * *` UTC —
+Annahme: Sommerzeit/DST, im Winterhalbjahr ggf. auf `0 6 * * *` per `update_trigger`
+nachjustieren) und feuert in diese Chat-Session zurück
+(`persistent_session_id: session_01F8Bw6DQR4mk9S5WZHAcPZH`).
+
+**Test durchgeführt mit dem letzten FI-Produkt (Zeile 52: Competitor "variclex" →
+unser Produkt "vanix"):**
+- Produktbild von `sunuris.com` (Spalte D) per curl geladen (1080×1080 PNG,
+  "VariClex™ Solo Product Image").
+- Per Higgsfield (`nano_banana_pro`/`nano_banana_2`, 2 Credits) einmalig auf
+  "vanix" umbenannt — funktioniert.
+- Die 3 Ad-Library-Links aus dem M-Kommentar dieser Zeile konnten **nicht** geöffnet
+  werden (facebook.com blockiert). Die eigentliche Ad-Übersetzung (Schritt 2 oben)
+  steht daher noch aus.
 
 Die Foundation-Phase (`docs/skills/foundation-to-higgsfield.md`, wöchentliche
 48+12-Konzept-Produktion) ist bewusst noch nicht aktiv (`foundation_phase.mode:
-"translation_only"`) — dafür fehlen noch die Foundation-Dokumente pro Produkt. Kann
-später ergänzt werden, ohne die Kernübersetzung anzufassen.
+"translation_only"`).
 
 ## Ordnerstruktur
 
 ```
-config/automation.config.json      Sheet-ID, Spalten, Tabs/Start-Zeilen, Cadence, Foundation-Modus
-docs/skills/image-ad-prompt-generator.md   Regeln für Translation Mode (1:1 übernommen)
+config/automation.config.json      Sheet-ID, Spalten, Tabs/Start-Zeilen, Cadence, network_access, Foundation-Modus
+docs/skills/image-ad-prompt-generator.md   Referenz-Zusammenfassung (Fallback) für den echten Account-Skill
 docs/skills/foundation-to-higgsfield.md    Regeln für Foundation-Dokumente + wöchentliche Higgsfield-Produktion
 docs/workflow.md                   Master-Playbook: die 8 Schritte im Detail, inkl. Tool-Zuordnung
 automation/trigger-prompt.md       Der Prompt-Text, den die Routine bei jedem Lauf bekommt
-scripts/fetch_ad_permalink.py      Öffnet einen bekannten Ad-Library-Permalink, lädt Creative herunter oder screenshottet
-scripts/screenshot_page.py         Screenshottet eine beliebige URL (Competitor-Funnel) + versucht das Hero-/Produktbild zu isolieren
-scripts/scrape_ad_library.py       Optional: freie Ad-Library-Suche nach Suchbegriff (nicht Teil des Kern-Workflows, nützlich für manuelle Recherche)
+scripts/fetch_ad_permalink.py      Öffnet einen bekannten Ad-Library-Permalink (funktioniert aktuell NICHT in dieser Sandbox, siehe oben)
+scripts/screenshot_page.py         Playwright-Screenshot einer beliebigen URL (funktioniert aktuell NICHT in dieser Sandbox, siehe oben)
+scripts/scrape_ad_library.py       Optional: freie Ad-Library-Suche nach Suchbegriff (nicht Teil des Kern-Workflows)
 ```
 
 ## Google Drive — Ablage
@@ -89,35 +103,23 @@ Unterordner an und rührt `State/`, `Funnel-PDFs/`, `QA-Reports/` nicht an:
 ```
 <market_code>/                     FI oder FRCA
   State/processed_comments.json    Fingerprints bereits verarbeiteter Kommentar-Threads
-  translated-ads/<product_name>/   Batch-Prompt + Headline/Primary Text, pro Lauf-Datum
-  renders/<product_name>/          Generierte Bilder, falls Higgsfield-MCP verfügbar
+  translated-ads/<product_name>/   Übersetzte Headline/Primary Text, pro Lauf-Datum
+  renders/<product_name>/          Generierte Bilder (ein Produktbild + je ein Bild pro Ad)
   higgsfield-json/                 (nur wenn foundation_phase.mode aktiviert ist)
 ```
 
-## Meta Ad Library — Zugriff auf bekannte Permalinks
-
-Kein Login nötig, aber die Seite ist eine JS-SPA — ein einfacher HTTP-Fetch liefert keine
-Ad-Daten. `scripts/fetch_ad_permalink.py` nutzt das im Environment vorinstallierte
-Playwright/Chromium, öffnet den konkreten, aus dem Sheet-Kommentar bekannten Permalink
-und lädt die Anzeige herunter oder screenshottet sie als Fallback.
-
-**Caveat:** Die CSS-Selektoren (`div[role='article']` etc.) basieren auf dem aktuell
-öffentlich sichtbaren Markup der Ad Library und können nach einem Meta-Redesign brechen
-— das Skript screenshottet in diesem Fall die ganze Seite als Fallback, damit der Lauf
-trotzdem etwas Verwertbares liefert, statt still zu scheitern.
-
 ## Higgsfield
 
-Falls der Higgsfield-MCP-Server in der ausführenden Session verfügbar ist, rendert die
-Routine die erzeugten Prompts direkt (`generate_image`, Model z.B. `nano_banana_pro`,
-Referenzbilder über `media_upload`/`media_import_url`). Ist kein Higgsfield-MCP
-verfügbar, werden nur die Prompt-Texte erzeugt und in Drive abgelegt.
+Verbindung bestätigt und funktionsfähig (Account-Guthaben abgefragt: 260 Credits,
+Starter-Plan, Testbild kostete 2 Credits). `generate_image` mit Model `nano_banana_pro`
+für Produktbild-Rename und Ad-Übersetzung, Referenzbilder über `media_upload`.
 
 ## Verbleibende Punkte für den Nutzer
 
-1. Kurz gegenchecken, ob der `FI`-Tab im Funnel Sheet dieselbe Spaltenbelegung hat wie
-   `FRCA` (siehe "Offene Annahme" oben).
-2. Ersten Lauf (heute 07:40 UTC oder morgen) beobachten: Drive-Projektordner + ggf.
-   Chat-Nachricht in dieser Session prüfen.
-3. Bei Bedarf Cadence/Config anpassen (`update_trigger` für Name/Cron/Enabled,
-   `config/automation.config.json` committen + pushen für alles andere).
+1. **Direkte Bild-/Video-URLs für die 3 FI-Zeile-52-Ads schicken** (da facebook.com in
+   dieser Sandbox blockiert ist):
+   - https://www.facebook.com/ads/library/?id=1692362565352629
+   - https://www.facebook.com/ads/library/?id=1045373708000500
+   - https://www.facebook.com/ads/library/?id=1013522821077275
+2. Bei Bedarf Cadence prüfen/anpassen (aktuell angenommen: Lisbon-Zeit, Sommerzeit).
+3. Ersten automatischen Lauf (morgen 05:00 UTC) beobachten.

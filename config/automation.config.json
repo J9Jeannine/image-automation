@@ -8,7 +8,8 @@
       "competitor_url": "D",
       "product_name": "G",
       "ad_library_links_comment_column": "M",
-      "note": "Spaltenbelegung verifiziert anhand des FRCA-Tabs (D = 'Competitor URL / Content', G = 'new PR NAME' = unser Produktname, M = 'Competitor Ad Link/Drive Link' -- die eigentlichen Meta-Ad-Library-Links haengen als Kommentar-Thread an der M-Zelle, inkl. Antworten anderer Teammitglieder. FI-Tab wird strukturell identisch angenommen (gleiche Vorlage, siehe Kommentar 'import FRCA Template') -- bei Abweichungen bitte korrigieren."
+      "price_column": "J",
+      "note": "Spaltenbelegung verifiziert an BEIDEN Tabs (FRCA per Drive-Kommentar-API, FI per XLSX-Export/openpyxl, da das Drive-Tool nur den FRCA-Tab zurueckgab): D = 'Competitor URL / Content', G = 'new PR NAME' = unser Produktname, J = 'Bundle/deal offer' = Preisstufen (EUR fuer FI, CAD fuer FRCA), M = 'Competitor Ad Link/Drive Link' -- die eigentlichen Meta-Ad-Library-Links haengen als Kommentar-Thread an der M-Zelle, inkl. Antworten anderer Teammitglieder. FI-Tab bestaetigt strukturell identisch zu FRCA (getestet an Zeile 52: variclex -> vanix)."
     },
     "tabs": {
       "FI": {
@@ -27,14 +28,19 @@
   },
 
   "product_image_source": {
-    "mode": "competitor_funnel_screenshot",
-    "note": "Das Produktbild fuer den Bild-Swap wird per Screenshot von der Competitor-Funnel-Seite (Spalte D) entnommen -- NICHT aus Shopify oder einer separaten Drive-Bilddatenbank. Der Produktname aus Spalte G wird anschliessend auf dieses Bild aufgebracht (Name-Swap), das Produktfoto selbst bleibt visuell wie beim Competitor."
+    "mode": "competitor_funnel_photo_once_per_row",
+    "note": "Das Produktbild wird EINMAL PRO ZEILE/PRODUKT erzeugt (nicht pro Ad!): das groesste Produktfoto von der Competitor-Funnel-Seite (Spalte D) wird per curl heruntergeladen (kein Playwright noetig -- siehe network_access.note) und per Higgsfield EINMAL umbenannt (Produktname -> Spalte G, Rest visuell identisch zum Competitor-Foto). Dieses eine Bild wird danach fuer ALLE Ads dieser Zeile wiederverwendet -- nur bei Ads, die tatsaechlich ein Produkt zeigen, und nur dort eingesetzt."
+  },
+
+  "network_access": {
+    "facebook_ad_library_blocked": true,
+    "note": "In der Sandbox dieser Session ist facebook.com durch die Netzwerk-Policy blockiert (403 vom Proxy, bestaetigt und nicht erneut zu versuchen). Competitor-Funnel-Domains (Spalte D) sind dagegen per curl erreichbar. Playwright/Chromium schlaegt in dieser Sandbox unabhaengig davon bei JEDER HTTPS-Seite mit ERR_CONNECTION_RESET fehl (Proxy-Inkompatibilitaet mit dem Browser-Prozess) -- Produktbilder werden daher per curl+HTML-Parsing geholt, nicht per Screenshot. Fuer die Ad-Library-Permalinks selbst gibt es aktuell keinen Workaround: falls ein Lauf sie nicht oeffnen kann, muss er den Nutzer um die direkten Bild-/Video-URLs bitten, statt es stumm zu ueberspringen oder zu wiederholen."
   },
 
   "cadence": {
     "mode": "daily_check_new_comments_only",
-    "cron": "40 7 * * *",
-    "note": "Taeglich pruefen, ob in Spalte M neue/unverarbeitete Kommentar-Threads existieren (FI ab Zeile 52, FRCA ab Zeile 33). Nur Zeilen mit neuem Kommentar-Inhalt (siehe State-Datei) werden verarbeitet -- kein Spam, wenn nichts Neues da ist."
+    "cron": "0 5 * * *",
+    "note": "Taeglich um 6:00 Uhr Lisbon-Zeit pruefen (Cron laeuft in UTC; 6:00 Lisbon = 05:00 UTC waehrend Sommerzeit/DST -- im Winter waere es 06:00 UTC, Cron passt sich NICHT automatisch an DST an, ggf. im Oktober/Maerz per update_trigger nachjustieren). Prueft, ob in Spalte M neue/unverarbeitete Kommentar-Threads existieren (FI ab Zeile 52, FRCA ab Zeile 33). Nur Zeilen mit neuem Kommentar-Inhalt (siehe State-Datei) werden verarbeitet -- kein Spam, wenn nichts Neues da ist."
   },
 
   "foundation_phase": {

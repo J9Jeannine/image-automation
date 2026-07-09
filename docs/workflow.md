@@ -40,30 +40,43 @@ Datenquelle ist **kein** freies Ad-Library-Suchergebnis, sondern das bestehende
    - Spalte `sheet.columns.competitor_url` (D) — Competitor-Funnel-/Artikel-Link.
    - Spalte `sheet.columns.product_name` (G) — unser Produktname ("new PR NAME"),
      **exakt wie im Sheet geschrieben** (inkl. ®/™).
+   - Spalte `sheet.columns.price_column` (J, "Bundle/deal offer") — die korrekte(n)
+     Preisstufe(n) in der Marktwährung (EUR für FI, CAD für FRCA). Fließt in die
+     übersetzte Ad-Copy ein, wo der Preis genannt wird.
 
-## Schritt 3 — Produktbild besorgen (Competitor-Funnel-Screenshot)
+## Schritt 3 — EIN Produktbild pro Zeile/Produkt erzeugen (nicht pro Ad!)
 
-Für jede zu verarbeitende Zeile:
+**Wichtig:** Dieser Schritt läuft genau **einmal pro Zeile/Produkt**, nicht einmal pro
+Ad. Das Ergebnis (ein Bild) wird in Schritt 5 für alle Ads dieser Zeile wiederverwendet
+— es wird nie neu generiert, nur referenziert.
 
-1. `python3 scripts/screenshot_page.py --url "<Competitor-URL aus Spalte D>" --out
-   <tmp>/<row>-product.png` ausführen — screenshottet die Funnel-/Artikelseite des
-   Competitors. Enthält die Seite mehrere Bilder, das Hero-/Produktbild bevorzugen
-   (größtes Bild oberhalb des Falzes).
-2. Dieses Bild ist die Referenz für den Produktbild-Swap in Schritt 5 — visuell bleibt
-   es wie beim Competitor, nur der Produktname wird auf `product_name` (Spalte G)
-   geändert (siehe `docs/skills/image-ad-prompt-generator.md`).
+1. Competitor-Funnel-Seite aus Spalte D per `curl` herunterladen (kein Playwright/Browser
+   nötig — in dieser Sandbox funktioniert Chromium über den Proxy ohnehin nicht
+   zuverlässig für HTTPS, siehe Caveat in der README) und das größte/Produkt-Bild aus dem
+   HTML extrahieren (z. B. per Bildgrößen-Query-Parameter die volle Auflösung anfordern,
+   nicht die Thumbnail-Variante).
+2. Dieses Competitor-Produktfoto **einmalig** per `Higgsfield.generate_image` bearbeiten:
+   Produktform/-design/Farben/Licht/Winkel exakt beibehalten, nur den sichtbaren
+   Produktnamen durch `product_name` (Spalte G) ersetzen (inkl. ®/™-Handling).
+3. Das Ergebnis ist DAS Produktbild-Asset für diese Zeile — merken (media_id/Job-ID) für
+   Schritt 5. Bei mehreren Ads derselben Zeile wird dieses eine Bild wiederverwendet,
+   nicht neu erzeugt.
 
-## Schritt 4 — Ad-Links öffnen, herunterladen/screenshotten
+## Schritt 4 — Ad-Links öffnen
 
-Für jeden in Schritt 2 gesammelten Ad-Library-Permalink:
+Für jeden in Schritt 2 gesammelten Ad-Library-Permalink (Anzahl variiert pro Zeile — so
+viele wie im Kommentar-Thread stehen, kein fester Wert):
 
-1. `python3 scripts/fetch_ad_permalink.py --url "<permalink>" --out <tmp>/<ad_id>`
-   ausführen. Das Skript öffnet die Ad-Detailseite (Playwright), versucht die
-   Bild-/Video-URL direkt zu extrahieren und herunterzuladen; gelingt das nicht
-   (abgelaufene signierte URL, Video-Player ohne direkten Src, etc.), macht es
-   stattdessen einen Screenshot der Anzeige.
-2. Ergebnis: pro Ad ein lokales Bild (Download oder Screenshot) plus, falls auf der
-   Detailseite sichtbar, Headline/Primary Text der Anzeige.
+1. Versuchen, den Permalink zu öffnen und die Anzeige (Bild/Video) herunterzuladen.
+2. **Bekannte Einschränkung:** In der aktuellen Sandbox ist `facebook.com` durch die
+   Netzwerk-Policy blockiert (403 vom Proxy) — das ist keine transiente Störung, die man
+   erneut versuchen sollte. Schlägt der Zugriff fehl: **den Nutzer aktiv fragen**, ob er
+   die direkte Bild-/Video-URL (oder die Anzeige als Screenshot) für die betroffenen
+   Permalinks schicken kann, statt den Lauf stumm abzubrechen oder es wiederholt zu
+   versuchen.
+3. Ergebnis: pro Ad ein lokales Bild (Download, vom Nutzer zugeschickt, oder — falls die
+   Sandbox das in einem späteren Lauf zulässt — Screenshot) plus, falls erkennbar,
+   Headline/Primary Text der Anzeige.
 
 ## Schritt 5 — Übersetzung/Lokalisierung (Translation Mode)
 
@@ -72,22 +85,32 @@ Für jeden in Schritt 2 gesammelten Ad-Library-Permalink:
 nur eine Referenz-Zusammenfassung für den Fall, dass der Skill in der ausführenden
 Session einmal nicht geladen ist.
 
-1. Den `Skill`-Tool mit `skill: "image-ad-prompt-generator"` aufrufen (steht der
+Für **jede einzelne Ad** aus Schritt 4 (nicht gebündelt):
+
+1. Prüfen, ob die Quell-Anzeige überhaupt ein Produkt zeigt.
+   - **Zeigt sie ein Produkt:** das EINE Produktbild-Asset aus Schritt 3 (wiederverwendet,
+     nicht neu erzeugt) als Referenz einsetzen — Maßstab/Winkel/Licht an die Ad-Szene
+     anpassen.
+   - **Zeigt sie kein Produkt:** die Anzeige visuell unverändert lassen, nur den Text
+     übersetzen.
+2. Den `Skill`-Tool mit `skill: "image-ad-prompt-generator"` aufrufen (steht der
    ausführenden Session zur Verfügung, da der Trigger in die reguläre Chat-Session
-   zurückspielt) und dabei übergeben: Quell-Ad-Referenzen aus Schritt 4,
-   Produktbild-Referenz aus Schritt 3, exakter Produktname aus Spalte G, Zielsprache aus
-   dem Tab (`FI` → Finnisch, `FRCA` → Quebec-Französisch, siehe `sheet.tabs.*.language`).
-2. Ist der Skill in der Session ausnahmsweise nicht auffindbar: ersatzweise nach den
+   zurückspielt) und dabei übergeben: die eine Quell-Ad-Referenz, ggf. die
+   Produktbild-Referenz aus Schritt 3 (nur wenn Produkt vorhanden), exakter Produktname
+   aus Spalte G, korrekter Preis aus Spalte J, Zielsprache aus dem Tab (`FI` → Finnisch,
+   `FRCA` → Quebec-Französisch, siehe `sheet.tabs.*.language`).
+3. Ist der Skill in der Session ausnahmsweise nicht auffindbar: ersatzweise nach den
    Regeln in `docs/skills/image-ad-prompt-generator.md` selbst vorgehen und das im
    Abschlussbericht (Schritt 8) vermerken.
-3. **Wichtig:** Dieser Skill wird ausschließlich für Übersetzungen (diese Zeile)
-   verwendet — niemals für Varianten/Iterationen/New Concepts. Das ist Aufgabe der
-   separaten, aktuell inaktiven Foundation-Phase (Schritt 6,
-   `docs/skills/foundation-to-higgsfield.md`), die einen anderen Skill/Ablauf nutzt.
-4. Output (Batch-Prompt, gemeinsame übersetzte Headline + Primary Text) als Markdown nach
+4. **Wichtig:** Dieser Skill wird ausschließlich für Übersetzungen (diese Ads) verwendet
+   — niemals für Varianten/Iterationen/New Concepts. Das ist Aufgabe der separaten,
+   aktuell inaktiven Foundation-Phase (Schritt 6, `docs/skills/foundation-to-higgsfield.md`),
+   die einen anderen Skill/Ablauf nutzt. Pro Ad wird **genau ein** Ergebnisbild erzeugt,
+   nicht mehrere Varianten.
+5. Output (übersetzte Headline + Primary Text inkl. korrektem Preis, Liste der
+   verarbeiteten Ad-Permalinks) als Markdown nach
    `<Projektordner>/<market_code>/translated-ads/<product_name>/<Lauf-Datum>.md`
-   schreiben (`Google_Drive.create_file`, `contentMimeType: text/markdown`), inkl.
-   Liste der verarbeiteten Ad-Permalinks.
+   schreiben (`Google_Drive.create_file`, `contentMimeType: text/markdown`).
 
 ## Schritt 6 — Foundation-Phase (optional, aktuell inaktiv)
 
@@ -95,15 +118,18 @@ Nur wenn `foundation_phase.mode` ungleich `translation_only`. Regeln:
 `docs/skills/foundation-to-higgsfield.md`. Aktuell nicht konfiguriert (keine
 Foundation-Dokumente hinterlegt) — Schritt wird übersprungen.
 
-## Schritt 7 — Rendering
+## Schritt 7 — Rendering-Output
 
-1. Prüfen, ob ein `Higgsfield`-MCP-Tool in der Session verfügbar ist (`ToolSearch`).
-2. Falls ja: für jeden Batch-Prompt aus Schritt 5 `Higgsfield.generate_image` aufrufen
-   (Referenzbilder vorher per `Higgsfield.media_upload`/`media_import_url` aus den in
-   Schritt 3/4 erzeugten lokalen Dateien hochladen). Ergebnisse inline zeigen und in
-   `<Projektordner>/<market_code>/renders/<product_name>/` als Referenz-Link
-   dokumentieren.
-3. Falls kein Higgsfield-MCP verfügbar: nur die Prompt-Texte ausgeben, Rendering
+Die eigentliche Higgsfield-Generierung passiert bereits in Schritt 5 (ein Call pro Ad,
+über den `image-ad-prompt-generator`-Skill). Dieser Schritt betrifft nur die Ablage:
+
+1. **Seitenverhältnis:** Jedes generierte Bild muss exakt das Seitenverhältnis/die Maße
+   der jeweiligen Quell-Anzeige haben (z. B. `1:1`, `4:5`, `9:16` — je nachdem, wie die
+   Ad in der Ad Library aussieht), nicht ein Standard-Format. Vor dem Higgsfield-Call die
+   Maße der Quell-Anzeige bestimmen und als `aspect_ratio` übergeben.
+2. Ergebnisse inline zeigen und in `<Projektordner>/<market_code>/renders/<product_name>/`
+   ablegen (Dateiname nach Ad-Permalink/ID).
+3. Ist kein Higgsfield-MCP verfügbar: nur die Prompt-Texte ausgeben, Rendering
    überspringen.
 
 ## Schritt 8 — Ablage & Abschluss
