@@ -67,19 +67,27 @@ Ad. Das Ergebnis (ein Bild) wird in Schritt 5 für alle Ads dieser Zeile wiederv
 Für jeden in Schritt 2 gesammelten Ad-Library-Permalink (Anzahl variiert pro Zeile — so
 viele wie im Kommentar-Thread stehen, kein fester Wert):
 
-1. Versuchen, den Permalink (`facebook.com/ads/library/?id=...`) direkt per curl zu
-   öffnen.
-2. **Bekannte Einschränkung:** `facebook.com` selbst ist in dieser Sandbox durch die
+1. **Zuerst prüfen, ob im M-Kommentar-Thread selbst schon eine direkte
+   `fbcdn.net`-Bild-/Video-URL als Reply steht** (der Nutzer kann jederzeit auf den
+   Kommentar mit dem direkten Link antworten — das ist der Standardweg, kein Sonderfall).
+   Falls ja: direkt per curl herunterladen, fertig.
+2. Steht nur der `facebook.com/ads/library/?id=...`-Permalink da (noch keine
+   fbcdn.net-Reply): versuchen, ihn per curl zu öffnen.
+3. **Bekannte Einschränkung:** `facebook.com` selbst ist in dieser Sandbox durch die
    Netzwerk-Policy blockiert (403 vom Proxy) — das betrifft nur die Permalink-**Seite**.
    Das dahinterliegende Bild-/Video-CDN (`scontent.*.fbcdn.net`) ist normal per curl
-   erreichbar (bestätigt: 600×600-JPEG erfolgreich geladen). Der Permalink lässt sich in
-   dieser Sandbox nur nicht zur fbcdn.net-URL auflösen, weil genau das ein Laden der
+   erreichbar (bestätigt: mehrere echte Downloads erfolgreich). Der Permalink lässt sich
+   in dieser Sandbox nur nicht zur fbcdn.net-URL auflösen, weil genau das ein Laden der
    blockierten Seite erfordern würde.
-3. Schlägt Schritt 1 fehl: **den Nutzer aktiv fragen**, ob er die direkte fbcdn.net-Bild-
-   /Video-URL zu diesem Permalink schicken kann (Browser: Rechtsklick auf die Anzeige →
+4. Schlägt Schritt 2 fehl: **den Nutzer aktiv fragen** (oder darauf hinweisen, dass er
+   direkt im Sheet-Kommentar antworten kann), ob er die direkte fbcdn.net-Bild-/Video-URL
+   zu diesem Permalink schicken kann (Browser: Rechtsklick auf die Anzeige →
    "Bildadresse kopieren"), statt den Lauf stumm abzubrechen oder es wiederholt zu
-   versuchen. Sobald die direkte URL vorliegt, per curl herunterladen — funktioniert
-   zuverlässig.
+   versuchen.
+5. **Dedup-Check:** Vor jeder Higgsfield-Generierung den MD5/Hash der heruntergeladenen
+   Ad-Bilder innerhalb derselben Zeile vergleichen. Sind zwei Ad-Links bildidentisch
+   (kommt vor — Meta zeigt dieselbe Creative unter mehreren Ad-IDs), nur einmal
+   generieren und das Ergebnis für beide verwenden, nicht doppelt rendern.
 4. Ergebnis: pro Ad ein lokales Bild (per curl heruntergeladen) plus, falls erkennbar,
    Headline/Primary Text der Anzeige.
 
@@ -132,8 +140,14 @@ Die eigentliche Higgsfield-Generierung passiert bereits in Schritt 5 (ein Call p
    der jeweiligen Quell-Anzeige haben (z. B. `1:1`, `4:5`, `9:16` — je nachdem, wie die
    Ad in der Ad Library aussieht), nicht ein Standard-Format. Vor dem Higgsfield-Call die
    Maße der Quell-Anzeige bestimmen und als `aspect_ratio` übergeben.
-2. Ergebnisse inline zeigen und in `<Projektordner>/<market_code>/renders/<product_name>/`
-   ablegen (Dateiname nach Ad-Permalink/ID).
+2. Ergebnisse inline zeigen. **Bekannte Einschränkung:** Das Drive-Tool kann Bilder nur
+   per Base64 durch den eigenen Kontext hochladen — bei generierten Bildern (~1 MB) ist
+   das nicht praktikabel (Größenlimit weit unterhalb dessen, was eine brauchbare
+   Bildqualität erlaubt). Deshalb: pro Zeile/Produkt/Lauf-Datum ein Markdown-Dokument in
+   `<Projektordner>/<market_code>/renders/<product_name>/` ablegen, das die
+   Higgsfield-Ergebnis-URLs (CDN-Links, langlebig) plus die übersetzte Ad-Copy enthält —
+   keine Bild-Binärdateien direkt duplizieren, außer eine praktikable Upload-Methode wird
+   gefunden.
 3. Ist kein Higgsfield-MCP verfügbar: nur die Prompt-Texte ausgeben, Rendering
    überspringen.
 

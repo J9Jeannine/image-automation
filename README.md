@@ -53,12 +53,20 @@ Playwright/Chromium in dieser Sandbox unabhängig davon bei **jeder** HTTPS-Seit
 (Connection Reset über den Proxy) — deshalb holt die Pipeline Bilder ausschließlich per
 `curl`, nie per Screenshot.
 
-**Praktische Konsequenz:** Ein Lauf, der einen Permalink nicht auflösen kann, muss den
-Nutzer aktiv um die direkte fbcdn.net-Bild-/Video-URL bitten (Browser: Rechtsklick auf
-die Anzeige → "Bildadresse kopieren") — nicht stumm überspringen oder wiederholt
-versuchen. Details: `config/automation.config.json` → `network_access`.
+**Praktische Konsequenz — und Standardweg:** Der Nutzer kann direkt im
+Sheet-Kommentar-Thread (Spalte M) mit der fbcdn.net-Bild-/Video-URL antworten (Browser:
+Rechtsklick auf die Anzeige → "Bildadresse kopieren") — das wird beim normalen
+Comment-Read ohnehin mitgelesen (Replies gehören zum Thread). Steht noch keine
+fbcdn.net-URL im Thread und der Permalink lässt sich nicht auflösen: aktiv danach fragen,
+nicht stumm überspringen oder wiederholt versuchen. Details:
+`config/automation.config.json` → `network_access`.
 
-## Status: Trigger ist aktiv, erster End-to-End-Testlauf erfolgreich
+**Weitere bekannte Einschränkung:** Das Drive-Tool kann Dateien nur per Base64 durch den
+Modell-Kontext hochladen — bei ~1 MB großen generierten Bildern ist das nicht
+praktikabel. Ergebnisse werden daher als Markdown-Dokument mit Higgsfield-CDN-Links
+(langlebig) + übersetzter Ad-Copy abgelegt, nicht als direktes Bild-Duplikat in Drive.
+
+## Status: Trigger ist aktiv, erster End-to-End-Testlauf erfolgreich abgeschlossen
 
 Trigger `trig_013rHHhQkPL2Zfrne2M3xkaY` ("image-automation: Competitor Ad Localization
 (Funnel Sheet)") läuft **täglich um 6:00 Uhr Lisbon-Zeit** (Cron `0 5 * * *` UTC —
@@ -67,16 +75,18 @@ nachjustieren) und feuert in diese Chat-Session zurück
 (`persistent_session_id: session_01F8Bw6DQR4mk9S5WZHAcPZH`).
 
 **Test durchgeführt mit dem letzten FI-Produkt (Zeile 52: Competitor "variclex" →
-unser Produkt "vanix"):**
+unser Produkt "vanix"), alle 3 Ads aus dem M-Kommentar abgeschlossen:**
 - Produktbild von `sunuris.com` (Spalte D) per curl geladen (1080×1080 PNG,
   "VariClex™ Solo Product Image"), per Higgsfield einmalig auf "vanix" umbenannt
-  (2 Credits) — funktioniert, wird für alle Ads dieser Zeile wiederverwendet.
-- Erste Ad aus dem M-Kommentar dieser Zeile (`?id=1692362565352629`) über die vom
-  Nutzer geschickte fbcdn.net-URL geladen und erfolgreich ins Finnische übersetzt:
-  Layout/Beinfoto/Farbverlauf/Icons beibehalten, Text idiomatisch übersetzt, Markenname
-  "VariClex™" → "vanix" (kein Produkt im Bild, daher kein Produktbild eingesetzt).
-  Ergebnis in `renders/vanix/` in Drive, sobald der Projektordner existiert.
-- Verbleibende 2 Ads dieser Zeile: noch ausstehend (fbcdn.net-URLs vom Nutzer nötig).
+  (2 Credits) — wird für alle Ads dieser Zeile wiederverwendet (aber in diesem Test
+  nicht gebraucht, da keine der 3 Ads ein Produktfoto zeigte).
+- Ad 1 (`?id=1692362565352629`) und Ad 2 (`?id=1045373708000500`) sind bildidentisch
+  (gleicher MD5-Hash) — nur einmal generiert, Dedup-Check funktioniert.
+- Ad 1/2 (Beinfoto, Krampfadern) und Ad 3 (3-Panel-Infografik) erfolgreich ins
+  Finnische übersetzt: Layout/Farben/Icons beibehalten, Text idiomatisch übersetzt,
+  Markenname "VariClex™" → "vanix" wo vorhanden.
+- Ergebnis-Dokument in Drive: `Translated-Ads/FI/vanix/2026-07-09-vanix-fi` (Google Doc
+  mit CDN-Links + Ad-Copy, siehe Ordnerstruktur unten).
 
 Die Foundation-Phase (`docs/skills/foundation-to-higgsfield.md`, wöchentliche
 48+12-Konzept-Produktion) ist bewusst noch nicht aktiv (`foundation_phase.mode:
@@ -102,16 +112,20 @@ Basis-Ordner (vom Nutzer vorgegeben):
 
 **Wichtiger Hinweis:** Dieser Ordner wird bereits von einer anderen, unabhängigen
 Automatisierung genutzt ("Claude Cowork Automation" — FI & FRCA Funnel/Ads Monitor,
-Winning Products Ads Monitor, Daily SLA Check). Diese Pipeline legt eigene
-Unterordner an und rührt `State/`, `Funnel-PDFs/`, `QA-Reports/` nicht an:
+Winning Products Ads Monitor, Daily SLA Check). Diese Pipeline legt einen eigenen
+Unterordner an und rührt `State/`, `Funnel-PDFs/`, `QA-Reports/` nicht an. Tatsächlich
+angelegte Struktur (Stand jetzt):
 
 ```
-<market_code>/                     FI oder FRCA
-  State/processed_comments.json    Fingerprints bereits verarbeiteter Kommentar-Threads
-  translated-ads/<product_name>/   Übersetzte Headline/Primary Text, pro Lauf-Datum
-  renders/<product_name>/          Generierte Bilder (ein Produktbild + je ein Bild pro Ad)
-  higgsfield-json/                 (nur wenn foundation_phase.mode aktiviert ist)
+Translated-Ads/                    (id: 1JWHztpl2Z6mE9WtcRTObRgwBRp1OsHCb)
+  FI/                               (id: 1Ey4aVRrpzrzolETnzKVxVCZQGZjm0P5K)
+    vanix/                          (id: 1TwCfnOts6cXmiLJFCLbsPNW4HkTlQKaJ)
+      2026-07-09-vanix-fi           Google Doc: CDN-Links + übersetzte Ad-Copy
+  FRCA/                             (id: 1ZeW7nKHrCMNOBH6jIKZrzNYjJWXPvQDW, noch leer)
 ```
+
+Geplant (noch nicht umgesetzt): `State/processed_comments.json` je Markt für
+Kommentar-Fingerprints, analog zur bestehenden Struktur.
 
 ## Higgsfield
 
@@ -121,10 +135,9 @@ für Produktbild-Rename und Ad-Übersetzung, Referenzbilder über `media_upload`
 
 ## Verbleibende Punkte für den Nutzer
 
-1. **Direkte Bild-/Video-URLs für die 3 FI-Zeile-52-Ads schicken** (da facebook.com in
-   dieser Sandbox blockiert ist):
-   - https://www.facebook.com/ads/library/?id=1692362565352629
-   - https://www.facebook.com/ads/library/?id=1045373708000500
-   - https://www.facebook.com/ads/library/?id=1013522821077275
+1. FI-Zeile-52-Testlauf ist komplett (alle 3 Ads verarbeitet). Für zukünftige Zeilen:
+   fbcdn.net-Links wie gehabt direkt als Reply auf den M-Kommentar posten.
 2. Bei Bedarf Cadence prüfen/anpassen (aktuell angenommen: Lisbon-Zeit, Sommerzeit).
 3. Ersten automatischen Lauf (morgen 05:00 UTC) beobachten.
+4. Falls die Bilddateien selbst (nicht nur CDN-Links) in Drive liegen sollen: Bescheid
+   geben, dann wird nach einer alternativen Upload-Methode gesucht.
