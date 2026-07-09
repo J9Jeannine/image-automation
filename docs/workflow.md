@@ -67,15 +67,20 @@ Ad. Das Ergebnis (ein Bild) wird in Schritt 5 für alle Ads dieser Zeile wiederv
 Für jeden in Schritt 2 gesammelten Ad-Library-Permalink (Anzahl variiert pro Zeile — so
 viele wie im Kommentar-Thread stehen, kein fester Wert):
 
-1. Versuchen, den Permalink zu öffnen und die Anzeige (Bild/Video) herunterzuladen.
-2. **Bekannte Einschränkung:** In der aktuellen Sandbox ist `facebook.com` durch die
-   Netzwerk-Policy blockiert (403 vom Proxy) — das ist keine transiente Störung, die man
-   erneut versuchen sollte. Schlägt der Zugriff fehl: **den Nutzer aktiv fragen**, ob er
-   die direkte Bild-/Video-URL (oder die Anzeige als Screenshot) für die betroffenen
-   Permalinks schicken kann, statt den Lauf stumm abzubrechen oder es wiederholt zu
-   versuchen.
-3. Ergebnis: pro Ad ein lokales Bild (Download, vom Nutzer zugeschickt, oder — falls die
-   Sandbox das in einem späteren Lauf zulässt — Screenshot) plus, falls erkennbar,
+1. Versuchen, den Permalink (`facebook.com/ads/library/?id=...`) direkt per curl zu
+   öffnen.
+2. **Bekannte Einschränkung:** `facebook.com` selbst ist in dieser Sandbox durch die
+   Netzwerk-Policy blockiert (403 vom Proxy) — das betrifft nur die Permalink-**Seite**.
+   Das dahinterliegende Bild-/Video-CDN (`scontent.*.fbcdn.net`) ist normal per curl
+   erreichbar (bestätigt: 600×600-JPEG erfolgreich geladen). Der Permalink lässt sich in
+   dieser Sandbox nur nicht zur fbcdn.net-URL auflösen, weil genau das ein Laden der
+   blockierten Seite erfordern würde.
+3. Schlägt Schritt 1 fehl: **den Nutzer aktiv fragen**, ob er die direkte fbcdn.net-Bild-
+   /Video-URL zu diesem Permalink schicken kann (Browser: Rechtsklick auf die Anzeige →
+   "Bildadresse kopieren"), statt den Lauf stumm abzubrechen oder es wiederholt zu
+   versuchen. Sobald die direkte URL vorliegt, per curl herunterladen — funktioniert
+   zuverlässig.
+4. Ergebnis: pro Ad ein lokales Bild (per curl heruntergeladen) plus, falls erkennbar,
    Headline/Primary Text der Anzeige.
 
 ## Schritt 5 — Übersetzung/Lokalisierung (Translation Mode)

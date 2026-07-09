@@ -41,21 +41,24 @@ Pro Zeile mit einem neuen/unverarbeiteten Kommentar-Thread:
 
 Details und Randfälle: `docs/workflow.md`.
 
-## Bekannte Einschränkung: Meta Ad Library nicht erreichbar
+## Bekannte Einschränkung: Ad-Library-Permalink nicht direkt auflösbar
 
-In der Sandbox, in der diese Automatisierung läuft, ist `facebook.com` durch die
-Netzwerk-Policy blockiert (403 direkt vom Proxy — bestätigt, kein Retry-Fall). Die
-Competitor-Funnel-Domains (Spalte D) sind dagegen normal per `curl` erreichbar.
-Zusätzlich funktioniert Playwright/Chromium in dieser Sandbox unabhängig davon bei
-**jeder** HTTPS-Seite nicht (Connection Reset über den Proxy) — deshalb holt die
-Pipeline Produktbilder per `curl` + HTML-Parsing statt per Screenshot.
+In der Sandbox, in der diese Automatisierung läuft, ist `facebook.com` (die
+Permalink-**Seite** `facebook.com/ads/library/?id=...`) durch die Netzwerk-Policy
+blockiert (403 direkt vom Proxy — bestätigt, kein Retry-Fall). Das dahinterliegende
+Bild-/Video-CDN **`scontent.*.fbcdn.net` ist dagegen normal per `curl` erreichbar**
+(bestätigt: 600×600-JPEG erfolgreich geladen). Fehlt ist also nur die Auflösung
+Permalink → fbcdn.net-URL, nicht der Download selbst. Zusätzlich funktioniert
+Playwright/Chromium in dieser Sandbox unabhängig davon bei **jeder** HTTPS-Seite nicht
+(Connection Reset über den Proxy) — deshalb holt die Pipeline Bilder ausschließlich per
+`curl`, nie per Screenshot.
 
-**Praktische Konsequenz:** Ein Lauf, der die Ad-Library-Permalinks aus Spalte M nicht
-öffnen kann, muss den Nutzer aktiv um die direkten Bild-/Video-URLs der betroffenen Ads
-bitten — nicht stumm überspringen oder wiederholt versuchen. Details:
-`config/automation.config.json` → `network_access`.
+**Praktische Konsequenz:** Ein Lauf, der einen Permalink nicht auflösen kann, muss den
+Nutzer aktiv um die direkte fbcdn.net-Bild-/Video-URL bitten (Browser: Rechtsklick auf
+die Anzeige → "Bildadresse kopieren") — nicht stumm überspringen oder wiederholt
+versuchen. Details: `config/automation.config.json` → `network_access`.
 
-## Status: Trigger ist aktiv, echter Testlauf teilweise durchgeführt
+## Status: Trigger ist aktiv, erster End-to-End-Testlauf erfolgreich
 
 Trigger `trig_013rHHhQkPL2Zfrne2M3xkaY` ("image-automation: Competitor Ad Localization
 (Funnel Sheet)") läuft **täglich um 6:00 Uhr Lisbon-Zeit** (Cron `0 5 * * *` UTC —
@@ -66,12 +69,14 @@ nachjustieren) und feuert in diese Chat-Session zurück
 **Test durchgeführt mit dem letzten FI-Produkt (Zeile 52: Competitor "variclex" →
 unser Produkt "vanix"):**
 - Produktbild von `sunuris.com` (Spalte D) per curl geladen (1080×1080 PNG,
-  "VariClex™ Solo Product Image").
-- Per Higgsfield (`nano_banana_pro`/`nano_banana_2`, 2 Credits) einmalig auf
-  "vanix" umbenannt — funktioniert.
-- Die 3 Ad-Library-Links aus dem M-Kommentar dieser Zeile konnten **nicht** geöffnet
-  werden (facebook.com blockiert). Die eigentliche Ad-Übersetzung (Schritt 2 oben)
-  steht daher noch aus.
+  "VariClex™ Solo Product Image"), per Higgsfield einmalig auf "vanix" umbenannt
+  (2 Credits) — funktioniert, wird für alle Ads dieser Zeile wiederverwendet.
+- Erste Ad aus dem M-Kommentar dieser Zeile (`?id=1692362565352629`) über die vom
+  Nutzer geschickte fbcdn.net-URL geladen und erfolgreich ins Finnische übersetzt:
+  Layout/Beinfoto/Farbverlauf/Icons beibehalten, Text idiomatisch übersetzt, Markenname
+  "VariClex™" → "vanix" (kein Produkt im Bild, daher kein Produktbild eingesetzt).
+  Ergebnis in `renders/vanix/` in Drive, sobald der Projektordner existiert.
+- Verbleibende 2 Ads dieser Zeile: noch ausstehend (fbcdn.net-URLs vom Nutzer nötig).
 
 Die Foundation-Phase (`docs/skills/foundation-to-higgsfield.md`, wöchentliche
 48+12-Konzept-Produktion) ist bewusst noch nicht aktiv (`foundation_phase.mode:

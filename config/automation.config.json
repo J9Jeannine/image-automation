@@ -33,8 +33,9 @@
   },
 
   "network_access": {
-    "facebook_ad_library_blocked": true,
-    "note": "In der Sandbox dieser Session ist facebook.com durch die Netzwerk-Policy blockiert (403 vom Proxy, bestaetigt und nicht erneut zu versuchen). Competitor-Funnel-Domains (Spalte D) sind dagegen per curl erreichbar. Playwright/Chromium schlaegt in dieser Sandbox unabhaengig davon bei JEDER HTTPS-Seite mit ERR_CONNECTION_RESET fehl (Proxy-Inkompatibilitaet mit dem Browser-Prozess) -- Produktbilder werden daher per curl+HTML-Parsing geholt, nicht per Screenshot. Fuer die Ad-Library-Permalinks selbst gibt es aktuell keinen Workaround: falls ein Lauf sie nicht oeffnen kann, muss er den Nutzer um die direkten Bild-/Video-URLs bitten, statt es stumm zu ueberspringen oder zu wiederholen."
+    "facebook_ad_library_page_blocked": true,
+    "facebook_cdn_scontent_reachable": true,
+    "note": "In der Sandbox dieser Session ist www.facebook.com/ads/library/... (die Permalink-Seite selbst) durch die Netzwerk-Policy blockiert (403 vom Proxy, bestaetigt und nicht erneut zu versuchen). Das eigentliche Bild-/Video-CDN scontent.*.fbcdn.net ist dagegen normal per curl erreichbar -- getestet und bestaetigt (600x600 JPEG erfolgreich geladen). Der einzige fehlende Baustein ist also NICHT der Bilddownload selbst, sondern das Aufloesen des facebook.com/ads/library/?id=... Permalinks zur dahinterliegenden fbcdn.net-URL, da genau diese Aufloesung ein Laden der blockierten Permalink-Seite erfordern wuerde. Sobald eine direkte fbcdn.net-Bild-/Video-URL vorliegt (vom Nutzer zugeschickt, z.B. per Rechtsklick->Bildadresse kopieren im Browser), funktioniert der Rest der Pipeline normal per curl-Download. Competitor-Funnel-Domains (Spalte D) sind ebenfalls per curl erreichbar. Playwright/Chromium schlaegt in dieser Sandbox unabhaengig davon bei JEDER HTTPS-Seite mit ERR_CONNECTION_RESET fehl (Proxy-Inkompatibilitaet mit dem Browser-Prozess) -- Produktbilder und Ads werden daher ausschliesslich per curl geholt, nie per Screenshot. Falls ein Lauf einen Permalink nicht aufloesen kann, muss er den Nutzer um die direkte fbcdn.net-Bild-/Video-URL bitten, statt es stumm zu ueberspringen oder zu wiederholen."
   },
 
   "cadence": {
