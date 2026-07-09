@@ -28,10 +28,14 @@ Pro Zeile mit einem neuen/unverarbeiteten Kommentar-Thread:
 2. Die Competitor-Funnel-Seite aus Spalte D screenshotten, um das Produktbild als
    Referenz zu bekommen (`scripts/screenshot_page.py`) — das Foto bleibt visuell wie
    beim Competitor, nur der Produktname wird auf Spalte G geändert.
-3. Nach Translation-Mode-Regeln (`docs/skills/image-ad-prompt-generator.md`)
-   lokalisieren: Layout/Szene/Gesichter beibehalten, Overlay-Text idiomatisch in die
-   Zielsprache des Tabs übersetzen (`FI` → Finnisch, `FRCA` → Quebec-Französisch),
-   Produktname/-bild tauschen.
+3. Lokalisieren über den echten, im Account aktivierten Skill **`image-ad-prompt-generator`**
+   (per `Skill`-Tool aufgerufen — `docs/skills/image-ad-prompt-generator.md` in diesem
+   Repo ist nur eine Referenz-Zusammenfassung/Fallback): Layout/Szene/Gesichter
+   beibehalten, Overlay-Text idiomatisch in die Zielsprache des Tabs übersetzen
+   (`FI` → Finnisch, `FRCA` → Quebec-Französisch), Produktname/-bild tauschen. Dieser
+   Skill wird **ausschließlich für Übersetzungen** genutzt, nie für
+   Varianten/Iterationen/New Concepts (das ist Sache der separaten, aktuell inaktiven
+   Foundation-Phase).
 4. Output (Batch-Prompt + Headline/Primary Text, ggf. Renders) in den Drive-Projektordner
    ablegen.
 
@@ -44,13 +48,15 @@ Die Spaltenbelegung (D/G/M) wurde am `FRCA`-Tab verifiziert (inkl. Kommentar-Ank
 selbst per Kommentar aus einer "FRCA Template" hervorgegangen) — bitte kurz
 gegenchecken und melden, falls die Spalten dort abweichen.
 
-## Status: Trigger noch NICHT angelegt
+## Status: Trigger ist aktiv
 
 Die Config (`config/automation.config.json`) ist vollständig ausgefüllt (Sheet-ID,
-Spalten, Start-Zeilen, Zielsprachen, Cadence = täglich). Was noch fehlt: der eigentliche
-wiederkehrende Trigger wurde noch nicht erstellt. In einer interaktiven Session einfach
-sagen "lege die image-automation Routine an" — dann wird `create_trigger` mit dem Prompt
-aus `automation/trigger-prompt.md` und dem Cron-Ausdruck aus der Config aufgerufen.
+Spalten, Start-Zeilen, Zielsprachen, Cadence = täglich). Der wiederkehrende Trigger
+(`trig_01JiUEtPumdHwdzDawU7X1LD`, "image-automation: Competitor Ad Localization (Funnel
+Sheet)") läuft täglich um 07:40 UTC und feuert in diese Chat-Session zurück
+(`persistent_session_id: session_01F8Bw6DQR4mk9S5WZHAcPZH`). Ändert sich der Prompt in
+`automation/trigger-prompt.md`, muss der Trigger neu angelegt werden (der Prompt-Text
+lässt sich über `update_trigger` nicht nachträglich ändern, nur Name/Cadence/Enabled).
 
 Die Foundation-Phase (`docs/skills/foundation-to-higgsfield.md`, wöchentliche
 48+12-Konzept-Produktion) ist bewusst noch nicht aktiv (`foundation_phase.mode:
@@ -107,11 +113,11 @@ Routine die erzeugten Prompts direkt (`generate_image`, Model z.B. `nano_banana_
 Referenzbilder über `media_upload`/`media_import_url`). Ist kein Higgsfield-MCP
 verfügbar, werden nur die Prompt-Texte erzeugt und in Drive abgelegt.
 
-## Setup-Schritte für den Nutzer
+## Verbleibende Punkte für den Nutzer
 
 1. Kurz gegenchecken, ob der `FI`-Tab im Funnel Sheet dieselbe Spaltenbelegung hat wie
    `FRCA` (siehe "Offene Annahme" oben).
-2. In einer interaktiven Session sagen "lege die image-automation Routine an" —
-   dann wird `create_trigger` mit dem Prompt aus `automation/trigger-prompt.md` und dem
-   Cron-Ausdruck aus der Config aufgerufen (der Trigger existiert vorher nicht).
-3. Ersten Lauf beobachten (Drive-Projektordner + Chat-Nachricht prüfen).
+2. Ersten Lauf (heute 07:40 UTC oder morgen) beobachten: Drive-Projektordner + ggf.
+   Chat-Nachricht in dieser Session prüfen.
+3. Bei Bedarf Cadence/Config anpassen (`update_trigger` für Name/Cron/Enabled,
+   `config/automation.config.json` committen + pushen für alles andere).

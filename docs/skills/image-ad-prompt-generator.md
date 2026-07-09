@@ -1,5 +1,11 @@
 # image-ad-prompt-generator — Translation Mode
 
+**Hinweis:** Dies ist nur eine Referenz-Zusammenfassung. Die eigentliche Ausführung soll
+den echten, im Account aktivierten Skill `image-ad-prompt-generator` per `Skill`-Tool
+aufrufen (siehe `docs/workflow.md` Schritt 5) — diese Datei dient nur als Fallback, falls
+der Skill in der ausführenden Session einmal nicht verfügbar ist, und wird nur für
+Übersetzungen genutzt, nie für Varianten/Iterationen/New Concepts.
+
 1:1 übernommene Regeln aus der bestehenden Skill-Logik, angewendet auf Konkurrenz-Anzeigen
 aus der Meta Ad Library.
 

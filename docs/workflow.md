@@ -67,15 +67,24 @@ Für jeden in Schritt 2 gesammelten Ad-Library-Permalink:
 
 ## Schritt 5 — Übersetzung/Lokalisierung (Translation Mode)
 
-Regeln: `docs/skills/image-ad-prompt-generator.md`. Zielsprache ergibt sich aus dem Tab:
-`FI` → Finnisch, `FRCA` → Quebec-Französisch (siehe `sheet.tabs.*.language`).
+**Quelle der Wahrheit ist der reale, im Account aktivierte Skill `image-ad-prompt-generator`
+— nicht die lokale Kopie in `docs/skills/image-ad-prompt-generator.md`.** Diese Datei ist
+nur eine Referenz-Zusammenfassung für den Fall, dass der Skill in der ausführenden
+Session einmal nicht geladen ist.
 
-1. Batch-Prompt pro Zeile/Produkt aus der Vorlage befüllen: Quell-Ad-Referenzen aus
-   Schritt 4, Produktbild-Referenz aus Schritt 3, exakter Produktname aus Spalte G,
-   Zielsprache aus dem Tab.
-2. Gemeinsame übersetzte Headline + Primary Text für diese Zeile ableiten (idiomatisch,
-   nicht wörtlich; Basis: die On-Image-Texte der gesammelten Ads).
-3. Output als Markdown nach
+1. Den `Skill`-Tool mit `skill: "image-ad-prompt-generator"` aufrufen (steht der
+   ausführenden Session zur Verfügung, da der Trigger in die reguläre Chat-Session
+   zurückspielt) und dabei übergeben: Quell-Ad-Referenzen aus Schritt 4,
+   Produktbild-Referenz aus Schritt 3, exakter Produktname aus Spalte G, Zielsprache aus
+   dem Tab (`FI` → Finnisch, `FRCA` → Quebec-Französisch, siehe `sheet.tabs.*.language`).
+2. Ist der Skill in der Session ausnahmsweise nicht auffindbar: ersatzweise nach den
+   Regeln in `docs/skills/image-ad-prompt-generator.md` selbst vorgehen und das im
+   Abschlussbericht (Schritt 8) vermerken.
+3. **Wichtig:** Dieser Skill wird ausschließlich für Übersetzungen (diese Zeile)
+   verwendet — niemals für Varianten/Iterationen/New Concepts. Das ist Aufgabe der
+   separaten, aktuell inaktiven Foundation-Phase (Schritt 6,
+   `docs/skills/foundation-to-higgsfield.md`), die einen anderen Skill/Ablauf nutzt.
+4. Output (Batch-Prompt, gemeinsame übersetzte Headline + Primary Text) als Markdown nach
    `<Projektordner>/<market_code>/translated-ads/<product_name>/<Lauf-Datum>.md`
    schreiben (`Google_Drive.create_file`, `contentMimeType: text/markdown`), inkl.
    Liste der verarbeiteten Ad-Permalinks.
