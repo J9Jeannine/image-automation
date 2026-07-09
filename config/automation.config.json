@@ -1,49 +1,56 @@
 {
-  "_comment": "Pflichtfelder mit 'TODO' muessen ausgefuellt werden, bevor der Trigger aktiviert wird. Der Workflow bricht sonst kontrolliert ab (siehe docs/workflow.md, Schritt 0).",
+  "_comment": "Datenquelle ist das bestehende 'Funnel Sheet' in Google Drive (nicht eine freie Meta-Ad-Library-Suche). Ad-Library-Links stehen als Zell-KOMMENTARE (inkl. Antworten) auf Spalte M, nicht als Zellwerte. Siehe docs/workflow.md Schritt 0-2 fuer den vollen Ablauf.",
 
-  "advertiser": {
-    "search_term": "TODO",
-    "page_id": null,
-    "country": "TODO (z.B. DE, FR, BE)",
-    "max_ads_per_run": 15
+  "sheet": {
+    "id": "1SkD7jrC-othtbwTYyz1VCK1HPIkEKHxc_hSAvRp2iL8",
+    "url": "https://docs.google.com/spreadsheets/d/1SkD7jrC-othtbwTYyz1VCK1HPIkEKHxc_hSAvRp2iL8/edit",
+    "columns": {
+      "competitor_url": "D",
+      "product_name": "G",
+      "ad_library_links_comment_column": "M",
+      "note": "Spaltenbelegung verifiziert anhand des FRCA-Tabs (D = 'Competitor URL / Content', G = 'new PR NAME' = unser Produktname, M = 'Competitor Ad Link/Drive Link' -- die eigentlichen Meta-Ad-Library-Links haengen als Kommentar-Thread an der M-Zelle, inkl. Antworten anderer Teammitglieder. FI-Tab wird strukturell identisch angenommen (gleiche Vorlage, siehe Kommentar 'import FRCA Template') -- bei Abweichungen bitte korrigieren."
+    },
+    "tabs": {
+      "FI": {
+        "start_row": 52,
+        "language": "fi",
+        "language_name": "Finnisch",
+        "market_code": "FI"
+      },
+      "FRCA": {
+        "start_row": 33,
+        "language": "fr-CA",
+        "language_name": "Quebec-Franzoesisch",
+        "market_code": "FRCA"
+      }
+    }
   },
 
-  "target_markets": [
-    {
-      "market_code": "TODO (z.B. DE, FR-BE, NL-BE)",
-      "language": "TODO (z.B. de, fr, nl)"
-    }
-  ],
+  "product_image_source": {
+    "mode": "competitor_funnel_screenshot",
+    "note": "Das Produktbild fuer den Bild-Swap wird per Screenshot von der Competitor-Funnel-Seite (Spalte D) entnommen -- NICHT aus Shopify oder einer separaten Drive-Bilddatenbank. Der Produktname aus Spalte G wird anschliessend auf dieses Bild aufgebracht (Name-Swap), das Produktfoto selbst bleibt visuell wie beim Competitor."
+  },
 
   "cadence": {
-    "mode": "weekly",
-    "cron": "15 8 * * 1",
-    "note": "Default: woechentlich montags 08:15. Alternativen: 'daily' oder 'on_new_ads' (dann taeglich pruefen, aber nur bei tatsaechlich neuen Ads Schritte 3-8 ausfuehren). Anpassen und Trigger per update_trigger neu konfigurieren."
+    "mode": "daily_check_new_comments_only",
+    "cron": "40 7 * * *",
+    "note": "Taeglich pruefen, ob in Spalte M neue/unverarbeitete Kommentar-Threads existieren (FI ab Zeile 52, FRCA ab Zeile 33). Nur Zeilen mit neuem Kommentar-Inhalt (siehe State-Datei) werden verarbeitet -- kein Spam, wenn nichts Neues da ist."
   },
 
   "foundation_phase": {
     "mode": "translation_only",
-    "note": "Optionen: 'translation_only' (Schritte 1-5 jeder Lauf, Foundation-Phase separat/spaeter), 'combined' (jeder Lauf macht Uebersetzung UND woechentliche 48+12-Konzept-Produktion aus den Foundation-Dokumenten), 'foundation_once_then_weekly_json' (Foundation-Dokumente einmalig separat pflegen, danach kombiniert Uebersetzung + woechentliche JSON-Produktion).",
+    "note": "Optionen: 'translation_only' (nur Ad-Uebersetzung je Zeile, aktueller Default), 'combined' (zusaetzlich woechentliche 48+12-Konzept-Produktion aus Foundation-Dokumenten pro Produkt), 'foundation_once_then_weekly_json' (Foundation-Dokumente einmalig separat pflegen, danach kombiniert). Noch nicht gebraucht/bestaetigt -- bei Bedarf umstellen.",
     "concepts_per_run": {
       "new_concepts": 48,
       "top_performer_iterations": 12
     }
   },
 
-  "product": {
-    "exact_name": "TODO (inkl. (R)/(TM) falls zutreffend)",
-    "product_image_drive_file_id": "TODO",
-    "winning_ad_copy": {
-      "headline": "TODO",
-      "primary_text": "TODO"
-    }
-  },
-
   "drive": {
     "base_folder_id": "1RH4nagTulPEPXPp5fSwTeccvL-GlMI5-",
     "base_folder_url": "https://drive.google.com/drive/folders/1RH4nagTulPEPXPp5fSwTeccvL-GlMI5-",
-    "project_folder_name": "TODO (z.B. Produktname)",
-    "note": "Bestehende Unterordner State/, Funnel-PDFs/, QA-Reports/ gehoeren zu einer anderen Automatisierung und werden nicht veraendert."
+    "project_folder_name_pattern": "<market_code>/<product_name aus Spalte G>",
+    "note": "Bestehende Unterordner State/, Funnel-PDFs/, QA-Reports/ gehoeren zu einer anderen Automatisierung (FI/FRCA Funnel-QA-Monitor) und werden nicht veraendert. Diese Pipeline legt eigene Unterordner an, siehe README."
   },
 
   "foundation_documents": {
@@ -52,6 +59,6 @@
     "offer_brief_id": null,
     "necessary_beliefs_id": null,
     "swipe_file_id": null,
-    "note": "Optional. Falls vorhanden, IDs/Links eintragen; werden als Kontext fuer die Foundation-Phase genutzt (siehe docs/skills/foundation-to-higgsfield.md)."
+    "note": "Optional, pro Produkt. Falls vorhanden, IDs/Links eintragen; werden als Kontext fuer die Foundation-Phase genutzt (siehe docs/skills/foundation-to-higgsfield.md). Aktuell nicht befuellt -- foundation_phase.mode steht auf 'translation_only', daher kein Blocker."
   }
 }

@@ -21,12 +21,15 @@ angewendet.
 1. **Overlay-Text übersetzen**: sämtlicher Text, der auf dem Bild liegt, wird idiomatisch
    in die Zielsprache übersetzt — keine wörtliche Übersetzung. Muss klingen, als wäre er
    original in der Zielsprache getextet.
-2. **Produktname ersetzen**: der Produktname in der Quell-Anzeige wird durch den exakten,
-   hinterlegten Produktnamen ersetzt — inklusive ®/™-Zeichen, exakte Schreibweise wie in
-   `config/automation.config.json` → `product.exact_name`.
-3. **Produktbild ersetzen**: das im Quellbild gezeigte Produkt wird durch das hinterlegte
-   Produktbild (`product.product_image_drive_file_id`) ersetzt. Maßstab, Blickwinkel und
-   Lichtstimmung werden an die Quell-Szene angepasst, damit es nicht wie eine Collage
+2. **Produktname ersetzen**: der Produktname in der Quell-Anzeige wird durch den exakten
+   Produktnamen aus Spalte G des Funnel Sheets ("new PR NAME") ersetzt — inklusive
+   ®/™-Zeichen, exakte Schreibweise wie im Sheet.
+3. **Produktbild ersetzen**: das im Quellbild gezeigte Produkt wird durch das
+   Produktbild-Referenzfoto ersetzt, das per Screenshot von der Competitor-Funnel-Seite
+   (Spalte D, siehe `docs/workflow.md` Schritt 3) entnommen wurde. Visuell bleibt es wie
+   beim Competitor — es wird **nicht** neu fotografiert oder aus einer eigenen
+   Produktdatenbank ersetzt, nur der Name/Text darauf ändert sich. Maßstab, Blickwinkel
+   und Lichtstimmung an die Quell-Szene der Ad anpassen, damit es nicht wie eine Collage
    wirkt. **Ausnahme**: zeigt die Quell-Anzeige gar kein Produkt, wird auch keins
    eingefügt.
 
@@ -36,9 +39,10 @@ angewendet.
 - Ein gemeinsamer übersetzter **Primary Text**
 - Der eine **Batch-Prompt**, der auf alle Quell-Anzeigen dieses Laufs angewendet wird
 
-Diese drei Artefakte werden pro Zielmarkt in
-`<Projektordner>/translated-ads/<market_code>/<Lauf-Datum>.md` in Drive abgelegt, plus
-die Liste der verarbeiteten Quell-Anzeigen-Links, gegen die der Batch-Prompt läuft.
+Diese drei Artefakte werden pro Zeile/Produkt in
+`<Projektordner>/<market_code>/translated-ads/<product_name>/<Lauf-Datum>.md` in Drive
+abgelegt, plus die Liste der verarbeiteten Quell-Anzeigen-Permalinks, gegen die der
+Batch-Prompt läuft.
 
 ## Batch-Prompt-Vorlage
 
@@ -63,5 +67,6 @@ product, do not add one.
 Output: a photorealistic ad image ready for {target_market}.
 ```
 
-Platzhalter werden pro Zielmarkt aus `config/automation.config.json` und den in Schritt 2
-gesammelten Ad-Links befüllt (siehe `docs/workflow.md`).
+Platzhalter werden pro Zeile aus `config/automation.config.json` (Zielsprache je Tab),
+Spalte G (Produktname) und den in `docs/workflow.md` Schritt 3/4 gesammelten
+Ad-Referenzen und Produktbild-Screenshot befüllt.

@@ -1,91 +1,107 @@
 # Master-Workflow
 
 Wird bei jedem Trigger-Lauf ausgeführt. Tool-Namen beziehen sich auf die in der
-Cowork-Session verfügbaren MCP-Server (`Google_Drive`, `Higgsfield`) sowie Bash für den
-Playwright-Scraper.
+Cowork-Session verfügbaren MCP-Server (`Google_Drive`, `Higgsfield`) sowie Bash für die
+Playwright-Skripte in `scripts/`.
 
 ## Schritt 0 — Config-Guard
 
 1. `config/automation.config.json` aus diesem Repo lesen.
-2. Enthält eines der Pflichtfelder (`advertiser.search_term`, `advertiser.country`,
-   `target_markets[].market_code`/`language`, `product.exact_name`,
-   `product.product_image_drive_file_id`, `drive.project_folder_name`) noch `"TODO"` (als
-   String oder Teilstring) → **Lauf sofort abbrechen**, keine weiteren Schritte
-   ausführen, stattdessen kurze Erinnerung ausgeben ("Setup unvollständig, bitte
-   config/automation.config.json ausfüllen") und den Lauf beenden. Kein Drive-Zugriff,
-   kein Scraping, kein Higgsfield-Aufruf in diesem Fall.
+2. Bleibt ein Pflichtfeld unklar (z. B. `foundation_documents.*` fehlt, obwohl
+   `foundation_phase.mode` das braucht) → Lauf für die betroffene Teil-Phase überspringen
+   und das im Abschlussbericht (Schritt 8) vermerken, statt hart abzubrechen — die
+   Kernübersetzung (Schritte 1-5) ist unabhängig von der Foundation-Phase lauffähig.
 3. Sonst weiter mit Schritt 1.
 
 ## Schritt 1 — Trigger
 
-Erfolgt automatisch durch die Routine (siehe `automation/trigger-prompt.md`). Keine
-manuelle Aktion nötig.
+Erfolgt automatisch durch die Routine (siehe `automation/trigger-prompt.md`), Cadence
+laut `config/automation.config.json` → `cadence` (Default: täglich).
 
-## Schritt 2 — Ad-Links holen (Meta Ad Library)
+## Schritt 2 — Sheet lesen & neue Ad-Links finden
 
-1. `python3 scripts/scrape_ad_library.py --search-term "<advertiser.search_term>" --country
-   "<advertiser.country>" [--page-id <advertiser.page_id>] --max-ads
-   <advertiser.max_ads_per_run>` ausführen (Bash).
-2. Ergebnis ist eine JSON-Liste: `[{ "ad_id", "permalink", "media_type", "media_url",
-   "headline", "primary_text" }, ...]`.
-3. Gegen `<Projektordner>/State/seen_ads.json` (in Drive, falls vorhanden) abgleichen —
-   nur wirklich neue `ad_id`s weiterverarbeiten, wenn `cadence.mode == "on_new_ads"`. Bei
-   `"weekly"`/`"daily"` werden alle im Fenster gefundenen Ads verarbeitet.
+Datenquelle ist **kein** freies Ad-Library-Suchergebnis, sondern das bestehende
+`config/automation.config.json` → `sheet.id` ("Funnel Sheet").
 
-## Schritt 3 — Produktinfos laden (Google Drive)
+1. Für jeden Tab in `sheet.tabs` (`FI`, `FRCA`):
+   a. `Google_Drive.read_file_content` mit `includeComments: true` auf `sheet.id`
+      aufrufen (bzw. den entsprechenden Tab, falls das Tool Tab-Auswahl unterstützt).
+   b. Zeilen ab `tabs.<TAB>.start_row` bis zur letzten befüllten Zeile durchgehen.
+   c. Pro Zeile: existiert an der Zelle in Spalte `sheet.columns.ad_library_links_comment_column`
+      (M) ein Kommentar-Thread? Falls ja: **Head-Post-Inhalt UND alle Replies** als
+      Ad-Library-Permalinks sammeln (mehrere Team-Mitglieder posten oft in derselben
+      Zelle nacheinander — nichts davon verwerfen).
+2. Gegen `<Projektordner>/<market_code>/State/processed_comments.json` in Drive
+   abgleichen: pro Zeile einen Hash/Fingerprint des kompletten Kommentar-Threads
+   (Head-Post + alle Reply-Inhalte) speichern. Nur Zeilen mit einem **neuen oder
+   geänderten** Fingerprint gegenüber dem letzten Lauf weiterverarbeiten. Ist nichts neu:
+   Lauf beenden, keine weiteren Schritte, keine Chat-Nachricht nötig (kein Spam).
+3. Pro zu verarbeitender Zeile zusätzlich lesen:
+   - Spalte `sheet.columns.competitor_url` (D) — Competitor-Funnel-/Artikel-Link.
+   - Spalte `sheet.columns.product_name` (G) — unser Produktname ("new PR NAME"),
+     **exakt wie im Sheet geschrieben** (inkl. ®/™).
 
-1. `Google_Drive.search_files` mit `parentId = '<drive.base_folder_id>'`, um zu prüfen,
-   ob bereits ein Projektordner `<drive.project_folder_name>` existiert.
-2. Produktname, Zielmarkt/-sprache, Winning-Ad-Copy kommen primär aus
-   `config/automation.config.json` (`product.*`, `target_markets`). Falls ein
-   Foundation-Set existiert (`foundation_documents.*`), zusätzlich mit
-   `Google_Drive.read_file_content` laden und als Kontext für Schritt 5/6 verwenden.
+## Schritt 3 — Produktbild besorgen (Competitor-Funnel-Screenshot)
 
-## Schritt 4 — Projektordner anlegen
+Für jede zu verarbeitende Zeile:
 
-1. Existiert der Ordner aus Schritt 3.1 nicht: `Google_Drive.create_file` mit
-   `mimeType: application/vnd.google-apps.folder`, `parentId:
-   <drive.base_folder_id>`, `title: <drive.project_folder_name>`.
-2. Unterordner `foundation/`, `translated-ads/`, `renders/` anlegen (und
-   `higgsfield-json/`, falls `foundation_phase.mode != "translation_only"`).
-3. Bestehende Ordner `State/`, `Funnel-PDFs/`, `QA-Reports/` im Basisordner **nicht**
-   anfassen — die gehören zu einer anderen Automatisierung.
+1. `python3 scripts/screenshot_page.py --url "<Competitor-URL aus Spalte D>" --out
+   <tmp>/<row>-product.png` ausführen — screenshottet die Funnel-/Artikelseite des
+   Competitors. Enthält die Seite mehrere Bilder, das Hero-/Produktbild bevorzugen
+   (größtes Bild oberhalb des Falzes).
+2. Dieses Bild ist die Referenz für den Produktbild-Swap in Schritt 5 — visuell bleibt
+   es wie beim Competitor, nur der Produktname wird auf `product_name` (Spalte G)
+   geändert (siehe `docs/skills/image-ad-prompt-generator.md`).
+
+## Schritt 4 — Ad-Links öffnen, herunterladen/screenshotten
+
+Für jeden in Schritt 2 gesammelten Ad-Library-Permalink:
+
+1. `python3 scripts/fetch_ad_permalink.py --url "<permalink>" --out <tmp>/<ad_id>`
+   ausführen. Das Skript öffnet die Ad-Detailseite (Playwright), versucht die
+   Bild-/Video-URL direkt zu extrahieren und herunterzuladen; gelingt das nicht
+   (abgelaufene signierte URL, Video-Player ohne direkten Src, etc.), macht es
+   stattdessen einen Screenshot der Anzeige.
+2. Ergebnis: pro Ad ein lokales Bild (Download oder Screenshot) plus, falls auf der
+   Detailseite sichtbar, Headline/Primary Text der Anzeige.
 
 ## Schritt 5 — Übersetzung/Lokalisierung (Translation Mode)
 
-Regeln: `docs/skills/image-ad-prompt-generator.md`.
+Regeln: `docs/skills/image-ad-prompt-generator.md`. Zielsprache ergibt sich aus dem Tab:
+`FI` → Finnisch, `FRCA` → Quebec-Französisch (siehe `sheet.tabs.*.language`).
 
-Für jeden Zielmarkt in `target_markets`:
-
-1. Batch-Prompt aus der Vorlage befüllen (Quell-Ad-Referenzen aus Schritt 2, Produktbild
-   aus `product.product_image_drive_file_id`, exakter Produktname, Zielsprache).
-2. Gemeinsame übersetzte Headline + Primary Text aus `product.winning_ad_copy` ableiten
-   (idiomatisch, nicht wörtlich).
+1. Batch-Prompt pro Zeile/Produkt aus der Vorlage befüllen: Quell-Ad-Referenzen aus
+   Schritt 4, Produktbild-Referenz aus Schritt 3, exakter Produktname aus Spalte G,
+   Zielsprache aus dem Tab.
+2. Gemeinsame übersetzte Headline + Primary Text für diese Zeile ableiten (idiomatisch,
+   nicht wörtlich; Basis: die On-Image-Texte der gesammelten Ads).
 3. Output als Markdown nach
-   `<Projektordner>/translated-ads/<market_code>/<Lauf-Datum>.md` schreiben
-   (`Google_Drive.create_file`, `contentMimeType: text/markdown`).
+   `<Projektordner>/<market_code>/translated-ads/<product_name>/<Lauf-Datum>.md`
+   schreiben (`Google_Drive.create_file`, `contentMimeType: text/markdown`), inkl.
+   Liste der verarbeiteten Ad-Permalinks.
 
-## Schritt 6 — Foundation-Phase (optional)
+## Schritt 6 — Foundation-Phase (optional, aktuell inaktiv)
 
-Nur wenn `foundation_phase.mode` `combined` oder `foundation_once_then_weekly_json` ist.
-Regeln: `docs/skills/foundation-to-higgsfield.md`. Output nach
-`<Projektordner>/higgsfield-json/<Lauf-Datum>.json`.
+Nur wenn `foundation_phase.mode` ungleich `translation_only`. Regeln:
+`docs/skills/foundation-to-higgsfield.md`. Aktuell nicht konfiguriert (keine
+Foundation-Dokumente hinterlegt) — Schritt wird übersprungen.
 
 ## Schritt 7 — Rendering
 
 1. Prüfen, ob ein `Higgsfield`-MCP-Tool in der Session verfügbar ist (`ToolSearch`).
-2. Falls ja: für jeden Batch-Prompt bzw. jedes Konzept aus Schritt 5/6
-   `Higgsfield.generate_image` aufrufen (Referenzbilder vorher per
-   `Higgsfield.media_import_url` aus den Drive-Bild-URLs importieren). Ergebnisse
-   (Bild-URLs) inline zeigen und in `<Projektordner>/renders/` als Referenz-Link
+2. Falls ja: für jeden Batch-Prompt aus Schritt 5 `Higgsfield.generate_image` aufrufen
+   (Referenzbilder vorher per `Higgsfield.media_upload`/`media_import_url` aus den in
+   Schritt 3/4 erzeugten lokalen Dateien hochladen). Ergebnisse inline zeigen und in
+   `<Projektordner>/<market_code>/renders/<product_name>/` als Referenz-Link
    dokumentieren.
 3. Falls kein Higgsfield-MCP verfügbar: nur die Prompt-Texte ausgeben, Rendering
    überspringen.
 
 ## Schritt 8 — Ablage & Abschluss
 
-1. Alle Text-Outputs liegen bereits in Drive (Schritte 5/6).
-2. `<Projektordner>/State/seen_ads.json` mit den in Schritt 2 verarbeiteten `ad_id`s
-   aktualisieren (für `on_new_ads`-Modus).
-3. Kurze Zusammenfassung an den Nutzer: Anzahl verarbeiteter Ads, Zielmärkte, Drive-Links
-   zu den neuen Dateien, ggf. Render-Ergebnisse.
+1. Alle Text-/Bild-Outputs liegen bereits in Drive (Schritte 5/7).
+2. `<Projektordner>/<market_code>/State/processed_comments.json` mit den neuen
+   Fingerprints aus Schritt 2 aktualisieren.
+3. Kurze Zusammenfassung an den Nutzer: welche Zeilen/Produkte verarbeitet wurden, wie
+   viele Ads pro Zeile, Drive-Links zu den neuen Dateien, ob gerendert wurde oder nur
+   Prompt-Texte erzeugt wurden. Bei "nichts Neues" keine Nachricht (siehe Schritt 2.2).
