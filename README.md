@@ -66,6 +66,17 @@ Modell-Kontext hochladen — bei ~1 MB großen generierten Bildern ist das nicht
 praktikabel. Ergebnisse werden daher als Markdown-Dokument mit Higgsfield-CDN-Links
 (langlebig) + übersetzter Ad-Copy abgelegt, nicht als direktes Bild-Duplikat in Drive.
 
+**Beobachtete Instabilität bei automatischen (Trigger-)Läufen:** Im zweiten,
+Trigger-ausgelösten Lauf (2026-07-10) sind MCP-Tool-Verbindungen wiederholt
+disconnected/reconnected, und Google-Drive-**Schreib**-Aufrufe (`create_file`) sind
+mehrfach mit "Tool permission request failed" fehlgeschlagen, obwohl Lesezugriffe
+(`read_file_content`, `download_file_content`) und Higgsfield-Aufrufe im selben Lauf
+funktionierten. Ergebnis: die Higgsfield-Bilder wurden erzeugt, konnten aber in diesem
+Lauf nicht in Drive abgelegt werden — sie wurden stattdessen direkt an den Nutzer
+geschickt (`SendUserFile`) und die CDN-Links im Chat mitgeteilt. `State/processed_comments.json`
+wurde aus demselben Grund noch nicht angelegt. Nächster Schritt: Drive-Ablage erneut
+versuchen, sobald die Verbindung stabil ist (z. B. im nächsten Lauf oder interaktiv).
+
 ## Status: Trigger ist aktiv, erster End-to-End-Testlauf erfolgreich abgeschlossen
 
 Trigger `trig_013rHHhQkPL2Zfrne2M3xkaY` ("image-automation: Competitor Ad Localization
