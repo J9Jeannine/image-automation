@@ -150,6 +150,14 @@ Die eigentliche Higgsfield-Generierung passiert bereits in Schritt 5 (ein Call p
    gefunden.
 3. Ist kein Higgsfield-MCP verfügbar: nur die Prompt-Texte ausgeben, Rendering
    überspringen.
+4. **Discord-Posting:** Steht ein Discord-Webhook zur Verfügung (Umgebungsvariable in
+   der Cloud-Umgebung, siehe Claude-Code-Web-Einstellungen dieser Session — Wert nicht
+   hier im Repo hinterlegen), werden pro verarbeiteter Zeile/Produkt **alle** Ad-Bilder
+   dieses Laufs (übersetzte Renders UND unverändert gebliebene Ads gleichermaßen) als
+   **eine einzige** Webhook-Nachricht gepostet (mehrere Datei-Attachments in einem
+   `multipart/form-data`-Request, z. B. `file1`…`fileN` neben `payload_json`) — nicht
+   eine Nachricht pro Bild. Der `content`-Text nennt pro Bild kurz die Ad-Nummer, ob
+   übersetzt oder unverändert, und die Ad-Copy — **ohne** Preisangabe.
 
 ## Schritt 8 — Ablage & Abschluss
 
