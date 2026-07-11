@@ -54,7 +54,7 @@
   },
 
   "drive": {
-    "base_folder_id": "1RH4nagTulPEPXPp5fSwTeccvL-GlMI5-",
+    "base_folder_id": "176ElFPlxj5hvsVJ8O_AaQSlIoL25IzJD",
     "base_folder_url": "https://drive.google.com/drive/folders/1RH4nagTulPEPXPp5fSwTeccvL-GlMI5-",
     "project_folder_name_pattern": "<market_code>/<product_name aus Spalte G>",
     "note": "Bestehende Unterordner State/, Funnel-PDFs/, QA-Reports/ gehoeren zu einer anderen Automatisierung (FI/FRCA Funnel-QA-Monitor) und werden nicht veraendert. Diese Pipeline legt eigene Unterordner an, siehe README."
