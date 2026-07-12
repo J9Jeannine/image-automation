@@ -157,7 +157,10 @@ Die eigentliche Higgsfield-Generierung passiert bereits in Schritt 5 (ein Call p
    **eine einzige** Webhook-Nachricht gepostet (mehrere Datei-Attachments in einem
    `multipart/form-data`-Request, z. B. `file1`…`fileN` neben `payload_json`) — nicht
    eine Nachricht pro Bild. Der `content`-Text nennt pro Bild kurz die Ad-Nummer, ob
-   übersetzt oder unverändert, und die Ad-Copy — **ohne** Preisangabe.
+   übersetzt oder unverändert, und die Ad-Copy — **ohne** Preisangabe. Der `content`-Text
+   enthält **immer** auch den Link zum Drive-Projektordner dieser Zeile/dieses Produkts
+   (`https://drive.google.com/drive/folders/<Ordner-ID>`), damit man von Discord aus
+   direkt zu allen Dateien springen kann.
 
 ## Schritt 8 — Ablage & Abschluss
 
