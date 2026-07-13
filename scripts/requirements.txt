@@ -1,1 +1,7 @@
 playwright>=1.40
+
+# scripts/upload_to_drive.py
+requests>=2.31
+PyJWT>=2.7
+cryptography>=41.0
+cffi>=1.16

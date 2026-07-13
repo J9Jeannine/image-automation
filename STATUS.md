@@ -1,4 +1,13 @@
-# Status & offene Punkte (Stand: 2026-07-10)
+# Status & offene Punkte (Stand: 2026-07-13)
+
+**Update 2026-07-13:** `scripts/upload_to_drive.py` ist jetzt gebaut (siehe Abschnitt 3a)
+— löst Problem 2 unten. Bild-Upload läuft direkt Server-zu-Server (Higgsfield-CDN →
+Google Drive), ohne Bilddaten durch den Chat-Kontext zu schleusen. Einzige verbleibende
+Voraussetzung: der Ziel-Ordner muss noch mit dem Service Account geteilt werden (siehe
+Abschnitt 3a, Punkt "Noch zu tun"). Nebenbei wurde ein Config-Fehler behoben:
+`config/automation.config.json` → `drive.base_folder_id` zeigte auf eine nicht
+existente ID (vermutlich ein Tippfehler aus einem früheren automatisierten Lauf am
+2026-07-11) und wurde auf die verifizierte ID des `Translated-Ads`-Ordners korrigiert.
 
 Diese Datei fasst zusammen, was funktioniert, was blockiert ist, und was der Nutzer
 konkret tun muss, damit die Pipeline vollständig automatisch läuft. Ziel: alles an
@@ -44,7 +53,38 @@ Damit Punkt 2 in voller Qualität UND automatisch funktioniert, braucht es einen
 direkten API-Zugang, der die Bilddaten nicht durch den Chat-Kontext schleusen muss,
 sondern serverseitig von der Higgsfield-CDN-URL direkt zu Google Drive überträgt.
 
-### Was der Nutzer einmalig einrichten muss
+## 3a. Umgesetzt (2026-07-13): `scripts/upload_to_drive.py`
+
+Das Skript authentifiziert sich per Service-Account-JWT (`GOOGLE_SERVICE_ACCOUNT_JSON`),
+streamt jedes Bild von seiner Higgsfield-CDN-URL auf Platte und lädt es per Drive-API-
+Multipart-Upload in `<drive.base_folder_id>/<market>/<product>/<subfolder>/` hoch —
+byte-genau, ohne Auflösungsverlust, ohne dass die Bilddaten durch den Modell-Kontext
+laufen. Danach genau **ein** Discord-Post (`DISCORD_WEBHOOK_URL_IMAGES`) mit dem Link
+zum Ziel-Ordner, keine Einzelbilder im Chat.
+
+```
+python3 scripts/upload_to_drive.py --market FRCA --product vanix --subfolder renders \
+    --file "https://.../hf_....png=vanix_ad_721441221.png"
+```
+
+**Getestet am 2026-07-13:** Token-Erwerb (JWT-Bearer-Flow gegen
+`oauth2.googleapis.com/token`) funktioniert mit den hinterlegten Credentials
+(`image-automation-uploader@image-automation-502115.iam.gserviceaccount.com`).
+Zugriff auf den Ziel-Ordner (`drive.base_folder_id` = `Translated-Ads`-Ordner,
+`1JWHztpl2Z6mE9WtcRTObRgwBRp1OsHCb`) schlägt aktuell noch mit 404 fehl — der Ordner ist
+noch nicht mit dem Service Account geteilt.
+
+**Noch zu tun (durch den Nutzer):** Den `Translated-Ads`-Ordner
+(https://drive.google.com/drive/folders/1JWHztpl2Z6mE9WtcRTObRgwBRp1OsHCb) in Google
+Drive per Rechtsklick → "Freigeben" mit
+`image-automation-uploader@image-automation-502115.iam.gserviceaccount.com` als
+**Bearbeiter** teilen. Bewusst nur dieser Unterordner, nicht der gemeinsame
+`Claude Cowork Automation`-Basisordner — so bekommt der Service Account keinen Zugriff
+auf `State/`, `Funnel-PDFs/`, `QA-Reports/` der anderen, unabhängigen Automatisierung.
+Danach sollte derselbe Testaufruf (Token holen, `GET .../files/<base_folder_id>`) einen
+Namen statt 404 liefern.
+
+### Was der Nutzer einmalig einrichten musste (jetzt erledigt, Referenz)
 
 1. **Google-Cloud-Projekt + Drive API aktivieren**
    - [console.cloud.google.com](https://console.cloud.google.com) → Projekt anlegen/wählen
@@ -109,9 +149,25 @@ Sobald die Variable gesetzt ist, kann ein Skript (Python, `google-auth` +
 
 ## 5. Offene Punkte für den Nutzer
 
-1. Service-Account-Setup (Abschnitt 3) einrichten, falls automatischer Bild-Upload in
-   voller Qualität gewünscht ist.
-2. FRCA-Zeile 33 (vanix) manuell anstoßen oder auf den nächsten Lauf warten.
-3. Die MCP-Verbindungsinstabilität bei automatischen Trigger-Läufen (Higgsfield +
-   Drive-Schreibzugriffe) ist ein wiederkehrendes Muster über mindestens zwei Läufe —
-   wert, als eigenständiges Infrastruktur-Problem zu melden/zu untersuchen.
+1. **`Translated-Ads`-Ordner mit dem Service Account teilen** (siehe Abschnitt 3a) —
+   ohne diesen Schritt bricht `scripts/upload_to_drive.py` mit 404 ab, obwohl Auth
+   selbst funktioniert.
+2. FRCA-Zeile 33 (vanix): weiterhin nur `facebook.com/ads/library/?id=...`-Permalinks
+   im M-Kommentar, keine fbcdn.net-Reply. Wartet seit 2026-07-10 auf direkte
+   Bild-/Video-URLs vom Nutzer (siehe Lauf-Notiz 2026-07-13 unten).
+3. FI-Tab weiterhin nicht per `read_file_content` lesbar (siehe Lauf-Notiz
+   2026-07-13) — Kommentare in Spalte M für FI (ab Zeile 52) können aktuell nicht
+   automatisiert geprüft werden. Kein bekannter Workaround; ggf. als
+   Infrastruktur-Problem melden.
+4. Die MCP-Verbindungsinstabilität bei automatischen Trigger-Läufen (Higgsfield +
+   Drive-Schreibzugriffe, Stand 2026-07-10) noch nicht erneut beobachtet, aber auch
+   noch nicht als behoben bestätigt.
+
+## 6. Lauf-Notiz 2026-07-13
+
+- FRCA erfolgreich geprüft: Zeile 33 (vanix) unverändert pending (10 Permalinks, keine
+  fbcdn.net-URL), Zeile 34 (Erelso) bereits vollständig verarbeitet — nichts zu tun.
+- FI-Tab: `read_file_content` liefert weiterhin konsistent nur den FRCA-Tab zurück
+  (2x erneut getestet) — unverändert gegenüber 2026-07-10/11.
+- `scripts/upload_to_drive.py` gebaut und Auth erfolgreich getestet; Ordner-Freigabe
+  fehlt noch (siehe Punkt 1 oben).

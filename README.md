@@ -61,10 +61,14 @@ fbcdn.net-URL im Thread und der Permalink lässt sich nicht auflösen: aktiv dan
 nicht stumm überspringen oder wiederholt versuchen. Details:
 `config/automation.config.json` → `network_access`.
 
-**Weitere bekannte Einschränkung:** Das Drive-Tool kann Dateien nur per Base64 durch den
-Modell-Kontext hochladen — bei ~1 MB großen generierten Bildern ist das nicht
-praktikabel. Ergebnisse werden daher als Markdown-Dokument mit Higgsfield-CDN-Links
-(langlebig) + übersetzter Ad-Copy abgelegt, nicht als direktes Bild-Duplikat in Drive.
+**Bild-Upload (gelöst seit 2026-07-13):** Das Drive-MCP-Tool selbst kann Dateien nur per
+Base64 durch den Modell-Kontext hochladen — bei ~1 MB großen generierten Bildern nicht
+praktikabel. Deshalb lädt `scripts/upload_to_drive.py` Bilder serverseitig direkt von
+der Higgsfield-CDN-URL zu Google Drive hoch (Service Account, Drive API v3, siehe
+`STATUS.md` Abschnitt 3a) und postet danach genau einen Discord-Link
+(`DISCORD_WEBHOOK_URL_IMAGES`) zum Ziel-Ordner — keine Einzelbilder im Chat oder in
+Discord. Voraussetzung: `GOOGLE_SERVICE_ACCOUNT_JSON` gesetzt und der `Translated-Ads`-
+Ordner mit dem Service Account geteilt.
 
 **Beobachtete Instabilität bei automatischen (Trigger-)Läufen:** Im zweiten,
 Trigger-ausgelösten Lauf (2026-07-10) sind MCP-Tool-Verbindungen wiederholt
@@ -114,6 +118,7 @@ automation/trigger-prompt.md       Der Prompt-Text, den die Routine bei jedem La
 scripts/fetch_ad_permalink.py      Öffnet einen bekannten Ad-Library-Permalink (funktioniert aktuell NICHT in dieser Sandbox, siehe oben)
 scripts/screenshot_page.py         Playwright-Screenshot einer beliebigen URL (funktioniert aktuell NICHT in dieser Sandbox, siehe oben)
 scripts/scrape_ad_library.py       Optional: freie Ad-Library-Suche nach Suchbegriff (nicht Teil des Kern-Workflows)
+scripts/upload_to_drive.py         Laedt Higgsfield-CDN-Bilder per Service Account direkt (byte-genau) nach Drive hoch, postet einen Discord-Link (siehe unten)
 ```
 
 ## Google Drive — Ablage
@@ -150,5 +155,7 @@ für Produktbild-Rename und Ad-Übersetzung, Referenzbilder über `media_upload`
    fbcdn.net-Links wie gehabt direkt als Reply auf den M-Kommentar posten.
 2. Bei Bedarf Cadence prüfen/anpassen (aktuell angenommen: Lisbon-Zeit, Sommerzeit).
 3. Ersten automatischen Lauf (morgen 05:00 UTC) beobachten.
-4. Falls die Bilddateien selbst (nicht nur CDN-Links) in Drive liegen sollen: Bescheid
-   geben, dann wird nach einer alternativen Upload-Methode gesucht.
+4. `Translated-Ads`-Ordner (https://drive.google.com/drive/folders/1JWHztpl2Z6mE9WtcRTObRgwBRp1OsHCb)
+   noch mit dem Service Account teilen (Rolle "Bearbeiter"), damit
+   `scripts/upload_to_drive.py` Bilder direkt hochladen kann — siehe `STATUS.md`
+   Abschnitt 3a für die genaue Service-Account-E-Mail.

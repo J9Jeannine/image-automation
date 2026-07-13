@@ -54,10 +54,11 @@
   },
 
   "drive": {
-    "base_folder_id": "176ElFPlxj5hvsVJ8O_AaQSlIoL25IzJD",
-    "base_folder_url": "https://drive.google.com/drive/folders/176ElFPlxj5hvsVJ8O_AaQSlIoL25IzJD",
+    "base_folder_id": "1JWHztpl2Z6mE9WtcRTObRgwBRp1OsHCb",
+    "base_folder_url": "https://drive.google.com/drive/folders/1JWHztpl2Z6mE9WtcRTObRgwBRp1OsHCb",
+    "note_base_folder_id": "Zeigt auf 'Translated-Ads', den eigenen Wurzelordner dieser Pipeline (liegt als Unterordner im gemeinsamen 'Claude Cowork Automation'-Ordner). Bewusst NICHT der gemeinsame Ordner selbst, damit z.B. der Service Account fuer scripts/upload_to_drive.py nur auf diesen eigenen Unterordner freigegeben werden muss, nicht auf State/Funnel-PDFs/QA-Reports der anderen Automatisierung. Historie: am 2026-07-11 stand hier kurzzeitig eine nicht-existente ID (176ElFPlxj5hvsVJ8O_AaQSlIoL25IzJD, per get_file_metadata als ungueltig bestaetigt); am 2026-07-13 auf diese verifizierte ID korrigiert.",
     "project_folder_name_pattern": "<market_code>/<product_name aus Spalte G>",
-    "note": "Bestehende Unterordner State/, Funnel-PDFs/, QA-Reports/ gehoeren zu einer anderen Automatisierung (FI/FRCA Funnel-QA-Monitor) und werden nicht veraendert. Diese Pipeline legt eigene Unterordner an, siehe README."
+    "note": "Bestehende Unterordner State/, Funnel-PDFs/, QA-Reports/ der ANDEREN Automatisierung liegen eine Ebene hoeher (im gemeinsamen Basis-Ordner, nicht unter base_folder_id hier) und werden von dieser Pipeline nicht beruehrt."
   },
 
   "foundation_documents": {

@@ -140,15 +140,23 @@ Die eigentliche Higgsfield-Generierung passiert bereits in Schritt 5 (ein Call p
    der jeweiligen Quell-Anzeige haben (z. B. `1:1`, `4:5`, `9:16` — je nachdem, wie die
    Ad in der Ad Library aussieht), nicht ein Standard-Format. Vor dem Higgsfield-Call die
    Maße der Quell-Anzeige bestimmen und als `aspect_ratio` übergeben.
-2. Ergebnisse inline zeigen. **Bekannte Einschränkung:** Das Drive-Tool kann Bilder nur
-   per Base64 durch den eigenen Kontext hochladen — bei generierten Bildern (~1 MB) ist
-   das nicht praktikabel (Größenlimit weit unterhalb dessen, was eine brauchbare
-   Bildqualität erlaubt). Deshalb: pro Zeile/Produkt/Lauf-Datum ein Markdown-Dokument in
-   `<Projektordner>/<market_code>/renders/<product_name>/` ablegen, das die
-   Higgsfield-Ergebnis-URLs (CDN-Links, langlebig) plus die übersetzte Ad-Copy enthält —
-   keine Bild-Binärdateien direkt duplizieren, außer eine praktikable Upload-Methode wird
-   gefunden.
-3. Ist kein Higgsfield-MCP verfügbar: nur die Prompt-Texte ausgeben, Rendering
+2. **Bild-Upload:** Seit 2026-07-13 gibt es `scripts/upload_to_drive.py` — lädt jedes
+   Higgsfield-Ergebnisbild direkt von seiner CDN-URL per Service-Account (Drive API v3)
+   byte-genau nach `<drive.base_folder_id>/<market_code>/<product_name>/renders/` hoch,
+   ohne die Bilddaten durch den Modell-Kontext zu schleusen (löst die alte
+   Base64-Größenbeschränkung, siehe `STATUS.md` Abschnitt 3a). Aufruf pro Zeile/Produkt
+   mit allen Bildern dieses Laufs, z. B.:
+   `python3 scripts/upload_to_drive.py --market FRCA --product vanix --subfolder renders --manifest <manifest>.json`.
+   Danach zusätzlich weiterhin ein Markdown-Dokument mit der übersetzten Ad-Copy ablegen
+   (Google Doc, wie bisher) — das Skript kümmert sich nur um die Bild-Binärdateien.
+   Voraussetzung: `GOOGLE_SERVICE_ACCOUNT_JSON` gesetzt und der Ziel-Ordner mit dem
+   Service Account geteilt (siehe `STATUS.md`). Ist das (noch) nicht der Fall: Fallback
+   auf die alte Methode (CDN-Links im Markdown-Dokument statt Bild-Binärdateien).
+3. Nach erfolgreichem Upload **genau einen** Discord-Post über
+   `DISCORD_WEBHOOK_URL_IMAGES` mit dem Link zum Ziel-Ordner absetzen (macht
+   `scripts/upload_to_drive.py` automatisch) — keine Einzelbilder einzeln in den Chat
+   oder nach Discord posten.
+4. Ist kein Higgsfield-MCP verfügbar: nur die Prompt-Texte ausgeben, Rendering
    überspringen.
 
 ## Schritt 8 — Ablage & Abschluss
