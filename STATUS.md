@@ -74,15 +74,28 @@ Zugriff auf den Ziel-Ordner (`drive.base_folder_id` = `Translated-Ads`-Ordner,
 `1JWHztpl2Z6mE9WtcRTObRgwBRp1OsHCb`) schlägt aktuell noch mit 404 fehl — der Ordner ist
 noch nicht mit dem Service Account geteilt.
 
-**Noch zu tun (durch den Nutzer):** Den `Translated-Ads`-Ordner
-(https://drive.google.com/drive/folders/1JWHztpl2Z6mE9WtcRTObRgwBRp1OsHCb) in Google
-Drive per Rechtsklick → "Freigeben" mit
-`image-automation-uploader@image-automation-502115.iam.gserviceaccount.com` als
-**Bearbeiter** teilen. Bewusst nur dieser Unterordner, nicht der gemeinsame
-`Claude Cowork Automation`-Basisordner — so bekommt der Service Account keinen Zugriff
-auf `State/`, `Funnel-PDFs/`, `QA-Reports/` der anderen, unabhängigen Automatisierung.
-Danach sollte derselbe Testaufruf (Token holen, `GET .../files/<base_folder_id>`) einen
-Namen statt 404 liefern.
+**Update 2026-07-13, nach Freigabe des Ordners:** Ordner-Zugriff funktioniert jetzt
+(404 weg, Unterordner FRCA/vanix/renders werden korrekt gefunden/angelegt). Der
+eigentliche Datei-Upload schlägt aber mit **403 `storageQuotaExceeded`** fehl:
+`"Service Accounts do not have storage quota. Leverage shared drives ..., or use
+OAuth delegation ... instead."` — das ist eine harte Google-Drive-Plattform-Grenze, kein
+Freigabe-/Config-Problem: Service Accounts besitzen selbst keinen Speicherplatz, neue
+Dateien brauchen einen Besitzer mit Kontingent. Zwei offizielle Lösungswege laut
+Google, beide für **normale (Nicht-Workspace-)Gmail-Konten wie
+`jeannine.thiry1@gmail.com` nicht nutzbar**:
+1. Shared Drives (Team Drives) — erfordert Google Workspace, nicht verfügbar für
+   Consumer-Gmail.
+2. Domain-Wide Delegation ("OAuth delegation") — erfordert eine
+   Google-Workspace-Admin-Konsole, ebenfalls nicht verfügbar für Consumer-Gmail.
+
+**Tatsächlich funktionierender Weg für Consumer-Gmail:** Klassischer 3-legged-OAuth als
+das echte Google-Konto (nicht als Service Account) — einmalig im Browser einloggen und
+Zugriff bestätigen (OAuth-Client vom Typ "Desktop App" im selben Cloud-Projekt), danach
+einen langlebigen Refresh-Token als Secret hinterlegen (z. B.
+`GOOGLE_OAUTH_CLIENT_ID`/`_SECRET`/`_REFRESH_TOKEN`). Uploads laufen dann unter dem
+echten Speicherkontingent von `jeannine.thiry1@gmail.com`. Noch nicht umgesetzt —
+erfordert einmaligen manuellen Autorisierungsschritt des Nutzers, siehe Rückfrage im
+Chat vom 2026-07-13.
 
 ### Was der Nutzer einmalig einrichten musste (jetzt erledigt, Referenz)
 
