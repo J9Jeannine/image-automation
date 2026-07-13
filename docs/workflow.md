@@ -140,27 +140,38 @@ Die eigentliche Higgsfield-Generierung passiert bereits in Schritt 5 (ein Call p
    der jeweiligen Quell-Anzeige haben (z. B. `1:1`, `4:5`, `9:16` — je nachdem, wie die
    Ad in der Ad Library aussieht), nicht ein Standard-Format. Vor dem Higgsfield-Call die
    Maße der Quell-Anzeige bestimmen und als `aspect_ratio` übergeben.
-2. Ergebnisse inline zeigen. **Bekannte Einschränkung:** Das Drive-Tool kann Bilder nur
-   per Base64 durch den eigenen Kontext hochladen — bei generierten Bildern (~1 MB) ist
-   das nicht praktikabel (Größenlimit weit unterhalb dessen, was eine brauchbare
-   Bildqualität erlaubt). Deshalb: pro Zeile/Produkt/Lauf-Datum ein Markdown-Dokument in
-   `<Projektordner>/<market_code>/renders/<product_name>/` ablegen, das die
-   Higgsfield-Ergebnis-URLs (CDN-Links, langlebig) plus die übersetzte Ad-Copy enthält —
-   keine Bild-Binärdateien direkt duplizieren, außer eine praktikable Upload-Methode wird
-   gefunden.
+2. **Bild-Upload nach Drive:** per `scripts/upload_to_drive.py` (Service-Account-Auth
+   über die Umgebungsvariable `GOOGLE_SERVICE_ACCOUNT_JSON`, siehe `STATUS.md` Abschnitt
+   3). Das Skript lädt jedes Bild serverseitig direkt von seiner Quelle
+   (Higgsfield-CDN-Link bei übersetzten Ads, Original-Ad-URL bei unverändert
+   gebliebenen Ads) herunter und in Drive hoch — **ohne** durch den Chat-Kontext zu
+   laufen (das alte Base64-durch-den-Kontext-Verfahren über das Drive-Tool ist damit
+   für Bilder obsolet; Grund: siehe `STATUS.md` Abschnitt 2 — bereits ein einzelnes Bild
+   ab ~20–25 KB Base64-Text bricht das Limit, unabhängig von der Anzahl Bilder pro Lauf).
+   - Zielordner: `<drive.base_folder_id aus Config>/<market_code>/<product_name>/`
+     (wird vom Skript automatisch angelegt, falls noch nicht vorhanden).
+   - Dateinamen-Konvention: `<product_name>_<market_code>_<YYYYMMDD>_<slug>.<ext>`,
+     `slug` = `product` für das Produktbild-Asset aus Schritt 3, sonst `ad1`, `ad2`, ...
+     in der Reihenfolge der Ads aus Schritt 4.
+   - Aufruf als Batch über ein Manifest (siehe Docstring im Skript für das Format),
+     ein Aufruf pro Zeile/Produkt.
+   - **Batch-Limit:** maximal 5 Bilder pro Lauf/Session generieren+hochladen (nicht
+     mehr, auch wenn mehr Ads in der Zeile stehen). Bei mehr als 5 neuen Ads in einer
+     Zeile: die ersten 5 in diesem Lauf verarbeiten, den Rest beim nächsten Lauf
+     (State-Datei trackt das wie gewohnt über `processed_ad_ids`) — je nachdem was
+     technisch einfacher ist, entweder über zwei zeitversetzte Trigger pro Tag oder
+     zwei Durchläufe innerhalb derselben Session.
 3. Ist kein Higgsfield-MCP verfügbar: nur die Prompt-Texte ausgeben, Rendering
-   überspringen.
+   überspringen. Ist `GOOGLE_SERVICE_ACCOUNT_JSON` nicht gesetzt: Upload überspringen,
+   nur die CDN-/Original-URLs im Markdown-Dokument (Schritt 5) vermerken.
 4. **Discord-Posting:** Steht ein Discord-Webhook zur Verfügung (Umgebungsvariable in
    der Cloud-Umgebung, siehe Claude-Code-Web-Einstellungen dieser Session — Wert nicht
-   hier im Repo hinterlegen), werden pro verarbeiteter Zeile/Produkt **alle** Ad-Bilder
-   dieses Laufs (übersetzte Renders UND unverändert gebliebene Ads gleichermaßen) als
-   **eine einzige** Webhook-Nachricht gepostet (mehrere Datei-Attachments in einem
-   `multipart/form-data`-Request, z. B. `file1`…`fileN` neben `payload_json`) — nicht
-   eine Nachricht pro Bild. Der `content`-Text nennt pro Bild kurz die Ad-Nummer, ob
-   übersetzt oder unverändert, und die Ad-Copy — **ohne** Preisangabe. Der `content`-Text
-   enthält **immer** auch den Link zum Drive-Projektordner dieser Zeile/dieses Produkts
-   (`https://drive.google.com/drive/folders/<Ordner-ID>`), damit man von Discord aus
-   direkt zu allen Dateien springen kann.
+   hier im Repo hinterlegen), wird pro verarbeiteter Zeile/Produkt **eine einzige**
+   Text-Nachricht gepostet (kein Datei-Attachment mehr, da die Bilder jetzt real in
+   Drive liegen) — mit kurzer Nennung der Ad-Nummern (übersetzt/unverändert) und
+   Ad-Copy, **ohne** Preisangabe, und **immer** dem Link zum Drive-Projektordner
+   dieser Zeile/dieses Produkts (`https://drive.google.com/drive/folders/<Ordner-ID>`,
+   von `upload_to_drive.py` als `folder_url` zurückgegeben).
 
 ## Schritt 8 — Ablage & Abschluss
 
