@@ -162,9 +162,21 @@ Sobald die Variable gesetzt ist, kann ein Skript (Python, `google-auth` +
 
 ## 5. Offene Punkte für den Nutzer
 
-1. **`Translated-Ads`-Ordner mit dem Service Account teilen** (siehe Abschnitt 3a) —
-   ohne diesen Schritt bricht `scripts/upload_to_drive.py` mit 404 ab, obwohl Auth
-   selbst funktioniert.
+1. **OAuth-Setup für das echte Google-Konto** (Desktop-App-Client, siehe Chat vom
+   2026-07-13/14): `Translated-Ads`-Ordner ist inzwischen mit dem Service Account
+   geteilt, aber der eigentliche Datei-Upload scheitert weiterhin mit 403
+   `storageQuotaExceeded` (Service Accounts haben kein eigenes Speicherkontingent,
+   siehe Abschnitt 3a-Update). Einziger funktionierender Weg für ein normales
+   Gmail-Konto: 3-legged OAuth als `jeannine.thiry1@gmail.com` selbst. Wartet auf
+   `GOOGLE_OAUTH_CLIENT_ID`/`GOOGLE_OAUTH_CLIENT_SECRET` (Anleitung zum Anlegen des
+   OAuth-Clients wurde im Chat gegeben). Sobald vorhanden, deckt derselbe Zugang auch
+   Punkt 1a ab:
+   1a. **Sheet-Kommentare schreiben:** Für die neue Regel in `docs/workflow.md`
+       Schritt 5 ("jedes Bild bekommt einen dauerhaften Link im M-Kommentar-Thread")
+       gibt es aktuell kein Tool — das Google-Drive-MCP kann nur lesen, keine
+       Kommentare/Antworten erstellen, und der Service Account hat keinen Zugriff auf
+       die Funnel-Sheet-Datei selbst. Braucht denselben OAuth-Zugang wie oben
+       (Drive-API `comments.create`/`replies.create`).
 2. FRCA-Zeile 33 (vanix): weiterhin nur `facebook.com/ads/library/?id=...`-Permalinks
    im M-Kommentar, keine fbcdn.net-Reply. Wartet seit 2026-07-10 auf direkte
    Bild-/Video-URLs vom Nutzer (siehe Lauf-Notiz 2026-07-13 unten).

@@ -105,7 +105,9 @@ Für **jede einzelne Ad** aus Schritt 4 (nicht gebündelt):
      nicht neu erzeugt) als Referenz einsetzen — Maßstab/Winkel/Licht an die Ad-Szene
      anpassen.
    - **Zeigt sie kein Produkt:** die Anzeige visuell unverändert lassen, nur den Text
-     übersetzen.
+     übersetzen. **Trotzdem** das unveränderte Quellbild einmal per Byte-Kopie (nicht
+     per Higgsfield-Neugenerierung — riskiert unnötige Abweichungen und kostet Credits
+     ohne Nutzen) nach Drive umziehen, siehe Regel unten.
 2. Den `Skill`-Tool mit `skill: "image-ad-prompt-generator"` aufrufen (steht der
    ausführenden Session zur Verfügung, da der Trigger in die reguläre Chat-Session
    zurückspielt) und dabei übergeben: die eine Quell-Ad-Referenz, ggf. die
@@ -124,6 +126,31 @@ Für **jede einzelne Ad** aus Schritt 4 (nicht gebündelt):
    verarbeiteten Ad-Permalinks) als Markdown nach
    `<Projektordner>/<market_code>/translated-ads/<product_name>/<Lauf-Datum>.md`
    schreiben (`Google_Drive.create_file`, `contentMimeType: text/markdown`).
+
+### Regel (seit 2026-07-14): jedes Bild bekommt einen eigenen, dauerhaften Link im Sheet
+
+Egal ob übersetzt/neu gerendert (Produkt-Fall) oder nur Byte-Kopie des
+unveränderten Quellbilds (Nicht-Produkt-Fall aus Punkt 1) — **jedes** Ergebnisbild
+einer Zeile wird zusätzlich zur Markdown-Ablage (Punkt 5 oben) so gesichert:
+
+1. Bild-Datei per `scripts/upload_to_drive.py` (oder Nachfolger) dauerhaft nach
+   `<drive.base_folder_id>/<market_code>/<product_name>/renders/` hochladen — nicht
+   von der Quelle abhängig bleiben (fbcdn.net-Links laufen ab oder verschwinden,
+   wenn die Competitor-Anzeige offline geht).
+2. Eine kurze **1-Zeilen-Bildunterschrift** verfassen, die beschreibt, was auf dem
+   Bild zu sehen ist (z. B. "Finger hält Cremetropfen, oranger Hintergrund") — reicht,
+   um das Bild am Link wiederzuerkennen, keine volle Ad-Copy nötig.
+3. Den resultierenden dauerhaften Drive-Link + die Bildunterschrift als **Antwort in
+   den M-Kommentar-Thread der jeweiligen Sheet-Zeile** schreiben (Drive-API
+   `comments.create`/`replies.create` auf die Funnel-Sheet-Datei, Anker `<Tab>!M<Zeile>`)
+   — nicht nur ins separate Markdown-Dokument. So bleibt der Zugriff bestehen, auch
+   wenn die Original-Ad beim Competitor gelöscht wird.
+4. **Voraussetzung:** Schreibzugriff auf die Funnel-Sheet-Datei. Das aktuell verbundene
+   Google-Drive-MCP-Tool kann keine Kommentare/Antworten erstellen (nur lesen); der
+   Service Account hat keinen Zugriff auf die Sheet-Datei selbst (nur auf den
+   `Translated-Ads`-Ordner). Sobald der OAuth-Zugang für das echte Google-Konto steht
+   (siehe `STATUS.md` Abschnitt 3a), kann dieselbe Authentifizierung sowohl den
+   Bild-Upload als auch den Sheet-Kommentar in einem Schritt erledigen.
 
 ## Schritt 6 — Foundation-Phase (optional, aktuell inaktiv)
 
