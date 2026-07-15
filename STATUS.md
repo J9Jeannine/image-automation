@@ -115,3 +115,22 @@ Sobald die Variable gesetzt ist, kann ein Skript (Python, `google-auth` +
 3. Die MCP-Verbindungsinstabilität bei automatischen Trigger-Läufen (Higgsfield +
    Drive-Schreibzugriffe) ist ein wiederkehrendes Muster über mindestens zwei Läufe —
    wert, als eigenständiges Infrastruktur-Problem zu melden/zu untersuchen.
+
+## 6. Trigger-Lauf 2026-07-15 — Ergebnis
+
+- **FRCA, Zeile 33 (vanix) und Zeile 34 (Erelso):** Kommentar-Thread in Spalte M
+  gegen `State/processed_comments.json` geprüft — Fingerprint in beiden Fällen
+  identisch zum letzten Lauf (Zeile 33: weiterhin dieselben 10 offenen
+  `facebook.com/ads/library`-Permalinks ohne fbcdn.net-Reply; Zeile 34: weiterhin
+  dieselben 3 bereits verarbeiteten fbcdn.net-URLs). Kein neuer/geänderter Thread →
+  keine Verarbeitung, State-Datei unverändert gelassen.
+- **FI-Tab (ab Zeile 52):** weiterhin nicht lesbar. `Google_Drive.read_file_content`
+  liefert für dieses Sheet erneut ausschließlich den FRCA-Tab (zweimal getestet,
+  identische Byte-Größe der Antwort) — derselbe Bug wie am 2026-07-10 dokumentiert,
+  seither unverändert. Damit lässt sich **nicht verifizieren**, ob seit dem letzten
+  Lauf neue Kommentare in FI-Spalte M hinzugekommen sind. Dies ist kein "nichts
+  Neues", sondern ein "nicht prüfbar" — der Nutzer wurde per Push-Benachrichtigung
+  informiert, da dieser Blocker seit 5 Tagen unadressiert ist und die Pipeline für
+  den FI-Markt effektiv blind für neue Ad-Kommentare macht.
+- Keine Zeilen verarbeitet, keine Higgsfield-/Drive-Schreibaufrufe in diesem Lauf
+  nötig gewesen (nichts zu verarbeiten).
