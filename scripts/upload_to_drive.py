@@ -35,9 +35,19 @@ DRIVE_SCOPE = "https://www.googleapis.com/auth/drive"
 
 
 def get_access_token():
+    # Bevorzugt OAuth als echtes Google-Konto (eigenes Speicherkontingent). Nur wenn
+    # kein Refresh-Token vorliegt, Fallback auf den Service Account (der aber kein
+    # Kontingent hat -> 403 storageQuotaExceeded, siehe STATUS.md Abschnitt 3a).
+    if os.environ.get("GOOGLE_OAUTH_REFRESH_TOKEN"):
+        import drive_oauth
+        return drive_oauth.get_access_token()
+
     key_json = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON")
     if not key_json:
-        sys.exit("GOOGLE_SERVICE_ACCOUNT_JSON ist nicht gesetzt.")
+        sys.exit(
+            "Weder GOOGLE_OAUTH_REFRESH_TOKEN noch GOOGLE_SERVICE_ACCOUNT_JSON gesetzt. "
+            "Fuer vollen Upload den OAuth-Flow nutzen: scripts/drive_oauth.py."
+        )
     try:
         key = json.loads(key_json)
     except json.JSONDecodeError as exc:
