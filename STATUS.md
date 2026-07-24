@@ -115,3 +115,32 @@ Sobald die Variable gesetzt ist, kann ein Skript (Python, `google-auth` +
 3. Die MCP-Verbindungsinstabilität bei automatischen Trigger-Läufen (Higgsfield +
    Drive-Schreibzugriffe) ist ein wiederkehrendes Muster über mindestens zwei Läufe —
    wert, als eigenständiges Infrastruktur-Problem zu melden/zu untersuchen.
+
+## 6. Neue Anforderung: Ergebnis-Ordner-Link in Spalte O eintragen (aktuell nicht möglich)
+
+Wunsch (2026-07-24): Der Drive-Link zum Renders-Ordner einer verarbeiteten Zeile soll
+nicht nur in der Chat-Zusammenfassung genannt werden, sondern zusätzlich direkt in
+Spalte O ("[merged] Link to Videos /Images") der passenden Sheet-Zeile eingetragen
+werden (dokumentiert in `docs/workflow.md` Schritt 8.3).
+
+**Blocker:** Die aktuell verbundenen Werkzeuge (`Google_Drive.*`) sind
+Datei-Operationen (lesen, anlegen, kopieren, Metadaten, Berechtigungen,
+Kommentare lesen) — keines davon kann eine einzelne Zellen in einem bestehenden
+Google Sheet schreiben, und Kommentare können ebenfalls nicht per Werkzeug gepostet
+werden (nur lesen). Im MCP-Connector-Verzeichnis des Accounts existiert aktuell auch
+kein Google-Sheets-Connector, der das könnte — nur "Google Drive" (verbunden) und
+"Google Calendar" (nicht aktiviert).
+
+**Lösungswege (einer reicht):**
+1. Den in Abschnitt 3 beschriebenen Service Account zusätzlich für die **Google
+   Sheets API** freischalten (in derselben Google-Cloud-Projekt-Konsole: "APIs &
+   Services" → "Library" → "Google Sheets API" → Enable) und das Funnel Sheet
+   (`config/automation.config.json` → `sheet.id`) mit der Service-Account-E-Mail
+   teilen (Rolle "Bearbeiter"). Ein Skript kann dann per `spreadsheets.values.update`
+   gezielt Spalte O der jeweiligen Zeile schreiben, ohne den Rest des Sheets
+   anzufassen.
+2. Alternativ einen Sheets-fähigen MCP-Connector in den claude.ai-Connector-
+   Einstellungen verbinden, falls/sobald einer mit Schreibzugriff verfügbar ist.
+
+Bis einer der beiden Wege eingerichtet ist, überspringt Schritt 8.3 das Zurückschreiben
+und vermerkt das explizit im Abschlussbericht statt es stillschweigend wegzulassen.

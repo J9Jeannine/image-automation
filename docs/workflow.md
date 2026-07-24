@@ -156,6 +156,18 @@ Die eigentliche Higgsfield-Generierung passiert bereits in Schritt 5 (ein Call p
 1. Alle Text-/Bild-Outputs liegen bereits in Drive (Schritte 5/7).
 2. `<Projektordner>/<market_code>/State/processed_comments.json` mit den neuen
    Fingerprints aus Schritt 2 aktualisieren.
-3. Kurze Zusammenfassung an den Nutzer: welche Zeilen/Produkte verarbeitet wurden, wie
+3. **Ergebnis-Ordner-Link zurück ins Sheet schreiben:** Den Drive-Link zum
+   Renders-Ordner dieser Zeile (`<Projektordner>/<market_code>/renders/<product_name>/`,
+   siehe Schritt 7.2) in Spalte O ("[merged] Link to Videos /Images") der
+   verarbeiteten Zeile eintragen — nicht nur in der Chat-/Abschluss-Zusammenfassung
+   nennen. **Bekannte Einschränkung:** Aktuell steht kein Werkzeug zur Verfügung, das
+   einzelne Sheet-Zellen schreiben kann (nur Drive-Datei-Operationen: lesen, anlegen,
+   kopieren, Kommentare lesen — kein Sheets-API-Zugriff, kein Kommentar-Posting). Ist
+   kein solches Werkzeug vorhanden: diesen Teilschritt überspringen und im
+   Abschlussbericht explizit vermerken, dass der Link nur im Chat mitgeteilt wurde und
+   noch manuell (oder nach Einrichtung von Sheets-API-Zugang, siehe `STATUS.md`) in
+   Spalte O nachgetragen werden muss — nicht stillschweigend weglassen.
+4. Kurze Zusammenfassung an den Nutzer: welche Zeilen/Produkte verarbeitet wurden, wie
    viele Ads pro Zeile, Drive-Links zu den neuen Dateien, ob gerendert wurde oder nur
-   Prompt-Texte erzeugt wurden. Bei "nichts Neues" keine Nachricht (siehe Schritt 2.2).
+   Prompt-Texte erzeugt wurden, und ob der Ordner-Link in Spalte O eingetragen werden
+   konnte (siehe Schritt 8.3). Bei "nichts Neues" keine Nachricht (siehe Schritt 2.2).
