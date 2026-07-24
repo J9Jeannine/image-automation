@@ -100,12 +100,21 @@ Session einmal nicht geladen ist.
 
 Für **jede einzelne Ad** aus Schritt 4 (nicht gebündelt):
 
-1. Prüfen, ob die Quell-Anzeige überhaupt ein Produkt zeigt.
+1. **Jede Ad wird einmal durch Higgsfield gerendert** — auch die ohne Produkt/Text
+   (Korrektur 2026-07-24, siehe `docs/knowledge-base.md` Abschnitt 2). Am Ende liegt
+   jede Ad der Zeile als eigenes Bild im Render-Ordner, egal ob Text drauf ist.
    - **Zeigt sie ein Produkt:** das EINE Produktbild-Asset aus Schritt 3 (wiederverwendet,
      nicht neu erzeugt) als Referenz einsetzen — Maßstab/Winkel/Licht an die Ad-Szene
      anpassen.
-   - **Zeigt sie kein Produkt:** die Anzeige visuell unverändert lassen, nur den Text
-     übersetzen.
+   - **Zeigt sie kein Produkt und keinen Text:** trotzdem 1:1 durch Higgsfield laufen
+     lassen (gleiches Seitenverhältnis), aber nichts Visuelles verändern und kein Produkt
+     einfügen — reine Reproduktion, damit auch dieses Bild als Datei im Ordner landet.
+   - **Zeigt sie Text, aber kein Produkt:** visuell unverändert lassen, nur den
+     Overlay-Text idiomatisch übersetzen.
+   - **Bildquelle immer zuerst aus dem Higgsfield-Verlauf holen** (`show_generations` /
+     `show_medias`), erst dann externe fbcdn-Links — siehe `knowledge-base.md` Abschnitt 1.
+     Die Ergebnis-/Quell-CDNs (`d8j0ntlcm91z4` / `d2ol7oe51mr4n9`) sind langlebig, die
+     fbcdn-Links laufen ab, der facebook.com-Permalink ist blockiert.
 2. Den `Skill`-Tool mit `skill: "image-ad-prompt-generator"` aufrufen (steht der
    ausführenden Session zur Verfügung, da der Trigger in die reguläre Chat-Session
    zurückspielt) und dabei übergeben: die eine Quell-Ad-Referenz, ggf. die
