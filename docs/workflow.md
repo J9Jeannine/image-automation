@@ -120,10 +120,13 @@ Für **jede einzelne Ad** aus Schritt 4 (nicht gebündelt):
    aktuell inaktiven Foundation-Phase (Schritt 6, `docs/skills/foundation-to-higgsfield.md`),
    die einen anderen Skill/Ablauf nutzt. Pro Ad wird **genau ein** Ergebnisbild erzeugt,
    nicht mehrere Varianten.
-5. Output (übersetzte Headline + Primary Text inkl. korrektem Preis, Liste der
-   verarbeiteten Ad-Permalinks) als Markdown nach
-   `<Projektordner>/<market_code>/translated-ads/<product_name>/<Lauf-Datum>.md`
-   schreiben (`Google_Drive.create_file`, `contentMimeType: text/markdown`).
+5. **Keine separaten Text-/Status-Dokumente in Drive ablegen.** Die übersetzte
+   Headline + Primary Text (inkl. korrektem Preis) und die Liste der verarbeiteten
+   Ad-Permalinks gehören in den Abschlussbericht (Schritt 8) bzw. die Chat-/Discord-
+   Nachricht — **nicht** als Markdown-/Google-Doc in den Produkt-Ordner. Der Render-
+   Ordner soll ausschließlich die fertigen Bild-Dateien enthalten (Wunsch Nutzerin
+   2026-07-24: „nur so, ohne diese extra Dokumente mit den Links"). Die früheren
+   `translated-ads/…md`- und `renders/…-status.md`-Dokumente entfallen ersatzlos.
 
 ## Schritt 6 — Foundation-Phase (optional, aktuell inaktiv)
 
@@ -140,34 +143,53 @@ Die eigentliche Higgsfield-Generierung passiert bereits in Schritt 5 (ein Call p
    der jeweiligen Quell-Anzeige haben (z. B. `1:1`, `4:5`, `9:16` — je nachdem, wie die
    Ad in der Ad Library aussieht), nicht ein Standard-Format. Vor dem Higgsfield-Call die
    Maße der Quell-Anzeige bestimmen und als `aspect_ratio` übergeben.
-2. Ergebnisse inline zeigen. **Bekannte Einschränkung:** Das Drive-Tool kann Bilder nur
-   per Base64 durch den eigenen Kontext hochladen — bei generierten Bildern (~1 MB) ist
-   das nicht praktikabel (Größenlimit weit unterhalb dessen, was eine brauchbare
-   Bildqualität erlaubt). Deshalb: pro Zeile/Produkt/Lauf-Datum ein Markdown-Dokument in
-   `<Projektordner>/<market_code>/renders/<product_name>/` ablegen, das die
-   Higgsfield-Ergebnis-URLs (CDN-Links, langlebig) plus die übersetzte Ad-Copy enthält —
-   keine Bild-Binärdateien direkt duplizieren, außer eine praktikable Upload-Methode wird
-   gefunden.
-3. Ist kein Higgsfield-MCP verfügbar: nur die Prompt-Texte ausgeben, Rendering
-   überspringen.
+2. **Bild-Dateien direkt in Drive ablegen — über den Service Account** (siehe
+   `STATUS.md` Abschnitt 3; Credentials liegen als Env-Var `GOOGLE_SERVICE_ACCOUNT_JSON`
+   vor, Service-Account-E-Mail
+   `image-automation-uploader@image-automation-502115.iam.gserviceaccount.com`). Der
+   Umweg über Base64-durch-den-Chat-Kontext entfällt damit — das Skript lädt jedes
+   Higgsfield-Ergebnisbild serverseitig von der CDN-URL und legt es per Drive-API
+   (`files.create`, multipart) byte-genau ab. Ordnerstruktur (wie in der Praxis bestätigt,
+   Stand 2026-07-24):
+   - Produkt-Ordner: `<market_code>/<product_name aus Spalte G>/` (z. B. `FI/atriso/`).
+   - Darin ein Lauf-Unterordner mit Datum, z. B. `2026-07-23 – Käännetyt mainokset (FI)`.
+   - In diesen Lauf-Unterordner **nur** die fertigen Ad-Bilder als Dateien
+     (`<product>_<market>_ad1.jpg` …). **Keine** Markdown-/Status-Dokumente mit CDN-Links
+     mehr daneben legen (Wunsch Nutzerin 2026-07-24, alte `*-status.md` wurden gelöscht).
+3. Ist kein Higgsfield-MCP verfügbar: nur die Prompt-Texte ausgeben (im Chat/Bericht),
+   Rendering überspringen.
+4. Ist der Service Account nicht erreichbar (Env-Var fehlt / Sheets- bzw. Drive-API nicht
+   freigeschaltet): die CDN-Links im Abschlussbericht nennen und explizit vermerken, dass
+   der Datei-Upload nicht möglich war — nicht stillschweigend weglassen.
 
 ## Schritt 8 — Ablage & Abschluss
 
-1. Alle Text-/Bild-Outputs liegen bereits in Drive (Schritte 5/7).
+1. Alle Bild-Outputs liegen bereits in Drive (Schritt 7). Keine separaten
+   Text-/Status-Dokumente (siehe Schritt 5.5 / 7.2).
 2. `<Projektordner>/<market_code>/State/processed_comments.json` mit den neuen
    Fingerprints aus Schritt 2 aktualisieren.
-3. **Ergebnis-Ordner-Link zurück ins Sheet schreiben:** Den Drive-Link zum
-   Renders-Ordner dieser Zeile (`<Projektordner>/<market_code>/renders/<product_name>/`,
-   siehe Schritt 7.2) in Spalte O ("[merged] Link to Videos /Images") der
-   verarbeiteten Zeile eintragen — nicht nur in der Chat-/Abschluss-Zusammenfassung
-   nennen. **Bekannte Einschränkung:** Aktuell steht kein Werkzeug zur Verfügung, das
-   einzelne Sheet-Zellen schreiben kann (nur Drive-Datei-Operationen: lesen, anlegen,
-   kopieren, Kommentare lesen — kein Sheets-API-Zugriff, kein Kommentar-Posting). Ist
-   kein solches Werkzeug vorhanden: diesen Teilschritt überspringen und im
-   Abschlussbericht explizit vermerken, dass der Link nur im Chat mitgeteilt wurde und
-   noch manuell (oder nach Einrichtung von Sheets-API-Zugang, siehe `STATUS.md`) in
-   Spalte O nachgetragen werden muss — nicht stillschweigend weglassen.
+3. **Ergebnis-Ordner-Link zurück ins Sheet schreiben (funktioniert, Stand 2026-07-24):**
+   Den Drive-Link zum **Produkt-Ordner** dieser Zeile
+   (`<market_code>/<product_name>/`, z. B. `FI/atriso/`) in Spalte O
+   ("[merged] Link to Videos /Images") der verarbeiteten Zeile eintragen — nicht nur in
+   der Chat-/Abschluss-Zusammenfassung nennen.
+   - Schreibzugriff läuft über den Service Account (Sheets API v4,
+     `spreadsheets.values.update`, `valueInputOption=USER_ENTERED`) mit derselben
+     Credential wie der Bild-Upload (`GOOGLE_SERVICE_ACCOUNT_JSON`). Das Funnel Sheet
+     ist mit der Service-Account-E-Mail als Bearbeiter geteilt.
+   - **Stil exakt wie die bestehenden Zeilen:** Zelle als
+     `=HYPERLINK("<Produkt-Ordner-URL>";"<product_name aus Spalte G>")` schreiben, damit
+     der Produktname als anklickbarer Text erscheint (nicht die rohe URL). **Wichtig:**
+     Das Sheet nutzt die EU-Locale — Formel-Argumente mit **Semikolon** trennen
+     (`;`), nicht mit Komma, sonst `#ERROR!`.
+   - Tab-Name = Sheet-Tab (`FI`/`FRCA`), Zeilennummer = die verarbeitete Zeile. Vor dem
+     Schreiben prüfen, dass die Zielzelle leer ist oder auf denselben Ordner zeigt (keine
+     fremden Werte überschreiben).
+   - Ist der Service Account nicht erreichbar/API nicht freigeschaltet: Teilschritt
+     überspringen und im Bericht vermerken, dass der Link manuell nachzutragen ist —
+     nicht stillschweigend weglassen.
 4. Kurze Zusammenfassung an den Nutzer: welche Zeilen/Produkte verarbeitet wurden, wie
-   viele Ads pro Zeile, Drive-Links zu den neuen Dateien, ob gerendert wurde oder nur
+   viele Ads pro Zeile, Drive-Link zum Produkt-Ordner, die übersetzte Ad-Copy (Headline +
+   Primary Text, da nicht mehr als Drive-Doc abgelegt), ob gerendert wurde oder nur
    Prompt-Texte erzeugt wurden, und ob der Ordner-Link in Spalte O eingetragen werden
    konnte (siehe Schritt 8.3). Bei "nichts Neues" keine Nachricht (siehe Schritt 2.2).
