@@ -152,24 +152,31 @@ Die eigentliche Higgsfield-Generierung passiert bereits in Schritt 5 (ein Call p
    der jeweiligen Quell-Anzeige haben (z. B. `1:1`, `4:5`, `9:16` — je nachdem, wie die
    Ad in der Ad Library aussieht), nicht ein Standard-Format. Vor dem Higgsfield-Call die
    Maße der Quell-Anzeige bestimmen und als `aspect_ratio` übergeben.
-2. **Bild-Dateien direkt in Drive ablegen — über den Service Account** (siehe
-   `STATUS.md` Abschnitt 3; Credentials liegen als Env-Var `GOOGLE_SERVICE_ACCOUNT_JSON`
-   vor, Service-Account-E-Mail
-   `image-automation-uploader@image-automation-502115.iam.gserviceaccount.com`). Der
-   Umweg über Base64-durch-den-Chat-Kontext entfällt damit — das Skript lädt jedes
-   Higgsfield-Ergebnisbild serverseitig von der CDN-URL und legt es per Drive-API
-   (`files.create`, multipart) byte-genau ab. Ordnerstruktur (wie in der Praxis bestätigt,
-   Stand 2026-07-24):
+2. **Bild-Dateien direkt in Drive ablegen — über den User-OAuth-Uploader.**
+   ⚠️ **Wichtig / Korrektur:** Der **Service Account kann KEINE Bilddateien hochladen**
+   (privates Gmail-Drive → `storageQuotaExceeded`, „Service Accounts do not have storage
+   quota"). Auch der MCP-`create_file`-Weg (Base64 durch den Chat) ist für echte Bilder
+   unbrauchbar/korrupt. **Standardweg ist daher das Skript** `scripts/upload_cdn_to_drive.py`,
+   das als die Nutzerin per OAuth-Refresh-Token serverseitig von der Higgsfield-CDN-URL
+   direkt in den Zielordner lädt (byte-genau, verifiziert, löschbar). Aufruf pro Ad:
+   ```
+   python3 scripts/upload_cdn_to_drive.py "<CDN-URL>" <lauf_unterordner_id> "<product>_<market>_adN.jpg"
+   ```
+   Voraussetzung: Env-Secrets `GOOGLE_OAUTH_CLIENT_ID/SECRET/REFRESH_TOKEN`
+   (Einrichtung: `docs/oauth-drive-upload.md`). Ordnerstruktur:
    - Produkt-Ordner: `<market_code>/<product_name aus Spalte G>/` (z. B. `FI/atriso/`).
    - Darin ein Lauf-Unterordner mit Datum, z. B. `2026-07-23 – Käännetyt mainokset (FI)`.
-   - In diesen Lauf-Unterordner **nur** die fertigen Ad-Bilder als Dateien
-     (`<product>_<market>_ad1.jpg` …). **Keine** Markdown-/Status-Dokumente mit CDN-Links
-     mehr daneben legen (Wunsch Nutzerin 2026-07-24, alte `*-status.md` wurden gelöscht).
+   - In diesen Lauf-Unterordner **nur** die fertigen Ad-Bilder als Dateien. **Keine**
+     Markdown-/Status-Dokumente daneben.
+   - Nach dem Upload `verified_exact: true` prüfen; bei `false` erneut hochladen.
 3. Ist kein Higgsfield-MCP verfügbar: nur die Prompt-Texte ausgeben (im Chat/Bericht),
    Rendering überspringen.
-4. Ist der Service Account nicht erreichbar (Env-Var fehlt / Sheets- bzw. Drive-API nicht
-   freigeschaltet): die CDN-Links im Abschlussbericht nennen und explizit vermerken, dass
-   der Datei-Upload nicht möglich war — nicht stillschweigend weglassen.
+4. **Sind die `GOOGLE_OAUTH_*`-Secrets (noch) nicht gesetzt**, ist Auto-Upload nicht
+   möglich: dann die fertigen Bilder in voller Auflösung per `SendUserFile` schicken
+   (Nutzerin zieht sie in den Ordner) **und** im Abschlussbericht explizit vermerken, dass
+   der automatische Upload erst nach dem einmaligen OAuth-Setup läuft — nicht
+   stillschweigend weglassen. (Der Service-Account-Weg ist hier **kein** Fallback, er kann
+   Bilder nicht hochladen.)
 
 ## Schritt 8 — Ablage & Abschluss
 

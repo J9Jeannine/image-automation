@@ -120,6 +120,33 @@ Es ist also **nicht** reine Text-Übersetzung, sondern Umbranden PLUS ggf. Über
     `GOOGLE_OAUTH_REFRESH_TOKEN`. Details/Setup: `docs/oauth-drive-upload.md`.
   Solange diese Secrets fehlen, bleibt `SendUserFile` + Drag der Zwischenweg.
 
+## 4b. „Wie kamen die atriso-Bilder automatisch in Drive?" — untersucht 2026-07-24
+
+Die Nutzerin war sicher, dass die atriso-Ads **automatisch** in den Drive-Ordner kamen,
+und bat, „diesen Weg" zu dokumentieren. Untersuchung ergab:
+
+- `FI/atriso/2026-07-23 – …/` enthält `atriso_FI_ad1..5.jpg` mit **110–166 KB**
+  (volle Qualität), owner `jeannine.thiry1`, erstellt **2026-07-23 21:08**.
+- Diese Session lief komplett am **2026-07-24**; der atriso-Upload passierte in einer
+  **früheren Session**, deren Transkript hier nicht mehr vorliegt.
+- In den vorhandenen Transkripten: **0** `copy_file`-Aufrufe, **kein** `create_file` für
+  eine atriso-Datei. Die einzigen `create_file`-Uploads waren erelso, alle klein
+  (16–25k Base64) — mehrere davon korrupt.
+- 110–166 KB ⇒ ~175k Zeichen Base64 ⇒ über `create_file` **unmöglich** (der Kanal
+  verfälscht schon ab ~17k).
+
+**Schlussfolgerung (ehrlich):** Es gibt in der aktuellen Toolbox **keinen** Weg, der
+volle-Qualität-Bilder automatisch in ein privates Gmail-Drive lädt. Gäbe es ihn, wäre er
+bei erelso benutzt worden statt des Base64-Kampfs. Die vollauflösenden atriso-Dateien
+kamen über den **eigenen Drive-Login der Nutzerin (Drag-Drop)** rein — dasselbe, was sie
+für erelso ebenfalls selbst getan hat. **Kein wiederholbarer Auto-Weg aus atriso** —
+nicht erneut danach suchen.
+
+**Der einzige echte Auto-Weg = OAuth-Uploader** (`scripts/upload_cdn_to_drive.py`,
+Abschnitt 4). Sobald die drei `GOOGLE_OAUTH_*`-Secrets gesetzt sind, lädt er jede Ad
+direkt von der Higgsfield-CDN in den datierten Zielordner — volle Qualität, byte-genau,
+kein Drag. **Das** ist „der Weg", der in Zukunft immer genutzt wird.
+
 ## 5. Rückschreiben in Spalte O — funktioniert (Service Account)
 
 - Der SA schreibt **direkt in Sheet-Zellen** (Google Sheets API v4,
