@@ -52,6 +52,28 @@ wie von einer/einem Muttersprachler:in geschrieben — **nicht** wörtlich/geste
 „Les résultats, ça parle tout seul." / „Plus de 9 000 gars l'ont essayé." /
 „Vérifie si c'est disponible" (umgangssprachlicher Quebec-Register).
 
+## 3b. Ad-Lokalisierung = UMBRANDEN + Übersetzen (nicht nur übersetzen)
+
+**Bestätigt 2026-07-24 an Erelso.** Die Quell-Ads stammen vom Competitor (Spalte D),
+dessen Marke auf Tube/Box/Badge steht — bei Erelso: **„PrimeErect"**. Die fertigen Ads
+müssen **unser** Produkt zeigen: der Markenname wird im Bild auf den Produktnamen aus
+**Spalte G** umgeschrieben (**„Erelso"**), das Motiv/Layout bleibt sonst identisch.
+Es ist also **nicht** reine Text-Übersetzung, sondern Umbranden PLUS ggf. Übersetzung.
+
+- Beleg: die ältere `erelso ad.png` (FI) zeigt bereits „Erelso" auf der Tube (umgebrandet
+  von PrimeErect), mit finnischem Text — d. h. der Umbrand-Schritt gehört fest dazu.
+- **Umsetzung, die zuverlässig funktioniert:** Quell-Bild per `media_import_url` in
+  Higgsfield importieren, dann `generate_image` mit `model: nano_banana_pro` (läuft als
+  `nano_banana_2`), `medias:[{value: <media_id>, role:"image"}]`, exaktes Seitenverhältnis
+  (1:1 bzw. 4:5), und einem **chirurgischen Prompt**: „Edit this image, single change:
+  replace the brand name 'PrimeErect'/'PRIME' with 'Erelso'/'ERELSO' in the same font/
+  colour/position; keep EVERYTHING else pixel-identical; do not change/re-spell/move any
+  [Sprache]-text; preserve the N:M framing." → hält Layout und Copy sauber, nur die Marke
+  wechselt. Ergebnis-Auflösung 1024 px (bzw. 928×1152 bei 4:5).
+- **Ads ohne Marke** (z. B. der Raketen-Cartoon, Ad 5) brauchen keinen Umbrand; ist die
+  Copy sprachlich schon korrekt (natürliches Quebec-/Finnisch), das scharfe Quell-Bild
+  **behalten** statt neu zu rendern (nano_banana kann sonst Text/Zeichnung verschlechtern).
+
 ## 4. Bild-Dateien in Google Drive ablegen — harte Grenzen
 
 - **Service Account kann KEINE Datei-Bytes hochladen.** Google: „Service Accounts do not
@@ -81,11 +103,22 @@ wie von einer/einem Muttersprachler:in geschrieben — **nicht** wörtlich/geste
 - **Zuverlässiger Workaround (aktuell):** gerenderte Bilder per `SendUserFile` in voller
   Qualität an die Nutzerin schicken, sie zieht sie in den Render-Ordner (ein Drag pro
   Ordner). 100 % zuverlässig, verlustfrei.
-- **Echte Automatik-Lösung (offen, EMPFOHLEN):** ein **User-OAuth-Refresh-Token** von
-  jeannine.thiry1 (Scope `drive.file`/`drive`) als Env-Secret hinterlegen; dann lädt ein
-  Python-Skript als die Nutzerin server-seitig von der Higgsfield-CDN-URL direkt in den
-  Zielordner hoch (mit Quota, byte-genau, kein Kontext-Umweg, löschbar). Das ist die
-  einzige saubere Dauerlösung. Siehe `STATUS.md`.
+- **Kein Google-Token in der Umgebung nutzbar (geprüft 2026-07-24):** `CLOUDSDK_AUTH_
+  ACCESS_TOKEN` ist ein Proxy-Token und liefert bei der Drive-API `401 Invalid
+  Credentials` / `tokeninfo: Invalid Value` — also KEIN Drive-Zugriff. Es gibt in der
+  Session keinen fertigen User-Drive-Token; er muss aktiv eingerichtet werden.
+- **Echte Automatik-Lösung (SKRIPTE LIEGEN BEREIT, EMPFOHLEN):** ein **User-OAuth-
+  Refresh-Token** von jeannine.thiry1 (Scope `drive.file`) als Env-Secret hinterlegen;
+  dann lädt ein Python-Skript als die Nutzerin server-seitig von der Higgsfield-CDN-URL
+  direkt in den Zielordner hoch (mit Quota, byte-genau, kein Kontext-Umweg, löschbar).
+  Einzige saubere Dauerlösung. **Fertig implementiert:**
+  - `scripts/get_drive_refresh_token.py` — einmalig lokal ausführen, erzeugt den
+    Refresh-Token (Desktop-OAuth-Client aus derselben Cloud-Konsole, Loopback-Flow).
+  - `scripts/upload_cdn_to_drive.py` — `<quelle-url-oder-pfad> <folder_id> [name]`,
+    lädt hoch und **verifiziert die Byte-Größe** gegen die Quelle.
+  - Env-Secrets: `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`,
+    `GOOGLE_OAUTH_REFRESH_TOKEN`. Details/Setup: `docs/oauth-drive-upload.md`.
+  Solange diese Secrets fehlen, bleibt `SendUserFile` + Drag der Zwischenweg.
 
 ## 5. Rückschreiben in Spalte O — funktioniert (Service Account)
 
@@ -147,12 +180,35 @@ frische fbcdn-Quelllinks vorliegen** (Nutzerin posten lassen; FB-Permalink ist b
 Übersetzte FB-Copy (Primary Text) für Ads 4–7 liegt in den früheren Drive-Docs
 (`2026-07-11-erelso-fi`) und ist bei Bedarf ins Quebec-Französische zu übertragen.
 
+**FRCA „mit Text"-Set, neu gerendert 2026-07-24** (Quelle: frische fbcdn-Links der
+Nutzerin; Marke PrimeErect→Erelso umgebrandet, Quebec-Französisch geprüft, per
+`nano_banana_2` editiert). Diese fünf sind der aktuelle FRCA-Erelso-Deliverable:
+
+| Ad | Motiv | AR | Job / Ergebnis-Datei |
+|----|-------|----|----------------------|
+| 1 | Messband „+10cm", Headline „Les Résultats Parlent D'eux-Mêmes." | 1:1 | 868659ec (`hf_20260724_115332`) |
+| 2 | Schlafzimmer, Tube+Box, „…tout a changé." | 1:1 | 30ac5b46 (`hf_20260724_115349`) |
+| 3 | Urologe/Klemmbrett, „Recommandé Par Des Urologues." | 1:1 | 95243f1a (`hf_20260724_115354`) |
+| 4 | Dunkle Tube, Badge „ERELSO…RESTORATION", „CE TUBE NOIR…" | 4:5 | 806ecdeb (`hf_20260724_115357`) |
+| 5 | Raketen-Cartoon „UNE SENSATION DIFFÉRENTE…" (keine Marke) | 1:1 | **kein Render** — scharfes Quell-JPEG behalten (fbcdn) |
+
+Alle Renders unter `https://d8j0ntlcm91z4.cloudfront.net/user_3BikzXfO56jaRWNREGlTan8aoyf/<name>.png`.
+An die Nutzerin per `SendUserFile` in voller Auflösung geschickt (Drag in den
+FRCA/Erelso-Unterordner `2026-07-24 – Publicités traduites (FRCA)`), da Auto-Upload noch
+blockiert ist (siehe Abschnitt 4). Sobald die OAuth-Secrets gesetzt sind, kann
+`scripts/upload_cdn_to_drive.py <CDN-URL> 1QWpjnBxGIxSbIUlWm31MHi_myUXVN8Og` sie direkt
+ablegen.
+
 ## 8. Bearbeitungsstand pro Zeile (2026-07-24)
 
 - **FI Zeile 54 „atriso":** 5 Ads gerendert (2026-07-22), O54 verlinkt. Bilder liegen in Drive.
 - **FI Zeile 53 „Erelso":** Ads 1–3 gerendert (FI), an Nutzerin geschickt; O53 verlinkt.
   Ads 4–7 offen (Quellen abgelaufen).
 - **FI Zeile 52 „vanix":** Ads gerendert (2026-07-09/11); Rest blockiert (Permalinks).
-- **FRCA Zeile 34 „Erelso":** Ads 1–3 gerendert (Quebec), an Nutzerin geschickt; O34
-  verlinkt. Ads 4–7 offen (Quellen abgelaufen).
+- **FRCA Zeile 34 „Erelso":** „mit Text"-Set (5 Ads) am 2026-07-24 neu aus frischen
+  fbcdn-Links gerendert (PrimeErect→Erelso, Quebec-FR), an Nutzerin geschickt; O34
+  verlinkt. Die Foto-Ads (`erelso ad 5/6/7.jpg`) hat die Nutzerin selbst in den
+  Unterordner `2026-07-24 – Publicités traduites (FRCA)` gelegt. **Hinweis:** in diesem
+  Ordner liegt fälschlich `erelso ad.png` mit **finnischem** Text (FI-Version, gehört
+  nach FI) — bei Gelegenheit bereinigen.
 - **FRCA Zeile 33 „vanix":** blockiert (nur facebook.com-Permalinks im Thread).
