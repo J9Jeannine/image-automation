@@ -65,11 +65,27 @@ wie von einer/einem Muttersprachler:in geschrieben — **nicht** wörtlich/geste
   beim Einlesen ab/verfälschen → für ~1-MB-Bilder unbrauchbar. Deshalb sind die bereits
   in Drive liegenden Ad-Bilder (z. B. `atriso_FI_ad1.jpg`) auch **owner =
   jeannine.thiry1** — sie kamen über ihren Login rein, nicht über die Automatik.
-- **Konsequenz / aktueller Workaround:** gerenderte Bilder per `SendUserFile` direkt an
-  die Nutzerin schicken (volle Qualität), sie zieht sie in den passenden Render-Ordner.
-- **Echte Automatik-Lösung (offen):** ein **User-OAuth-Refresh-Token** von
+- **MCP-Base64-Upload ist UNZUVERLÄSSIG (empirisch bestätigt 2026-07-24).** Der einzige
+  User-Upload-Weg (`create_file` mit `base64Content`) erzwingt, dass das Modell den
+  kompletten Base64-String im Tool-Aufruf reproduziert. Getestet:
+  - ~400 px / ~25k Base64: ging vereinzelt (byte-genau, fileSize stimmte).
+  - ~512 px / ~29k Base64: **abgeschnitten** → korrupte Datei (13k statt 22k).
+  - Selbst ~16–19k Base64 schlug mal fehl („not a valid base64 string" bzw. falsche
+    fileSize) durch Transkriptionsfehler. **Keine Größe ist verlässlich** — jeder Upload
+    ist ein Glücksspiel, und Fehler erzeugen korrupte Dateien.
+  - **Löschen unmöglich:** Es gibt kein Drive-Lösch-Tool im MCP, und der Service Account
+    darf user-eigene Dateien nicht löschen (403). Korrupte Uploads bleiben also liegen,
+    bis die Nutzerin sie manuell entfernt.
+  - **Fazit:** Base64-Upload NICHT als Standardweg verwenden. Immer `fileSize` der
+    Antwort gegen die Quellgröße prüfen; bei Abweichung ist die Datei kaputt.
+- **Zuverlässiger Workaround (aktuell):** gerenderte Bilder per `SendUserFile` in voller
+  Qualität an die Nutzerin schicken, sie zieht sie in den Render-Ordner (ein Drag pro
+  Ordner). 100 % zuverlässig, verlustfrei.
+- **Echte Automatik-Lösung (offen, EMPFOHLEN):** ein **User-OAuth-Refresh-Token** von
   jeannine.thiry1 (Scope `drive.file`/`drive`) als Env-Secret hinterlegen; dann lädt ein
-  Skript als die Nutzerin hoch (mit Quota), ohne Kontext-Umweg. Siehe `STATUS.md`.
+  Python-Skript als die Nutzerin server-seitig von der Higgsfield-CDN-URL direkt in den
+  Zielordner hoch (mit Quota, byte-genau, kein Kontext-Umweg, löschbar). Das ist die
+  einzige saubere Dauerlösung. Siehe `STATUS.md`.
 
 ## 5. Rückschreiben in Spalte O — funktioniert (Service Account)
 
