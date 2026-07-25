@@ -121,9 +121,9 @@ Für **jede einzelne Ad** aus Schritt 4 (nicht gebündelt):
    die einen anderen Skill/Ablauf nutzt. Pro Ad wird **genau ein** Ergebnisbild erzeugt,
    nicht mehrere Varianten.
 5. Output (übersetzte Headline + Primary Text inkl. korrektem Preis, Liste der
-   verarbeiteten Ad-Permalinks) als Markdown nach
-   `<Projektordner>/<market_code>/translated-ads/<product_name>/<Lauf-Datum>.md`
-   schreiben (`Google_Drive.create_file`, `contentMimeType: text/markdown`).
+   verarbeiteten Ad-Permalinks) als Markdown `<product_name>_<market_code>_ad_copy.md`
+   in den Tages-/Produkt-Ordner aus Schritt 7 schreiben (`Google_Drive.create_file`,
+   `contentMimeType: text/markdown`, `textContent` — klein genug, keine Truncation).
 
 ## Schritt 6 — Foundation-Phase (optional, aktuell inaktiv)
 
@@ -131,31 +131,63 @@ Nur wenn `foundation_phase.mode` ungleich `translation_only`. Regeln:
 `docs/skills/foundation-to-higgsfield.md`. Aktuell nicht konfiguriert (keine
 Foundation-Dokumente hinterlegt) — Schritt wird übersprungen.
 
-## Schritt 7 — Rendering-Output
+## Schritt 7 — Rendering-Output & Drive-Upload (echte Bilddateien)
 
 Die eigentliche Higgsfield-Generierung passiert bereits in Schritt 5 (ein Call pro Ad,
-über den `image-ad-prompt-generator`-Skill). Dieser Schritt betrifft nur die Ablage:
+über den `image-ad-prompt-generator`-Skill). Dieser Schritt betrifft die Maße und die
+**verbindliche** Ablage der echten Bilddateien in Drive.
 
 1. **Seitenverhältnis:** Jedes generierte Bild muss exakt das Seitenverhältnis/die Maße
    der jeweiligen Quell-Anzeige haben (z. B. `1:1`, `4:5`, `9:16` — je nachdem, wie die
    Ad in der Ad Library aussieht), nicht ein Standard-Format. Vor dem Higgsfield-Call die
    Maße der Quell-Anzeige bestimmen und als `aspect_ratio` übergeben.
-2. Ergebnisse inline zeigen. **Bekannte Einschränkung:** Das Drive-Tool kann Bilder nur
-   per Base64 durch den eigenen Kontext hochladen — bei generierten Bildern (~1 MB) ist
-   das nicht praktikabel (Größenlimit weit unterhalb dessen, was eine brauchbare
-   Bildqualität erlaubt). Deshalb: pro Zeile/Produkt/Lauf-Datum ein Markdown-Dokument in
-   `<Projektordner>/<market_code>/renders/<product_name>/` ablegen, das die
-   Higgsfield-Ergebnis-URLs (CDN-Links, langlebig) plus die übersetzte Ad-Copy enthält —
-   keine Bild-Binärdateien direkt duplizieren, außer eine praktikable Upload-Methode wird
-   gefunden.
-3. Ist kein Higgsfield-MCP verfügbar: nur die Prompt-Texte ausgeben, Rendering
-   überspringen.
+
+2. **Tages-/Produkt-Ordner anlegen:** Pro Lauf einen Ordner
+   `<Lauf-Datum YYYY-MM-DD> - <product_name>` (z. B. `2026-07-25 - itzora`) unter
+   `Translated-Ads/<market_code>/` erstellen (`Google_Drive.create_file`,
+   `mimeType: application/vnd.google-apps.folder`, `parentId` = `drive.translated_ads_subfolders.<market_code>`
+   aus der Config). Der Produktname MUSS im Ordnernamen stehen (nicht nur das Datum), damit
+   mehrere Produkte am selben Tag unterscheidbar sind.
+
+3. **Bild-Upload — ZWINGEND diese Methode, kein Markdown-Links-Workaround.**
+   Higgsfield-Ergebnisse per `curl` von der CDN-URL auf die lokale Disk laden, dann jede
+   echte JPG-Datei nach Drive hochladen. Der Upload läuft **immer** in zwei Schritten
+   (Details + Begründung: `config/automation.config.json` → `upload_method`):
+   a. **Platzhalter als User-Datei anlegen:** `Google_Drive.create_file` mit
+      `contentMimeType: image/jpeg`, `disableConversionToGoogleType: true`,
+      `base64Content` = winziges 1×1-JPEG, `parentId` = Tages-/Produkt-Ordner. Die
+      zurückgegebene `id` merken. (Die Datei gehört jetzt dem User.)
+   b. **Service-Account überschreibt mit den vollen Bytes:** Access-Token aus
+      `GOOGLE_SERVICE_ACCOUNT_JSON` minten (JWT RS256, Scope `.../auth/drive`, Signatur per
+      `openssl`, weil das `cryptography`-Python-Modul in der Sandbox defekt ist; Token 1 h
+      gültig → bei `401 ACCESS_TOKEN_EXPIRED` neu minten), dann
+      `curl -X PATCH 'https://www.googleapis.com/upload/drive/v3/files/{ID}?uploadType=media&supportsAllDrives=true'`
+      `-H 'Authorization: Bearer <SA_TOKEN>' -H 'Content-Type: image/jpeg' --data-binary @<datei.jpg>`.
+   Warum so: Der Service-Account hat **kein** Storage-Quota → `files.create` mit Bytes gibt
+   `403 storageQuotaExceeded`, aber `files.update` auf eine **User-owned** Datei bucht den
+   Speicher dem User → funktioniert (Ergebnis: `owner=User`, `lastModifyingUser=Service-Account`,
+   volle Qualität). Der Drive-MCP-Base64-Kanal schneidet lange Werte ab (~15 000 base64-Zeichen
+   ≈ 11 KB) → für echte Bilder (100–260 KB) unbrauchbar, deshalb nur für den Platzhalter.
+   Dateibenennung: `<product_name>_<market_code>_ad<N>.jpg`, Produktbild
+   `<product_name>_<market_code>_produktbild.jpg`.
+
+4. **Verifizieren:** Nach jedem Upload prüfen, dass die zurückgegebene `size` der
+   Quell-Dateigröße entspricht UND das Bild vollständig dekodiert (`PIL im.load()`). Bei
+   Abweichung (Truncation/Korruption) erneut hochladen — niemals eine korrupte oder nur
+   verlinkte Datei als Ergebnis stehen lassen.
+
+5. Ergebnisse zusätzlich inline im Chat zeigen. Ist kein Higgsfield-MCP verfügbar: nur die
+   Prompt-Texte ausgeben, Rendering überspringen (dann gibt es keine Bilddateien zum
+   Hochladen).
 
 ## Schritt 8 — Ablage & Abschluss
 
-1. Alle Text-/Bild-Outputs liegen bereits in Drive (Schritte 5/7).
-2. `<Projektordner>/<market_code>/State/processed_comments.json` mit den neuen
-   Fingerprints aus Schritt 2 aktualisieren.
+1. Alle Text-/Bild-Outputs liegen bereits als **echte Dateien** im Tages-/Produkt-Ordner
+   `Translated-Ads/<market_code>/<Lauf-Datum> - <product_name>/` (Schritte 5/7): die
+   `<product_name>_<market_code>_ad<N>.jpg`, das `_produktbild.jpg` und die `_ad_copy.md`.
+   Es darf **kein** Markdown-Links-Ersatz statt echter Bilddateien stehen bleiben.
+2. `State/processed_comments.json` mit den neuen Fingerprints aus Schritt 2 aktualisieren
+   (kleine Textdatei → direkt per `Google_Drive.create_file`/`files.update`).
 3. Kurze Zusammenfassung an den Nutzer: welche Zeilen/Produkte verarbeitet wurden, wie
    viele Ads pro Zeile, Drive-Links zu den neuen Dateien, ob gerendert wurde oder nur
    Prompt-Texte erzeugt wurden. Bei "nichts Neues" keine Nachricht (siehe Schritt 2.2).

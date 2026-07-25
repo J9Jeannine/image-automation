@@ -61,10 +61,19 @@ fbcdn.net-URL im Thread und der Permalink lässt sich nicht auflösen: aktiv dan
 nicht stumm überspringen oder wiederholt versuchen. Details:
 `config/automation.config.json` → `network_access`.
 
-**Weitere bekannte Einschränkung:** Das Drive-Tool kann Dateien nur per Base64 durch den
-Modell-Kontext hochladen — bei ~1 MB großen generierten Bildern ist das nicht
-praktikabel. Ergebnisse werden daher als Markdown-Dokument mit Higgsfield-CDN-Links
-(langlebig) + übersetzter Ad-Copy abgelegt, nicht als direktes Bild-Duplikat in Drive.
+**Bild-Upload nach Drive (gelöst — verbindliche Methode):** Der Drive-MCP-`create_file`
+schleust Base64 durch den Modell-Kontext und schneidet lange Werte ab (~15 000 Zeichen ≈
+11 KB) → für echte Bilder unbrauchbar. Der Service-Account hat kein Storage-Quota, kann
+also keine Inhalts-Dateien **anlegen** (`403 storageQuotaExceeded`). Lösung (kanonisch,
+kein Markdown-Links-Workaround mehr): **(1)** die Zieldatei als winzigen Platzhalter über
+die Drive-Verbindung anlegen (User-owned), **(2)** der Service-Account
+(`GOOGLE_SERVICE_ACCOUNT_JSON`) überschreibt sie mit den vollen Bytes von der Disk via
+`files.update` (`PATCH …/upload/drive/v3/files/{id}?uploadType=media`). Da der Speicher dem
+**Owner** (User) berechnet wird, funktioniert das in voller Qualität — Ergebnis:
+`owner=User`, `lastModifyingUser=Service-Account`. Vollständige Schritte + Begründung:
+`config/automation.config.json` → `upload_method` und `docs/workflow.md` Schritt 7. Echte
+Bilddateien landen als `<product>_<market>_ad<N>.jpg` im Tages-/Produkt-Ordner
+`Translated-Ads/<market>/<YYYY-MM-DD> - <product>/`.
 
 **Beobachtete Instabilität bei automatischen (Trigger-)Läufen:** Im zweiten,
 Trigger-ausgelösten Lauf (2026-07-10) sind MCP-Tool-Verbindungen wiederholt
@@ -130,13 +139,16 @@ angelegte Struktur (Stand jetzt):
 ```
 Translated-Ads/                    (id: 1JWHztpl2Z6mE9WtcRTObRgwBRp1OsHCb)
   FI/                               (id: 1Ey4aVRrpzrzolETnzKVxVCZQGZjm0P5K)
+    2026-07-25 - itzora/            echte Bilddateien: itzora_FI_ad1..8.jpg, _produktbild.jpg, _ad_copy.md
     vanix/                          (id: 1TwCfnOts6cXmiLJFCLbsPNW4HkTlQKaJ)
-      2026-07-09-vanix-fi           Google Doc: CDN-Links + übersetzte Ad-Copy
-  FRCA/                             (id: 1ZeW7nKHrCMNOBH6jIKZrzNYjJWXPvQDW, noch leer)
+      2026-07-09-vanix-fi           Google Doc: CDN-Links + übersetzte Ad-Copy (alter Lauf, vor Upload-Fix)
+  FRCA/                             (id: 1ZeW7nKHrCMNOBH6jIKZrzNYjJWXPvQDW)
 ```
 
-Geplant (noch nicht umgesetzt): `State/processed_comments.json` je Markt für
-Kommentar-Fingerprints, analog zur bestehenden Struktur.
+Ordner-Namensschema pro Lauf: `<YYYY-MM-DD> - <product_name>` (Produktname MUSS im
+Ordnernamen stehen, nicht nur das Datum). Darin liegen die **echten** JPG-Dateien (per
+`upload_method`, siehe oben), nicht nur CDN-Links. `State/processed_comments.json` je Markt
+für Kommentar-Fingerprints.
 
 ## Higgsfield
 
@@ -150,5 +162,7 @@ für Produktbild-Rename und Ad-Übersetzung, Referenzbilder über `media_upload`
    fbcdn.net-Links wie gehabt direkt als Reply auf den M-Kommentar posten.
 2. Bei Bedarf Cadence prüfen/anpassen (aktuell angenommen: Lisbon-Zeit, Sommerzeit).
 3. Ersten automatischen Lauf (morgen 05:00 UTC) beobachten.
-4. Falls die Bilddateien selbst (nicht nur CDN-Links) in Drive liegen sollen: Bescheid
-   geben, dann wird nach einer alternativen Upload-Methode gesucht.
+4. Bild-Upload nach Drive ist gelöst: echte JPG-Dateien werden über `upload_method`
+   (Platzhalter via Drive-Verbindung + Service-Account `files.update`) in voller Qualität
+   abgelegt — kein Markdown-Links-Workaround mehr. Details: `config/automation.config.json`
+   → `upload_method`, `docs/workflow.md` Schritt 7.
