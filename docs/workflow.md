@@ -4,6 +4,12 @@ Wird bei jedem Trigger-Lauf ausgeführt. Tool-Namen beziehen sich auf die in der
 Cowork-Session verfügbaren MCP-Server (`Google_Drive`, `Higgsfield`) sowie Bash für die
 Playwright-Skripte in `scripts/`.
 
+> **Bild-Upload nach Drive:** Die verbindliche, einzig zulässige Methode zum Hochladen
+> echter Bilddateien (Platzhalter via Drive-Verbindung → Service-Account `files.update`,
+> inkl. Begründung und Copy/Paste-Befehlen) steht in
+> **[`docs/drive-upload-method.md`](drive-upload-method.md)**. Niemals auf einen
+> Markdown-Links-Workaround zurückfallen. Kurzfassung in Schritt 7 unten.
+
 ## Schritt 0 — Config-Guard
 
 1. `config/automation.config.json` aus diesem Repo lesen.
