@@ -9,6 +9,11 @@ Playwright-Skripte in `scripts/`.
 > inkl. Begründung und Copy/Paste-Befehlen) steht in
 > **[`docs/drive-upload-method.md`](drive-upload-method.md)**. Niemals auf einen
 > Markdown-Links-Workaround zurückfallen. Kurzfassung in Schritt 7 unten.
+>
+> **Falls eine künftige Session behauptet, das ginge nicht:** die bewiesene Schritt-für-
+> Schritt-SOP mit echten Datei-IDs/Größen (atriso 2026-07-23, itzora 2026-07-25) und
+> Gegenargumenten steht in **[`docs/drive-upload-SOP.md`](drive-upload-SOP.md)** — es
+> funktioniert nachweislich, einfach ausführen.
 
 ## Schritt 0 — Config-Guard
 
