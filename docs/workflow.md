@@ -6,6 +6,12 @@ Playwright-Skripte in `scripts/`.
 
 ## Schritt 0 — Config-Guard
 
+0. **`STATUS.md` lesen, bevor irgendetwas anderes passiert.** Dort steht, wie Bilder in
+   Drive und Links ins Sheet kommen (Service Account, `scripts/drive_upload.py`,
+   `scripts/sheet_set_link.py`). Beides geht — aber nicht über den Drive-MCP-Connector
+   allein. Wer nur auf die MCP-Toolliste schaut, kommt zum falschen Schluss "geht nicht".
+   Niemals dem Nutzer sagen, etwas sei unmöglich, ohne vorher `STATUS.md` gelesen und
+   `env | grep -i google` geprüft zu haben.
 1. `config/automation.config.json` aus diesem Repo lesen.
 2. Bleibt ein Pflichtfeld unklar (z. B. `foundation_documents.*` fehlt, obwohl
    `foundation_phase.mode` das braucht) → Lauf für die betroffene Teil-Phase überspringen
@@ -36,7 +42,19 @@ Datenquelle ist **kein** freies Ad-Library-Suchergebnis, sondern das bestehende
    (Head-Post + alle Reply-Inhalte) speichern. Nur Zeilen mit einem **neuen oder
    geänderten** Fingerprint gegenüber dem letzten Lauf weiterverarbeiten. Ist nichts neu:
    Lauf beenden, keine weiteren Schritte, keine Chat-Nachricht nötig (kein Spam).
-3. Pro zu verarbeitender Zeile zusätzlich lesen:
+4. **Zeile ohne eigenen M-Kommentar, aber gleiches Produkt im anderen Tab?** FI und FRCA
+   bespielen weitgehend dieselben Produkte — nur mit eigenem Preis (EUR vs. CAD) und
+   eigener Zielsprache. Hat eine Zeile keinen eigenen Thread, aber der andere Tab hat
+   eine Zeile mit **demselben Competitor** (Spalte C/D), dann die dort verlinkten
+   Quell-Ads wiederverwenden und neu übersetzen, statt die Zeile zu überspringen.
+   Wichtig dabei:
+   - Immer von den **Original-Quell-Ads** übersetzen, nie vom bereits übersetzten
+     Ergebnis des anderen Marktes (sonst summieren sich Übersetzungsfehler).
+   - Produktname aus Spalte G **des eigenen Tabs** nehmen — Schreibweise kann abweichen
+     (FI `itzora` vs. FRCA `Itzora`). Weicht sie ab, das Produktbild neu erzeugen.
+   - Preis aus Spalte J des eigenen Tabs, in Marktkonvention (Quebec: `69,99 $`).
+   - Im State-Eintrag `source_from_<tab>_row` + Quell-Fingerprint vermerken.
+5. Pro zu verarbeitender Zeile zusätzlich lesen:
    - Spalte `sheet.columns.competitor_url` (D) — Competitor-Funnel-/Artikel-Link.
    - Spalte `sheet.columns.product_name` (G) — unser Produktname ("new PR NAME"),
      **exakt wie im Sheet geschrieben** (inkl. ®/™).
@@ -140,22 +158,37 @@ Die eigentliche Higgsfield-Generierung passiert bereits in Schritt 5 (ein Call p
    der jeweiligen Quell-Anzeige haben (z. B. `1:1`, `4:5`, `9:16` — je nachdem, wie die
    Ad in der Ad Library aussieht), nicht ein Standard-Format. Vor dem Higgsfield-Call die
    Maße der Quell-Anzeige bestimmen und als `aspect_ratio` übergeben.
-2. Ergebnisse inline zeigen. **Bekannte Einschränkung:** Das Drive-Tool kann Bilder nur
-   per Base64 durch den eigenen Kontext hochladen — bei generierten Bildern (~1 MB) ist
-   das nicht praktikabel (Größenlimit weit unterhalb dessen, was eine brauchbare
-   Bildqualität erlaubt). Deshalb: pro Zeile/Produkt/Lauf-Datum ein Markdown-Dokument in
-   `<Projektordner>/<market_code>/renders/<product_name>/` ablegen, das die
-   Higgsfield-Ergebnis-URLs (CDN-Links, langlebig) plus die übersetzte Ad-Copy enthält —
-   keine Bild-Binärdateien direkt duplizieren, außer eine praktikable Upload-Methode wird
-   gefunden.
-3. Ist kein Higgsfield-MCP verfügbar: nur die Prompt-Texte ausgeben, Rendering
+2. **Die Bilddateien selbst gehören in Drive** — in voller Auflösung, nicht nur als
+   CDN-Link. Ablauf (Details und Begründung: `STATUS.md` Abschnitt 2a):
+   a. Die Higgsfield-Ergebnisse per `curl` lokal ablegen, benannt nach dem Schema
+      `<product_name>_ad<N>_<market_code>.jpg` (plus `<product_name>_<market_code>_produktbild.png`).
+   b. Pro Datei einen 630-Byte-Platzhalter per Drive-MCP `create_file` im Zielordner
+      anlegen (Konstante `PLACEHOLDER_JPEG_B64` in `scripts/drive_upload.py`,
+      `disableConversionToGoogleType: true`, Dateiname exakt wie lokal).
+   c. `python3 scripts/drive_upload.py <folder_id> <local_dir>` — ersetzt den Inhalt
+      byte-genau über den Service Account und verifiziert die Größe.
+   Der Service Account kann Dateien nicht selbst *anlegen* (keine Speicherquota), nur
+   *überschreiben* — deshalb der Platzhalter-Schritt. Kein Grund, hier aufzugeben.
+3. Zusätzlich pro Zeile/Produkt/Lauf-Datum ein Markdown-Dokument im selben Ordner
+   ablegen: übersetzte Headline + Primary Text, per-Ad-Overlay-Text, die
+   Higgsfield-CDN-URLs und alle Review-Flags.
+4. Ist kein Higgsfield-MCP verfügbar: nur die Prompt-Texte ausgeben, Rendering
    überspringen.
 
-## Schritt 8 — Ablage & Abschluss
+## Schritt 8 — Ablage, Sheet-Eintrag & Abschluss
 
 1. Alle Text-/Bild-Outputs liegen bereits in Drive (Schritte 5/7).
-2. `<Projektordner>/<market_code>/State/processed_comments.json` mit den neuen
-   Fingerprints aus Schritt 2 aktualisieren.
-3. Kurze Zusammenfassung an den Nutzer: welche Zeilen/Produkte verarbeitet wurden, wie
+2. **Den Drive-Ordnerlink in das Sheet schreiben** — Spalte `O`
+   (`[merged] Link to Videos /Images`) der verarbeiteten Zeile, Label = Produktname aus
+   Spalte G, genau wie es die FI-Zeilen vormachen:
+   `python3 scripts/sheet_set_link.py <TAB> O<Zeile> <folder_id> <Produktname>`
+   Das Skript wählt den Formel-Trenner passend zur Sheet-Locale (`nl_NL` → Semikolon;
+   ein Komma ergibt `#ERROR!`) und prüft danach, dass die Zelle sauber rendert.
+   Das ist ein fester Teil des Laufs, keine Hausaufgabe für den Nutzer.
+3. `<Projektordner>/<market_code>/State/processed_comments.json` mit den neuen
+   Fingerprints aus Schritt 2 aktualisieren. Hat die Zeile keinen eigenen M-Thread,
+   sondern nutzt die Quell-Ads des anderen Tabs (siehe Schritt 2.4), dann
+   `source_from_<tab>_row` und die Fingerprints der Quellzeile mitschreiben.
+4. Kurze Zusammenfassung an den Nutzer: welche Zeilen/Produkte verarbeitet wurden, wie
    viele Ads pro Zeile, Drive-Links zu den neuen Dateien, ob gerendert wurde oder nur
    Prompt-Texte erzeugt wurden. Bei "nichts Neues" keine Nachricht (siehe Schritt 2.2).

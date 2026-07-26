@@ -1,117 +1,126 @@
-# Status & offene Punkte (Stand: 2026-07-10)
+# Status & offene Punkte (Stand: 2026-07-26)
 
 Diese Datei fasst zusammen, was funktioniert, was blockiert ist, und was der Nutzer
 konkret tun muss, damit die Pipeline vollständig automatisch läuft. Ziel: alles an
 einem Ort nachlesbar, statt über den Chat-Verlauf verstreut.
+
+> **Wenn du ein Agent bist, der diesen Workflow ausführt: lies zuerst Abschnitt 2.**
+> Dort steht, wie Bilder in Drive und Links ins Sheet kommen. Beides geht — aber
+> **nicht** über den Google-Drive-MCP-Connector allein. Wer nur auf die MCP-Toolliste
+> schaut, kommt zum falschen Schluss "geht nicht" und liefert unnötig eine
+> Handarbeits-Lösung ab. Genau das ist am 2026-07-26 passiert.
 
 ## 1. Was funktioniert
 
 - Sheet lesen (`Google_Drive.read_file_content`), Kommentar-Threads in Spalte M
   auslesen (Head-Post + Replies).
 - Competitor-Foto von der Funnel-Seite (Spalte D) per `curl` laden.
-- Higgsfield-Generierung (Produktbild-Umbenennung + Ad-Übersetzung) — Qualität ist
-  gut, das ist **nicht** das Problem.
-- Ergebnis-Dokumentation als Google Doc (Markdown mit CDN-Links + übersetzter
-  Ad-Copy) in Drive ablegen.
+- Ad-Bilder von `scontent.*.fbcdn.net` per `curl` laden (signierte Links, siehe README).
+- Higgsfield-Generierung (Produktbild-Umbenennung + Ad-Übersetzung).
+- **Bilddateien in voller Auflösung in Drive ablegen** — siehe Abschnitt 2.
+- **Drive-Links in Sheet-Zellen schreiben** — siehe Abschnitt 2.
+- Ergebnis-Dokumentation als Google Doc (Markdown mit CDN-Links + Ad-Copy) in Drive.
 
-## 2. Bekanntes Problem: Bild-Dateien lassen sich nicht zuverlässig in Drive ablegen
+## 2. GELÖST: Drive-Upload und Sheet-Schreibzugriff über den Service Account
 
-Das Google-Drive-Tool (`create_file`) kann Dateien nur hochladen, indem der komplette
-Dateiinhalt Base64-codiert als Text-Parameter in den Werkzeugaufruf geschrieben wird.
-Es gibt **keine** Funktion "lade dieses Bild von dieser URL herunter und speichere es
-in Drive" — der Bildinhalt muss durch das Modell selbst hindurch.
+Der Google-Drive-**MCP-Connector** hat genau acht Tools (`create_file`, `copy_file`,
+`download_file_content`, `get_file_metadata`, `get_file_permissions`,
+`list_recent_files`, `read_file_content`, `search_files`). Damit gilt:
 
-Getestet und bestätigt:
-- Ab ca. 5–20 KB Bildgröße treten beim Durchreichen vereinzelt Bit-/Byte-Fehler auf
-  (meist am Dateiende, meist ohne sichtbare Auswirkung auf die Darstellung, aber nicht
-  garantiert byte-genau).
-- Ab ca. 20–25 KB Base64-Text bricht das Lese-Werkzeug selbst mit einer harten
-  Token-Grenze ab (Datei kann nicht mehr vollständig eingelesen werden) — das betrifft
-  reguläre Higgsfield-Ergebnisbilder (~1 MB, 1024×1024) vollständig.
-- Reduziert man Auflösung/Qualität stark genug, um unter dieses Limit zu kommen,
-  leidet die sichtbare Bildqualität deutlich (Kompressionsartefakte).
+- Er kann Dateien nur hochladen, indem der komplette Inhalt base64-codiert durch den
+  Modell-Kontext läuft. Ab ~20–25 KB Base64 bricht das Lese-Werkzeug mit einer harten
+  Token-Grenze ab — ein 1024×1024-Higgsfield-Bild (~150–500 KB) ist damit unmöglich.
+- Er kann **überhaupt nicht** in eine Tabellenzelle schreiben. Im Connector-Verzeichnis
+  gibt es auch keinen Google-Sheets-Connector, der das nachrüsten würde.
 
-**Fazit:** Mit dem aktuell verfügbaren Werkzeug ist "automatisch UND verlustfrei"
-nicht gleichzeitig möglich. Es gibt zwei einzeln funktionierende Wege:
-1. Nutzer lädt die Original-Higgsfield-CDN-Links manuell in Drive hoch (verlustfrei,
-   ca. 10 Sekunden pro Bild, kein Automatisierungsaufwand nötig).
-2. Automatischer Upload mit reduzierter Qualität (funktioniert, aber sichtbar
-   schlechter als das Original).
+**Beides ist trotzdem lösbar** — über den Service Account, der als
+`GOOGLE_SERVICE_ACCOUNT_JSON` in der Umgebung liegt (bereits eingerichtet und
+freigegeben):
 
-## 3. Echte Lösung: direkter Google-Drive-API-Zugang (Service Account)
+```
+image-automation-uploader@image-automation-502115.iam.gserviceaccount.com
+```
 
-Damit Punkt 2 in voller Qualität UND automatisch funktioniert, braucht es einen
-direkten API-Zugang, der die Bilddaten nicht durch den Chat-Kontext schleusen muss,
-sondern serverseitig von der Higgsfield-CDN-URL direkt zu Google Drive überträgt.
+Er hat `canEdit` auf dem Funnel Sheet und `canAddChildren` auf den Projektordnern.
+Damit läuft der Datentransfer serverseitig, ohne Umweg über den Chat-Kontext, ohne
+Größenlimit und byte-genau.
 
-### Was der Nutzer einmalig einrichten muss
+### 2a. Bilder in Drive ablegen — zweistufig
 
-1. **Google-Cloud-Projekt + Drive API aktivieren**
-   - [console.cloud.google.com](https://console.cloud.google.com) → Projekt anlegen/wählen
-   - "APIs & Services" → "Library" → "Google Drive API" → **Enable**
+Ein Service Account hat **keine eigene Speicherquota**. Er kann deshalb in einem
+normalen (Nicht-Shared-Drive-)Ordner keine Datei *anlegen*:
 
-2. **Service Account anlegen**
-   - "APIs & Services" → "Credentials" → "Create Credentials" → **"Service Account"**
-   - Name frei wählbar, z. B. `image-automation-uploader`
-   - Im Service Account → Tab **"Keys"** → "Add Key" → "Create new key" → **JSON** →
-     herunterladen. Diese Datei ist ein Geheimnis (privater Schlüssel).
-   - Die E-Mail-Adresse des Service Accounts notieren, z. B.
-     `image-automation-uploader@<projekt-id>.iam.gserviceaccount.com`
+```
+403 "Service Accounts do not have storage quota. Leverage shared drives ..."
+```
 
-3. **Ziel-Ordner in Drive mit dem Service Account teilen**
-   - In Google Drive: Rechtsklick auf den Basis-Ordner
-     (`https://drive.google.com/drive/folders/1RH4nagTulPEPXPp5fSwTeccvL-GlMI5-`,
-     siehe `config/automation.config.json` → `drive.base_folder_id`) → "Freigeben"
-   - Service-Account-E-Mail aus Schritt 2 eintragen, Rolle **"Bearbeiter"**
-   - Ohne diesen Schritt sieht der Service Account nichts in Drive.
+Er kann aber eine Datei *überschreiben*, die jemand anderes besitzt — dann zählt der
+Speicher gegen den Besitzer. Der funktionierende Ablauf ist deshalb:
 
-4. **JSON-Schlüssel sicher bereitstellen — NICHT im Chat einfügen**
-   - Der Schlüsselinhalt enthält ein privates Geheimnis.
-   - Als Environment-Variable/Secret der Session/des Environments hinterlegen, z. B.
-     unter dem Namen `GOOGLE_SERVICE_ACCOUNT_JSON` (Wert = kompletter Inhalt der
-     JSON-Datei). Das geschieht in den Umgebungs-/Session-Einstellungen von Claude
-     Code on the web, nicht im Chatfenster.
+1. **Platzhalter anlegen** — pro Bild eine 630-Byte-Dummy-Datei über das
+   Drive-MCP-Tool `create_file` (das handelt als eingeloggter Nutzer, dem die Datei
+   dann gehört). Konstante `PLACEHOLDER_JPEG_B64` in `scripts/drive_upload.py`.
+   Dateiname exakt so wie die lokale Datei, `disableConversionToGoogleType: true`.
+2. **Inhalt ersetzen** — `python3 scripts/drive_upload.py <folder_id> <local_dir>`.
+   Das Skript ordnet lokale Dateien über den Dateinamen den Drive-Dateien zu,
+   überschreibt sie per `files.update` und prüft die Bytegröße gegen. Fehlen
+   Platzhalter, listet es exakt auf, welche noch per MCP angelegt werden müssen.
 
-### Was danach automatisch passiert
+Schritt 1 entfällt, sobald ein Workspace-**Shared Drive** existiert — dort hat der
+Service Account Quota und kann direkt anlegen. Aktuell gibt es keins
+(`drive/v3/drives` liefert eine leere Liste; das Konto ist ein privates Google-Konto).
 
-Sobald die Variable gesetzt ist, kann ein Skript (Python, `google-auth` +
-`google-api-python-client` oder reine REST-Calls):
-1. sich mit dem Service-Account-Schlüssel authentifizieren,
-2. das Originalbild direkt von der Higgsfield-CDN-URL herunterladen,
-3. es per Drive-API (`files.create`, multipart) direkt in den Zielordner hochladen —
-   ohne Umweg über den Chat-Kontext, ohne Größenlimit, byte-genau.
+### 2b. Links ins Sheet schreiben
 
-## 4. Letzter automatischer Trigger-Lauf (2026-07-10) — Ergebnis
+```
+python3 scripts/sheet_set_link.py FRCA O35 <folder_id> Itzora
+```
 
-- **FRCA, Zeile 33 (Produkt "vanix", Competitor "variclex")**: 3 Ad-Permalinks im
-  M-Kommentar, für FI (Zeile 52) bereits übersetzt, für FRCA (Quebec-Französisch)
-  noch offen. Nicht abgeschlossen — siehe unten.
-- **FRCA, Zeile 34 (Erelso)**: keine neuen Kommentare, bereits vollständig
-  verarbeitet.
-- **FI-Tab**: konnte in diesem Lauf nicht gelesen werden. `read_file_content` liefert
-  bei diesem Sheet aus unbekanntem Grund konsistent nur den FRCA-Tab zurück, auch bei
-  wiederholten Aufrufen. Für FI-Zellwerte funktioniert ersatzweise ein XLSX-Export +
-  `openpyxl`, aber **Kommentare** (Spalte M) sind darüber nicht erreichbar — es gibt
-  aktuell keinen bekannten Workaround für FI-Kommentare.
-- **Nicht abgeschlossen:** Sowohl Higgsfield- als auch Google-Drive-Schreibaufrufe
-  (`create_file`) sind in diesem Lauf durchgehend mit "Tool permission request
-  failed" fehlgeschlagen, obwohl Lesezugriffe im selben Lauf funktionierten. Gleiches
-  Muster wie beim vorherigen Trigger-Lauf. Betrifft offenbar spezifisch
-  automatische/getriggerte Sessions — im interaktiven Chat liefen dieselben Tools
-  zuvor einwandfrei.
-- **Korrektur nötig, aber nicht durchführbar:** In
-  `<FRCA-Projektordner>/State/processed_comments.json` stand ein nicht durch echte
-  Sheet-Daten belegter Eintrag (7 zusätzliche "pending" Permalinks für vanix). Beim
-  frischen Sheet-Read ließ sich das nicht bestätigen — vermutlich ein Fehler aus einer
-  früheren, durch Verbindungsabbrüche gestörten Session. Die Korrektur (nur die 3
-  echten Permalinks eintragen) konnte in diesem Lauf nicht gespeichert werden, siehe
-  Punkt oben.
+**Locale-Falle:** Das Funnel Sheet hat Locale `nl_NL` und erwartet in Formeln ein
+**Semikolon** als Argumenttrenner. `=HYPERLINK("https://…","Itzora")` ergibt `#ERROR!`,
+`=HYPERLINK("https://…";"Itzora")` funktioniert. Die Sheets-API übersetzt das nicht —
+`USER_ENTERED` parst in der Locale der Datei. Das Skript liest die Locale aus und wählt
+den Trenner selbst, und verifiziert danach, dass die Zelle nicht `#ERROR!` anzeigt.
 
-## 5. Offene Punkte für den Nutzer
+Der Link gehört in **Spalte O** (`[merged] Link to Videos /Images`), Label = Produktname
+aus Spalte G — so wie es die FI-Zeilen bereits vormachen.
 
-1. Service-Account-Setup (Abschnitt 3) einrichten, falls automatischer Bild-Upload in
-   voller Qualität gewünscht ist.
-2. FRCA-Zeile 33 (vanix) manuell anstoßen oder auf den nächsten Lauf warten.
-3. Die MCP-Verbindungsinstabilität bei automatischen Trigger-Läufen (Higgsfield +
-   Drive-Schreibzugriffe) ist ein wiederkehrendes Muster über mindestens zwei Läufe —
-   wert, als eigenständiges Infrastruktur-Problem zu melden/zu untersuchen.
+### 2c. Technische Randnotiz
+
+`google-auth` ist in dieser Sandbox nicht nutzbar (`cryptography` wirft
+`ModuleNotFoundError: _cffi_backend`). `scripts/google_auth.py` signiert das JWT deshalb
+mit der `openssl`-CLI. Nicht auf `google-auth` umbauen, ohne das vorher zu testen.
+
+## 3. Verifiziert am 2026-07-26 (FRCA-Zeilen 35–37)
+
+17 übersetzte Ads + 1 Produktbild, alle 1024×1024, byte-genau in Drive, plus die drei
+Ordnerlinks in `FRCA!O35:O37`:
+
+| Zeile | Produkt | Ads | Drive-Ordner |
+| --- | --- | --- | --- |
+| 35 | Itzora | 8 | `1jWvVRShelG7vkQSKuFh2VUxDY_mkkzK4` |
+| 36 | lutiva | 6 | `1H9Cd93BNTsCzY29ju7R2e3lwWGYAT16P` |
+| 37 | Orthix | 3 | `1rQ__4gHgslZd1MVH4OllxwvrSAuKri7G` |
+
+Besonderheit dieses Laufs: FRCA hat für diese Zeilen **keine eigenen M-Kommentare**. Die
+Produkte sind aber dieselben wie in FI (Zeilen 55/56/58), also wurden die FI-Quell-Ads
+wiederverwendet und nach Quebec-Französisch übersetzt. Wenn FRCA und FI denselben
+Competitor in Spalte C/D haben, ist das der richtige Weg — nicht die Zeile überspringen.
+
+## 4. Weiterhin offen
+
+1. **FRCA 33 (vanix) und 34 (Erelso)** sind nicht verarbeitbar: alle fbcdn.net-Links in
+   beiden Tabs liefern HTTP 403 "URL signature expired", und für vanix stehen ohnehin nur
+   blockierte facebook.com-Permalinks im Thread. Braucht frische Direktlinks im
+   M-Kommentar.
+2. **FI-Kommentare** sind über `read_file_content` nicht erreichbar — das Tool liefert
+   bei diesem Sheet konsistent nur den FRCA-Tab. Für FI-Zellwerte funktioniert der
+   XLSX-Export + `openpyxl`; für FI-**Kommentare** gibt es keinen Workaround über MCP.
+   *Der Service Account kann das inzwischen lösen* (Drive Comments API bzw. Sheets API),
+   das ist aber noch nicht umgesetzt.
+3. **`drive.base_folder_id` in `config/automation.config.json` enthält einen Tippfehler**
+   (`176ElFPlxj…` mit kleinem L statt `176EIFPlxj…` mit großem i). Die ID löst nicht auf.
+   Deshalb landete ein früherer Lauf in einem Streuordner unter *Meine Ablage*.
+4. Die früher beobachtete MCP-Instabilität bei Trigger-Läufen ("Tool permission request
+   failed" bei Schreibzugriffen) ist mit dem Service-Account-Weg weitgehend entschärft —
+   der hängt nicht am MCP-Connector.

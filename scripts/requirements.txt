@@ -1,1 +1,11 @@
 playwright>=1.40
+
+# Used by google_auth.py / drive_upload.py / sheet_set_link.py.
+# Note: do NOT add google-auth here — the `cryptography` wheel is broken in this sandbox
+# (missing _cffi_backend), so the JWT is signed with the `openssl` CLI instead.
+requests>=2.31
+
+# Used to read the FI tab via XLSX export (Drive's read_file_content only returns FRCA)
+# and to prepare/resize images before upload.
+openpyxl>=3.1
+pillow>=10.0

@@ -61,10 +61,15 @@ fbcdn.net-URL im Thread und der Permalink lässt sich nicht auflösen: aktiv dan
 nicht stumm überspringen oder wiederholt versuchen. Details:
 `config/automation.config.json` → `network_access`.
 
-**Weitere bekannte Einschränkung:** Das Drive-Tool kann Dateien nur per Base64 durch den
-Modell-Kontext hochladen — bei ~1 MB großen generierten Bildern ist das nicht
-praktikabel. Ergebnisse werden daher als Markdown-Dokument mit Higgsfield-CDN-Links
-(langlebig) + übersetzter Ad-Copy abgelegt, nicht als direktes Bild-Duplikat in Drive.
+**Bild-Upload und Sheet-Eintrag: gelöst über den Service Account.** Der
+Drive-MCP-Connector kann Dateien nur per Base64 durch den Modell-Kontext hochladen (ab
+~20 KB unbrauchbar) und gar nicht in Tabellenzellen schreiben. Beides läuft deshalb über
+`GOOGLE_SERVICE_ACCOUNT_JSON` direkt gegen die Google-APIs:
+`scripts/drive_upload.py` (Bilder byte-genau in den Zielordner) und
+`scripts/sheet_set_link.py` (Ordnerlink in Spalte O). **Details und Stolperfallen —
+Platzhalter-Schritt wegen fehlender Service-Account-Quota, Semikolon-Trenner wegen
+`nl_NL`-Locale — stehen in `STATUS.md` Abschnitt 2. Vor dem ersten Schreibversuch dort
+nachlesen.**
 
 **Beobachtete Instabilität bei automatischen (Trigger-)Läufen:** Im zweiten,
 Trigger-ausgelösten Lauf (2026-07-10) sind MCP-Tool-Verbindungen wiederholt
@@ -111,6 +116,10 @@ docs/skills/image-ad-prompt-generator.md   Referenz-Zusammenfassung (Fallback) f
 docs/skills/foundation-to-higgsfield.md    Regeln für Foundation-Dokumente + wöchentliche Higgsfield-Produktion
 docs/workflow.md                   Master-Playbook: die 8 Schritte im Detail, inkl. Tool-Zuordnung
 automation/trigger-prompt.md       Der Prompt-Text, den die Routine bei jedem Lauf bekommt
+STATUS.md                          Was funktioniert / was blockiert ist — inkl. Drive-Upload + Sheet-Schreibzugriff. ZUERST LESEN.
+scripts/google_auth.py             Service-Account-Token (JWT via openssl, weil google-auth in dieser Sandbox bricht)
+scripts/drive_upload.py            Bilder byte-genau in einen Drive-Ordner schreiben (zweistufig, siehe STATUS.md 2a)
+scripts/sheet_set_link.py          Drive-Ordnerlink in eine Sheet-Zelle schreiben (locale-sicher, siehe STATUS.md 2b)
 scripts/fetch_ad_permalink.py      Öffnet einen bekannten Ad-Library-Permalink (funktioniert aktuell NICHT in dieser Sandbox, siehe oben)
 scripts/screenshot_page.py         Playwright-Screenshot einer beliebigen URL (funktioniert aktuell NICHT in dieser Sandbox, siehe oben)
 scripts/scrape_ad_library.py       Optional: freie Ad-Library-Suche nach Suchbegriff (nicht Teil des Kern-Workflows)
@@ -150,5 +159,8 @@ für Produktbild-Rename und Ad-Übersetzung, Referenzbilder über `media_upload`
    fbcdn.net-Links wie gehabt direkt als Reply auf den M-Kommentar posten.
 2. Bei Bedarf Cadence prüfen/anpassen (aktuell angenommen: Lisbon-Zeit, Sommerzeit).
 3. Ersten automatischen Lauf (morgen 05:00 UTC) beobachten.
-4. Falls die Bilddateien selbst (nicht nur CDN-Links) in Drive liegen sollen: Bescheid
-   geben, dann wird nach einer alternativen Upload-Methode gesucht.
+4. ~~Falls die Bilddateien selbst (nicht nur CDN-Links) in Drive liegen sollen~~ —
+   erledigt seit 2026-07-26: Bilder landen byte-genau in Drive und der Ordnerlink wird
+   automatisch in Spalte O geschrieben. Siehe `STATUS.md` Abschnitt 2.
+5. `drive.base_folder_id` in der Config hat einen Tippfehler (kleines `l` statt großem
+   `I`) und löst nicht auf — sollte korrigiert werden, siehe `STATUS.md` Abschnitt 4.
