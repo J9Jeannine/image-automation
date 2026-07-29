@@ -13,6 +13,8 @@
     --line: #e6e3dc;
     --accent: #c26b3f;
     --accent-soft: #f3e3d8;
+    --urgent: #b3423a;
+    --urgent-soft: #f6dedc;
     --done: #8fa88a;
     --radius: 12px;
   }
@@ -32,25 +34,34 @@
   .settings { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
   .settings input[type=time] { border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px; font-size: 13px; }
 
-  .block { background: var(--card); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; border: 1px solid var(--line); }
+  .block { background: var(--card); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; border: 1px solid var(--line); transition: background 0.1s, border-color 0.1s; }
   .block.fixed { background: var(--accent-soft); border-color: transparent; }
+  .block.dropzone.dragover { border-color: var(--accent); background: var(--accent-soft); }
   .block-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
   .block-time { font-weight: 600; font-size: 14px; }
   .block-label { font-size: 13px; color: var(--muted); }
 
-  .task { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; border-top: 1px solid var(--line); }
+  .task { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; border-top: 1px solid var(--line); cursor: grab; }
   .task:first-child { border-top: none; }
+  .task.snoozed { opacity: 0.5; }
   .task input[type=checkbox] { margin-top: 3px; width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
   .task-title { font-size: 14.5px; line-height: 1.35; }
   .task.done .task-title { text-decoration: line-through; color: var(--muted); }
   .task-meta { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
   .tag { display: inline-block; padding: 1px 7px; border-radius: 20px; background: var(--accent-soft); color: var(--accent); font-size: 11px; margin-right: 6px; }
   .star { color: var(--accent); }
+  .fire { color: var(--urgent); }
+
+  .task-controls { display: flex; align-items: center; gap: 4px; margin-top: 5px; flex-wrap: wrap; }
+  .ctrl-btn { border: 1px solid var(--line); background: #fff; border-radius: 6px; padding: 2px 6px; font-size: 12px; cursor: pointer; opacity: 0.4; }
+  .ctrl-btn.active { opacity: 1; border-color: var(--accent); background: var(--accent-soft); }
+  .pin-select { font-size: 11.5px; border: 1px solid var(--line); border-radius: 6px; padding: 2px 4px; color: var(--muted); }
 
   .expand-link { font-size: 12.5px; color: var(--accent); cursor: pointer; margin-top: 6px; display: inline-block; }
 
   section.backlog { margin-top: 28px; }
   section.backlog h2 { font-size: 16px; margin-bottom: 8px; }
+  section.backlog.dropzone.dragover { outline: 2px dashed var(--accent); outline-offset: 6px; border-radius: var(--radius); }
   .cat-group { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 8px; overflow: hidden; }
   .cat-head { padding: 10px 14px; cursor: pointer; display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; }
   .cat-count { color: var(--muted); font-weight: 400; }
@@ -68,6 +79,7 @@
   .done-section { margin-top: 24px; }
   .done-section h2 { font-size: 15px; color: var(--muted); }
   .empty-hint { color: var(--muted); font-size: 13px; padding: 6px 0; }
+  .hint-small { color: var(--muted); font-size: 11.5px; margin: -4px 0 10px; }
 </style>
 </head>
 <body>
@@ -84,8 +96,9 @@
 
 <div id="timeline"></div>
 
-<section class="backlog">
+<section class="backlog dropzone" id="backlogSection">
   <h2>Alle offenen Aufgaben</h2>
+  <div class="hint-small">Zum Verschieben: Aufgabe in einen Arbeitsblock ziehen, oder unten die Dropdown-Auswahl nutzen. ⭐ wichtig · 🔥 dringend/muss heute · ⏸ später (aus Vorschlägen ausgeblendet).</div>
   <div id="backlogGroups"></div>
 
   <div class="add-form">
@@ -114,10 +127,17 @@ const CATEGORIES = {
   errand:     { label: "🚗 Termine/Erledigungen" },
 };
 
+const BLOCK_LABELS = {
+  block1: "Block 1 (Admin/Finance)",
+  block2: "Block 2 (Creatives/Automation)",
+  block3: "Block 3 (Shop/Funnel/Video)",
+  deepwork: "Deep Work / Puffer",
+};
+
 const SEED_TASKS = [
   // Creatives & Ads
   { title: "Variations von winning ads zum Testen (Prompt)", category: "creatives", estMin: 45, important: true },
-  { title: "Workflow für Variations für winning products", category: "creatives", estMin: 60, important: true },
+  { title: "Workflow für Variations für winning products", category: "creatives", estMin: 60, important: true, urgent: true },
   { title: "Research-Doc erstellen", category: "creatives", estMin: 60, important: true },
   { title: "Kampagnen killen", category: "creatives", estMin: 20 },
   { title: "Skill bearbeiten", category: "creatives", estMin: 30 },
@@ -138,16 +158,20 @@ const SEED_TASKS = [
   { title: "SOP: Lohn-Fehler-Checker pro Person", category: "finance", estMin: 30 },
   { title: "Finance-Dokumente speichern", category: "finance", estMin: 20 },
   { title: "KPI eintragen", category: "finance", estMin: 20 },
+  { title: "PNL Automation: Porto/Versandkosten ergänzen", category: "finance", estMin: 45, important: true },
+  { title: "PNL Automation: AdSpend vollständig eintragen", category: "finance", estMin: 45, important: true },
+  { title: "VAT-Setup Dokumente korrekt abspeichern (Infos + Shopify-Unterlagen)", category: "finance", estMin: 30 },
 
   // Shop/Ops
-  { title: "Kizoora Änderungen im Shop", category: "shop", estMin: 30 },
-  { title: "Neue Ad Accounts verknüpfen", category: "shop", estMin: 20 },
-  { title: "Shopify-Fee ins PPL-Sheet eintragen", category: "shop", estMin: 15 },
+  { title: "Kizoora Änderungen im Shop", category: "shop", estMin: 30, snoozed: true },
+  { title: "Neue Ad Accounts verknüpfen", category: "shop", estMin: 20, snoozed: true },
+  { title: "Shopify-Fee ins PPL-Sheet eintragen", category: "shop", estMin: 15, snoozed: true },
   { title: "Shopify Abandon-Flow (dynamisches Update bei Checkout-Abbruch)", category: "shop", estMin: 45 },
   { title: "NL/BE UK-Ltd anmelden & launchen", category: "shop", estMin: 45 },
   { title: "Chargeflow IO einrichten", category: "shop", estMin: 30 },
   { title: "Chargeflow IO mit Valltrexo verbinden", category: "shop", estMin: 30 },
   { title: "E-Mail an CS wegen Valltrexo", category: "shop", estMin: 15 },
+  { title: "Call: Pixel BM klären (aktuell gesperrt)", category: "shop", estMin: 30 },
 
   // Funnel/CS
   { title: "Aftersell-Funnel für Upsell", category: "funnel", estMin: 60 },
@@ -164,15 +188,47 @@ const SEED_TASKS = [
   { title: "Nachrichten mit Brayan klären", category: "team", estMin: 15 },
   { title: "Sop Kim", category: "team", estMin: 20 },
   { title: "PR", category: "team", estMin: 20 },
+  { title: "Team Calls mit Team Members planen", category: "team", estMin: 30 },
 ];
+
+const MIGRATION_KEY = "plannerMigrationVersion";
+const CURRENT_MIGRATION = 2;
+
+function withDefaults(t) {
+  return { urgent: false, snoozed: false, pinnedBlock: null, ...t };
+}
 
 // ---------- storage ----------
 function loadTasks() {
   const raw = localStorage.getItem("plannerTasks");
-  if (raw) return JSON.parse(raw);
-  const seeded = SEED_TASKS.map((t, i) => ({ id: "t" + i, done: false, timePref: "any", ...t }));
-  localStorage.setItem("plannerTasks", JSON.stringify(seeded));
-  return seeded;
+  if (!raw) {
+    const seeded = SEED_TASKS.map((t, i) => withDefaults({ id: "t" + i, done: false, ...t }));
+    localStorage.setItem("plannerTasks", JSON.stringify(seeded));
+    localStorage.setItem(MIGRATION_KEY, String(CURRENT_MIGRATION));
+    return seeded;
+  }
+
+  let list = JSON.parse(raw).map(withDefaults);
+  const appliedVersion = Number(localStorage.getItem(MIGRATION_KEY) || "1");
+
+  if (appliedVersion < 2) {
+    const existingTitles = new Set(list.map(t => t.title));
+    SEED_TASKS.forEach((seedT, i) => {
+      if (!existingTitles.has(seedT.title)) {
+        list.push(withDefaults({ id: "m2_" + i, done: false, ...seedT }));
+      }
+    });
+    const urgentTitles = ["Workflow für Variations für winning products"];
+    const snoozeTitles = ["Kizoora Änderungen im Shop", "Neue Ad Accounts verknüpfen", "Shopify-Fee ins PPL-Sheet eintragen"];
+    list.forEach(t => {
+      if (urgentTitles.includes(t.title)) t.urgent = true;
+      if (snoozeTitles.includes(t.title)) t.snoozed = true;
+    });
+    localStorage.setItem(MIGRATION_KEY, "2");
+  }
+
+  localStorage.setItem("plannerTasks", JSON.stringify(list));
+  return list;
 }
 function saveTasks(tasks) {
   localStorage.setItem("plannerTasks", JSON.stringify(tasks));
@@ -207,10 +263,19 @@ function addMinutes(hhmm, mins) {
 function fmtRange(start, mins) {
   return start + "–" + addMinutes(start, mins);
 }
-function pickTasks(categories, count) {
-  const pool = tasks.filter(t => !t.done && categories.includes(t.category));
-  pool.sort((a, b) => (b.important === true) - (a.important === true));
-  return pool.slice(0, count);
+function sortByPriority(list) {
+  return list.slice().sort((a, b) => (b.urgent === true) - (a.urgent === true) || (b.important === true) - (a.important === true));
+}
+function tasksForBlock(blockId, categories, count) {
+  const pinned = sortByPriority(tasks.filter(t => !t.done && t.pinnedBlock === blockId));
+  if (categories === null) {
+    return pinned; // Deep Work: only whatever got manually pinned here
+  }
+  const pinnedElsewhere = new Set(tasks.filter(t => t.pinnedBlock && t.pinnedBlock !== blockId).map(t => t.id));
+  const autoPool = sortByPriority(
+    tasks.filter(t => !t.done && !t.snoozed && !pinnedElsewhere.has(t.id) && t.pinnedBlock !== blockId && categories.includes(t.category))
+  ).slice(0, count);
+  return [...pinned, ...autoPool];
 }
 
 // ---------- render timeline ----------
@@ -224,23 +289,23 @@ function renderTimeline() {
   const block2Start = addMinutes(breakfastStart, 30);
   const lunchStart = addMinutes(block2Start, 180);
   const block3Start = addMinutes(lunchStart, 60);
-  const dinnerStart = addMinutes(block3Start, 270);
-
-  const errandTasks = pickTasks(["errand"], 2);
+  const deepworkStart = addMinutes(block3Start, 270);
+  const dinnerStart = addMinutes(deepworkStart, 45);
 
   const blocks = [
-    { time: fmtRange(block1Start, 90), label: "Arbeitsblock 1 – Admin & Finance", work: true, tasks: pickTasks(["finance", "team"], 2) },
+    { id: "block1", time: fmtRange(block1Start, 90), label: "Arbeitsblock 1 – Admin & Finance", work: true, tasks: tasksForBlock("block1", ["finance", "team"], 2) },
     { time: fmtRange(breakfastStart, 30), label: "🍳 Frühstück", fixed: true },
-    { time: fmtRange(block2Start, 180), label: "Arbeitsblock 2 – Creatives & Automation", work: true, tasks: pickTasks(["creatives", "automation"], 2) },
+    { id: "block2", time: fmtRange(block2Start, 180), label: "Arbeitsblock 2 – Creatives & Automation", work: true, tasks: tasksForBlock("block2", ["creatives", "automation"], 2) },
     { time: fmtRange(lunchStart, 60), label: "🍽️ Mittagessen", fixed: true },
-    { time: fmtRange(block3Start, 270), label: "Arbeitsblock 3 – Shop, Funnel & Video (Abwechslung)", work: true, tasks: [...pickTasks(["shop", "funnel", "video"], 3), ...errandTasks] },
+    { id: "block3", time: fmtRange(block3Start, 270), label: "Arbeitsblock 3 – Shop, Funnel & Video (Abwechslung)", work: true, tasks: tasksForBlock("block3", ["shop", "funnel", "video"], 3) },
+    { id: "deepwork", time: fmtRange(deepworkStart, 45), label: "🧠 Deep Work / Puffer – frei wählbar, für Spontanes (Calls, Blocker)", work: true, freeform: true, tasks: tasksForBlock("deepwork", null) },
     { time: fmtRange(dinnerStart, 60), label: "🍲 Abendessen / Kochen", fixed: true },
     { time: "20:00–22:00", label: "🏋️ Gym", fixed: true },
   ];
 
   blocks.forEach(b => {
     const div = document.createElement("div");
-    div.className = "block" + (b.fixed ? " fixed" : "");
+    div.className = "block" + (b.fixed ? " fixed" : "") + (b.work ? " dropzone" : "");
     const head = document.createElement("div");
     head.className = "block-head";
     head.innerHTML = `<span class="block-time">${b.time}</span><span class="block-label">${b.label}</span>`;
@@ -250,27 +315,91 @@ function renderTimeline() {
       if (b.tasks.length === 0) {
         const hint = document.createElement("div");
         hint.className = "empty-hint";
-        hint.textContent = "Keine offenen Aufgaben in dieser Kategorie 🎉";
+        hint.textContent = b.freeform
+          ? "Noch nichts hier geparkt – ziehe eine Aufgabe rein, wenn spontan was ansteht."
+          : "Keine offenen Aufgaben in dieser Kategorie 🎉";
         div.appendChild(hint);
       }
       b.tasks.forEach(t => div.appendChild(renderTaskRow(t)));
+
+      div.addEventListener("dragover", e => { e.preventDefault(); div.classList.add("dragover"); });
+      div.addEventListener("dragleave", () => div.classList.remove("dragover"));
+      div.addEventListener("drop", e => {
+        e.preventDefault();
+        div.classList.remove("dragover");
+        const id = e.dataTransfer.getData("text/plain");
+        const t = tasks.find(x => x.id === id);
+        if (t) { t.pinnedBlock = b.id; saveTasks(tasks); renderAll(); }
+      });
     }
     timeline.appendChild(div);
   });
 }
 
-function renderTaskRow(t) {
+function renderTaskRow(t, opts) {
+  opts = opts || {};
   const row = document.createElement("div");
-  row.className = "task" + (t.done ? " done" : "");
-  row.innerHTML = `
-    <input type="checkbox" ${t.done ? "checked" : ""} data-id="${t.id}">
-    <div>
-      <div class="task-title">${t.important ? '<span class="star">★</span> ' : ""}${t.title}</div>
-      <div class="task-meta"><span class="tag">${CATEGORIES[t.category].label}</span>~${t.estMin} Min.</div>
-    </div>`;
-  row.querySelector("input").addEventListener("change", e => {
-    toggleDone(t.id, e.target.checked);
-  });
+  row.className = "task" + (t.done ? " done" : "") + (t.snoozed ? " snoozed" : "");
+  row.draggable = true;
+  row.addEventListener("dragstart", e => e.dataTransfer.setData("text/plain", t.id));
+
+  const meta = document.createElement("div");
+  const titleDiv = document.createElement("div");
+  titleDiv.className = "task-title";
+  titleDiv.innerHTML = `${t.urgent ? '<span class="fire">🔥</span> ' : ""}${t.important ? '<span class="star">★</span> ' : ""}${t.title}`;
+  const metaDiv = document.createElement("div");
+  metaDiv.className = "task-meta";
+  metaDiv.innerHTML = `<span class="tag">${CATEGORIES[t.category].label}</span>~${t.estMin} Min.`;
+  meta.appendChild(titleDiv);
+  meta.appendChild(metaDiv);
+
+  const checkbox = document.createElement("input");
+  checkbox.type = "checkbox";
+  checkbox.checked = t.done;
+  checkbox.addEventListener("change", e => toggleDone(t.id, e.target.checked));
+
+  row.appendChild(checkbox);
+  row.appendChild(meta);
+
+  if (opts.controls) {
+    const controls = document.createElement("div");
+    controls.className = "task-controls";
+
+    const mkBtn = (label, field, title) => {
+      const btn = document.createElement("button");
+      btn.className = "ctrl-btn" + (t[field] ? " active" : "");
+      btn.textContent = label;
+      btn.title = title;
+      btn.addEventListener("click", () => { t[field] = !t[field]; saveTasks(tasks); renderAll(); });
+      return btn;
+    };
+    controls.appendChild(mkBtn("⭐", "important", "wichtig"));
+    controls.appendChild(mkBtn("🔥", "urgent", "dringend / muss heute"));
+    controls.appendChild(mkBtn("⏸", "snoozed", "später (aus Vorschlägen ausblenden)"));
+
+    const select = document.createElement("select");
+    select.className = "pin-select";
+    const noneOpt = document.createElement("option");
+    noneOpt.value = "";
+    noneOpt.textContent = "— nicht angeheftet —";
+    select.appendChild(noneOpt);
+    Object.keys(BLOCK_LABELS).forEach(bid => {
+      const opt = document.createElement("option");
+      opt.value = bid;
+      opt.textContent = BLOCK_LABELS[bid];
+      select.appendChild(opt);
+    });
+    select.value = t.pinnedBlock || "";
+    select.addEventListener("change", e => {
+      t.pinnedBlock = e.target.value || null;
+      saveTasks(tasks);
+      renderAll();
+    });
+    controls.appendChild(select);
+
+    meta.appendChild(controls);
+  }
+
   return row;
 }
 
@@ -294,7 +423,7 @@ function renderBacklog() {
     head.innerHTML = `<span>${CATEGORIES[cat].label}</span><span class="cat-count">${items.length}</span>`;
     const body = document.createElement("div");
     body.className = "cat-body";
-    items.forEach(t => body.appendChild(renderTaskRow(t)));
+    items.forEach(t => body.appendChild(renderTaskRow(t, { controls: true })));
     if (items.length === 0) {
       const hint = document.createElement("div");
       hint.className = "empty-hint";
@@ -357,11 +486,22 @@ document.getElementById("addBtn").addEventListener("click", () => {
   const category = document.getElementById("newCategory").value;
   const estMin = Number(document.getElementById("newEst").value) || 30;
   const important = document.getElementById("newImportant").checked;
-  tasks.push({ id: "t" + Date.now(), title, category, estMin, important, done: false, timePref: "any" });
+  tasks.push(withDefaults({ id: "t" + Date.now(), title, category, estMin, important, done: false }));
   saveTasks(tasks);
   titleEl.value = "";
   document.getElementById("newImportant").checked = false;
   renderAll();
+});
+
+const backlogSection = document.getElementById("backlogSection");
+backlogSection.addEventListener("dragover", e => { e.preventDefault(); backlogSection.classList.add("dragover"); });
+backlogSection.addEventListener("dragleave", () => backlogSection.classList.remove("dragover"));
+backlogSection.addEventListener("drop", e => {
+  e.preventDefault();
+  backlogSection.classList.remove("dragover");
+  const id = e.dataTransfer.getData("text/plain");
+  const t = tasks.find(x => x.id === id);
+  if (t) { t.pinnedBlock = null; saveTasks(tasks); renderAll(); }
 });
 
 renderHeader();
