@@ -177,12 +177,20 @@ function loadTasks() {
 function saveTasks(tasks) {
   localStorage.setItem("plannerTasks", JSON.stringify(tasks));
 }
+function todayKey() {
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
 function loadSettings() {
-  const raw = localStorage.getItem("plannerSettings");
-  return raw ? JSON.parse(raw) : { startTime: "08:00" };
+  const raw = localStorage.getItem("plannerSettingsByDate");
+  const all = raw ? JSON.parse(raw) : {};
+  return all[todayKey()] || { startTime: "08:00" };
 }
 function saveSettings(s) {
-  localStorage.setItem("plannerSettings", JSON.stringify(s));
+  const raw = localStorage.getItem("plannerSettingsByDate");
+  const all = raw ? JSON.parse(raw) : {};
+  all[todayKey()] = s;
+  localStorage.setItem("plannerSettingsByDate", JSON.stringify(all));
 }
 
 let tasks = loadTasks();
