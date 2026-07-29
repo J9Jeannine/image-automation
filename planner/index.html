@@ -6,15 +6,15 @@
 <title>Tagesplaner</title>
 <style>
   :root {
-    --bg: #f6f5f2;
+    --bg: #fdeef4;
     --card: #ffffff;
-    --ink: #201f1d;
-    --muted: #78746c;
-    --line: #e6e3dc;
-    --accent: #c26b3f;
-    --accent-soft: #f3e3d8;
-    --urgent: #b3423a;
-    --urgent-soft: #f6dedc;
+    --ink: #2b2226;
+    --muted: #8a7480;
+    --line: #f3d9e6;
+    --accent: #d1698f;
+    --accent-soft: #f8dcea;
+    --urgent: #b23a5e;
+    --urgent-soft: #f6dbe3;
     --done: #8fa88a;
     --radius: 12px;
   }
@@ -98,7 +98,7 @@
 
 <section class="backlog dropzone" id="backlogSection">
   <h2>Alle offenen Aufgaben</h2>
-  <div class="hint-small">Zum Verschieben: Aufgabe in einen Arbeitsblock ziehen, oder unten die Dropdown-Auswahl nutzen. ⭐ wichtig · 🔥 dringend/muss heute · ⏸ später (aus Vorschlägen ausgeblendet).</div>
+  <div class="hint-small">Jede Aufgabe hat ⭐ wichtig · 🔥 dringend/muss heute · ⏸ später (verschwindet aus den Vorschlägen) sowie ein Dropdown zum Anheften an einen Block – klappt direkt in der Zeitleiste und hier unten. Zum Rausnehmen reicht ⏸ klicken; Ziehen einer Aufgabe hierher setzt sie ebenfalls automatisch auf ⏸.</div>
   <div id="backlogGroups"></div>
 
   <div class="add-form">
@@ -167,9 +167,9 @@ const SEED_TASKS = [
   { title: "Neue Ad Accounts verknüpfen", category: "shop", estMin: 20, snoozed: true },
   { title: "Shopify-Fee ins PPL-Sheet eintragen", category: "shop", estMin: 15, snoozed: true },
   { title: "Shopify Abandon-Flow (dynamisches Update bei Checkout-Abbruch)", category: "shop", estMin: 45 },
-  { title: "NL/BE UK-Ltd anmelden & launchen", category: "shop", estMin: 45 },
-  { title: "Chargeflow IO einrichten", category: "shop", estMin: 30 },
-  { title: "Chargeflow IO mit Valltrexo verbinden", category: "shop", estMin: 30 },
+  { title: "NL/BE UK-Ltd anmelden & launchen", category: "shop", estMin: 45, snoozed: true },
+  { title: "Chargeflow IO einrichten", category: "shop", estMin: 30, snoozed: true },
+  { title: "Chargeflow IO mit Valltrexo verbinden", category: "shop", estMin: 30, snoozed: true },
   { title: "E-Mail an CS wegen Valltrexo", category: "shop", estMin: 15 },
   { title: "Call: Pixel BM klären (aktuell gesperrt)", category: "shop", estMin: 30 },
 
@@ -189,10 +189,11 @@ const SEED_TASKS = [
   { title: "Sop Kim", category: "team", estMin: 20 },
   { title: "PR", category: "team", estMin: 20 },
   { title: "Team Calls mit Team Members planen", category: "team", estMin: 30 },
+  { title: "Nach neuer Customer-Service-Person suchen", category: "team", estMin: 30 },
 ];
 
 const MIGRATION_KEY = "plannerMigrationVersion";
-const CURRENT_MIGRATION = 2;
+const CURRENT_MIGRATION = 3;
 
 function withDefaults(t) {
   return { urgent: false, snoozed: false, pinnedBlock: null, ...t };
@@ -225,6 +226,20 @@ function loadTasks() {
       if (snoozeTitles.includes(t.title)) t.snoozed = true;
     });
     localStorage.setItem(MIGRATION_KEY, "2");
+  }
+
+  if (appliedVersion < 3) {
+    const existingTitles = new Set(list.map(t => t.title));
+    SEED_TASKS.forEach((seedT, i) => {
+      if (!existingTitles.has(seedT.title)) {
+        list.push(withDefaults({ id: "m3_" + i, done: false, ...seedT }));
+      }
+    });
+    const snoozeTitles = ["NL/BE UK-Ltd anmelden & launchen", "Chargeflow IO einrichten", "Chargeflow IO mit Valltrexo verbinden"];
+    list.forEach(t => {
+      if (snoozeTitles.includes(t.title)) t.snoozed = true;
+    });
+    localStorage.setItem(MIGRATION_KEY, "3");
   }
 
   localStorage.setItem("plannerTasks", JSON.stringify(list));
@@ -320,7 +335,7 @@ function renderTimeline() {
           : "Keine offenen Aufgaben in dieser Kategorie 🎉";
         div.appendChild(hint);
       }
-      b.tasks.forEach(t => div.appendChild(renderTaskRow(t)));
+      b.tasks.forEach(t => div.appendChild(renderTaskRow(t, { controls: true })));
 
       div.addEventListener("dragover", e => { e.preventDefault(); div.classList.add("dragover"); });
       div.addEventListener("dragleave", () => div.classList.remove("dragover"));
@@ -501,7 +516,7 @@ backlogSection.addEventListener("drop", e => {
   backlogSection.classList.remove("dragover");
   const id = e.dataTransfer.getData("text/plain");
   const t = tasks.find(x => x.id === id);
-  if (t) { t.pinnedBlock = null; saveTasks(tasks); renderAll(); }
+  if (t) { t.pinnedBlock = null; t.snoozed = true; saveTasks(tasks); renderAll(); }
 });
 
 renderHeader();
