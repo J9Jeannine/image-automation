@@ -56,6 +56,7 @@
   .ctrl-btn { border: 1px solid var(--line); background: #fff; border-radius: 6px; padding: 2px 6px; font-size: 12px; cursor: pointer; opacity: 0.4; }
   .ctrl-btn.active { opacity: 1; border-color: var(--accent); background: var(--accent-soft); }
   .pin-select { font-size: 11.5px; border: 1px solid var(--line); border-radius: 6px; padding: 2px 4px; color: var(--muted); }
+  .est-input { width: 52px; }
 
   .expand-link { font-size: 12.5px; color: var(--accent); cursor: pointer; margin-top: 6px; display: inline-block; }
 
@@ -98,7 +99,7 @@
 
 <section class="backlog dropzone" id="backlogSection">
   <h2>Alle offenen Aufgaben</h2>
-  <div class="hint-small">Jede Aufgabe hat ⭐ wichtig · 🔥 dringend/muss heute · ⏸ später (verschwindet aus den Vorschlägen) sowie ein Dropdown zum Anheften an einen Block – klappt direkt in der Zeitleiste und hier unten. Zum Rausnehmen reicht ⏸ klicken; Ziehen einer Aufgabe hierher setzt sie ebenfalls automatisch auf ⏸.</div>
+  <div class="hint-small">Blöcke zeigen nur, was du reinziehst oder per Dropdown anheftest – es wird nichts automatisch nachgefüllt. ⭐ wichtig · 🔥 dringend/muss heute · ⏸ später (raus aus dem Plan, bleibt raus) · Minutenfeld zum Anpassen der Zeitschätzung.</div>
   <div id="backlogGroups"></div>
 
   <div class="add-form">
@@ -136,9 +137,9 @@ const BLOCK_LABELS = {
 
 const SEED_TASKS = [
   // Creatives & Ads
-  { title: "Variations von winning ads zum Testen (Prompt)", category: "creatives", estMin: 45, important: true },
-  { title: "Workflow für Variations für winning products", category: "creatives", estMin: 60, important: true, urgent: true },
-  { title: "Research-Doc erstellen", category: "creatives", estMin: 60, important: true },
+  { title: "Variations von winning ads zum Testen (Prompt)", category: "creatives", estMin: 45, important: true, pinnedBlock: "block2" },
+  { title: "Workflow für Variations für winning products", category: "creatives", estMin: 60, important: true, urgent: true, pinnedBlock: "block2" },
+  { title: "Research-Doc erstellen", category: "creatives", estMin: 60, important: true, pinnedBlock: "block2" },
   { title: "Kampagnen killen", category: "creatives", estMin: 20 },
   { title: "Skill bearbeiten", category: "creatives", estMin: 30 },
 
@@ -158,15 +159,15 @@ const SEED_TASKS = [
   { title: "SOP: Lohn-Fehler-Checker pro Person", category: "finance", estMin: 30 },
   { title: "Finance-Dokumente speichern", category: "finance", estMin: 20 },
   { title: "KPI eintragen", category: "finance", estMin: 20 },
-  { title: "PNL Automation: Porto/Versandkosten ergänzen", category: "finance", estMin: 45, important: true },
-  { title: "PNL Automation: AdSpend vollständig eintragen", category: "finance", estMin: 45, important: true },
+  { title: "PNL Automation: Porto/Versandkosten ergänzen", category: "finance", estMin: 45, important: true, pinnedBlock: "block1" },
+  { title: "PNL Automation: AdSpend vollständig eintragen", category: "finance", estMin: 45, important: true, pinnedBlock: "block1" },
   { title: "VAT-Setup Dokumente korrekt abspeichern (Infos + Shopify-Unterlagen)", category: "finance", estMin: 30 },
 
   // Shop/Ops
   { title: "Kizoora Änderungen im Shop", category: "shop", estMin: 30, snoozed: true },
   { title: "Neue Ad Accounts verknüpfen", category: "shop", estMin: 20, snoozed: true },
   { title: "Shopify-Fee ins PPL-Sheet eintragen", category: "shop", estMin: 15, snoozed: true },
-  { title: "Shopify Abandon-Flow (dynamisches Update bei Checkout-Abbruch)", category: "shop", estMin: 45 },
+  { title: "Shopify Abandon-Flow (dynamisches Update bei Checkout-Abbruch)", category: "shop", estMin: 45, pinnedBlock: "block3" },
   { title: "NL/BE UK-Ltd anmelden & launchen", category: "shop", estMin: 45, snoozed: true },
   { title: "Chargeflow IO einrichten", category: "shop", estMin: 30, snoozed: true },
   { title: "Chargeflow IO mit Valltrexo verbinden", category: "shop", estMin: 30, snoozed: true },
@@ -174,13 +175,13 @@ const SEED_TASKS = [
   { title: "Call: Pixel BM klären (aktuell gesperrt)", category: "shop", estMin: 30 },
 
   // Funnel/CS
-  { title: "Aftersell-Funnel für Upsell", category: "funnel", estMin: 60 },
+  { title: "Aftersell-Funnel für Upsell", category: "funnel", estMin: 60, pinnedBlock: "block3" },
   { title: "Sweet Upsell für SP", category: "funnel", estMin: 45 },
   { title: "SP Support Catalog Finnisch", category: "funnel", estMin: 30 },
   { title: "Langes PDF für CS (72h Antwortzeit)", category: "funnel", estMin: 45 },
 
   // Video/Content
-  { title: "Video skripten (Instagram)", category: "video", estMin: 45 },
+  { title: "Video skripten (Instagram)", category: "video", estMin: 45, pinnedBlock: "block3" },
   { title: "Video drehen (Instagram)", category: "video", estMin: 60 },
   { title: "Video schneiden", category: "video", estMin: 60 },
 
@@ -193,7 +194,7 @@ const SEED_TASKS = [
 ];
 
 const MIGRATION_KEY = "plannerMigrationVersion";
-const CURRENT_MIGRATION = 3;
+const CURRENT_MIGRATION = 4;
 
 function withDefaults(t) {
   return { urgent: false, snoozed: false, pinnedBlock: null, ...t };
@@ -242,6 +243,28 @@ function loadTasks() {
     localStorage.setItem(MIGRATION_KEY, "3");
   }
 
+  if (appliedVersion < 4) {
+    // Blocks no longer auto-fill from category pools — only explicitly
+    // pinned tasks show up. Give already-existing installs a sensible
+    // starting pin, but never override a pin the user already set/moved.
+    const defaultPins = {
+      "PNL Automation: Porto/Versandkosten ergänzen": "block1",
+      "PNL Automation: AdSpend vollständig eintragen": "block1",
+      "Variations von winning ads zum Testen (Prompt)": "block2",
+      "Workflow für Variations für winning products": "block2",
+      "Research-Doc erstellen": "block2",
+      "Shopify Abandon-Flow (dynamisches Update bei Checkout-Abbruch)": "block3",
+      "Aftersell-Funnel für Upsell": "block3",
+      "Video skripten (Instagram)": "block3",
+    };
+    list.forEach(t => {
+      if (!t.pinnedBlock && !t.snoozed && defaultPins[t.title]) {
+        t.pinnedBlock = defaultPins[t.title];
+      }
+    });
+    localStorage.setItem(MIGRATION_KEY, "4");
+  }
+
   localStorage.setItem("plannerTasks", JSON.stringify(list));
   return list;
 }
@@ -281,16 +304,11 @@ function fmtRange(start, mins) {
 function sortByPriority(list) {
   return list.slice().sort((a, b) => (b.urgent === true) - (a.urgent === true) || (b.important === true) - (a.important === true));
 }
-function tasksForBlock(blockId, categories, count) {
-  const pinned = sortByPriority(tasks.filter(t => !t.done && t.pinnedBlock === blockId));
-  if (categories === null) {
-    return pinned; // Deep Work: only whatever got manually pinned here
-  }
-  const pinnedElsewhere = new Set(tasks.filter(t => t.pinnedBlock && t.pinnedBlock !== blockId).map(t => t.id));
-  const autoPool = sortByPriority(
-    tasks.filter(t => !t.done && !t.snoozed && !pinnedElsewhere.has(t.id) && t.pinnedBlock !== blockId && categories.includes(t.category))
-  ).slice(0, count);
-  return [...pinned, ...autoPool];
+function tasksForBlock(blockId) {
+  // A block only ever shows what's explicitly pinned to it — nothing gets
+  // auto-filled in, so removing a task leaves the block with fewer items
+  // instead of silently backfilling from the category.
+  return sortByPriority(tasks.filter(t => !t.done && !t.snoozed && t.pinnedBlock === blockId));
 }
 
 // ---------- render timeline ----------
@@ -308,12 +326,12 @@ function renderTimeline() {
   const dinnerStart = addMinutes(deepworkStart, 45);
 
   const blocks = [
-    { id: "block1", time: fmtRange(block1Start, 90), label: "Arbeitsblock 1 – Admin & Finance", work: true, tasks: tasksForBlock("block1", ["finance", "team"], 2) },
+    { id: "block1", time: fmtRange(block1Start, 90), label: "Arbeitsblock 1 – Admin & Finance", work: true, tasks: tasksForBlock("block1") },
     { time: fmtRange(breakfastStart, 30), label: "🍳 Frühstück", fixed: true },
-    { id: "block2", time: fmtRange(block2Start, 180), label: "Arbeitsblock 2 – Creatives & Automation", work: true, tasks: tasksForBlock("block2", ["creatives", "automation"], 2) },
+    { id: "block2", time: fmtRange(block2Start, 180), label: "Arbeitsblock 2 – Creatives & Automation", work: true, tasks: tasksForBlock("block2") },
     { time: fmtRange(lunchStart, 60), label: "🍽️ Mittagessen", fixed: true },
-    { id: "block3", time: fmtRange(block3Start, 270), label: "Arbeitsblock 3 – Shop, Funnel & Video (Abwechslung)", work: true, tasks: tasksForBlock("block3", ["shop", "funnel", "video"], 3) },
-    { id: "deepwork", time: fmtRange(deepworkStart, 45), label: "🧠 Deep Work / Puffer – frei wählbar, für Spontanes (Calls, Blocker)", work: true, freeform: true, tasks: tasksForBlock("deepwork", null) },
+    { id: "block3", time: fmtRange(block3Start, 270), label: "Arbeitsblock 3 – Shop, Funnel & Video (Abwechslung)", work: true, tasks: tasksForBlock("block3") },
+    { id: "deepwork", time: fmtRange(deepworkStart, 45), label: "🧠 Deep Work / Puffer – frei wählbar, für Spontanes (Calls, Blocker)", work: true, freeform: true, tasks: tasksForBlock("deepwork") },
     { time: fmtRange(dinnerStart, 60), label: "🍲 Abendessen / Kochen", fixed: true },
     { time: "20:00–22:00", label: "🏋️ Gym", fixed: true },
   ];
@@ -330,9 +348,7 @@ function renderTimeline() {
       if (b.tasks.length === 0) {
         const hint = document.createElement("div");
         hint.className = "empty-hint";
-        hint.textContent = b.freeform
-          ? "Noch nichts hier geparkt – ziehe eine Aufgabe rein, wenn spontan was ansteht."
-          : "Keine offenen Aufgaben in dieser Kategorie 🎉";
+        hint.textContent = "Noch nichts hier angeheftet – aus dem Rückstand unten reinziehen oder per Dropdown zuweisen.";
         div.appendChild(hint);
       }
       b.tasks.forEach(t => div.appendChild(renderTaskRow(t, { controls: true })));
@@ -411,6 +427,21 @@ function renderTaskRow(t, opts) {
       renderAll();
     });
     controls.appendChild(select);
+
+    const estInput = document.createElement("input");
+    estInput.type = "number";
+    estInput.min = "5";
+    estInput.step = "5";
+    estInput.value = t.estMin;
+    estInput.className = "pin-select est-input";
+    estInput.title = "Geschätzte Minuten anpassen";
+    estInput.addEventListener("change", e => {
+      const v = Number(e.target.value);
+      if (v > 0) t.estMin = v;
+      saveTasks(tasks);
+      renderAll();
+    });
+    controls.appendChild(estInput);
 
     meta.appendChild(controls);
   }
