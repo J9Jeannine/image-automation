@@ -197,15 +197,22 @@ Die eigentliche Higgsfield-Generierung passiert bereits in Schritt 5 (ein Call p
    `Translated-Ads/<market_code>/<Lauf-Datum> - <product_name>/` (Schritte 5/7): die
    `<product_name>_<market_code>_ad<N>.jpg`, das `_produktbild.jpg` und die `_ad_copy.md`.
    Es darf **kein** Markdown-Links-Ersatz statt echter Bilddateien stehen bleiben.
-2. **Sheet-Rückschreiben — verpflichtend, nicht optional.** Pro verarbeiteter Zeile zwei
-   Zellen im "Funnel Sheet" (`sheet.id`) setzen, damit das Team das Ergebnis im Sheet
+2. **Sheet-Rückschreiben — verpflichtend, nicht optional.** Vollständige Anleitung:
+   **[`docs/sheet-writeback-SOP.md`](sheet-writeback-SOP.md)**. Pro verarbeiteter Zeile
+   vier Zellen im "Funnel Sheet" (`sheet.id`) setzen, damit das Team das Ergebnis im Sheet
    selbst findet und nicht im Chat suchen muss:
+   - Spalte `sheet.columns.date_completed_column` (**L**) = Datum dieses Laufs, als
+     **echtes Datum** (Format `d-m-yyyy`, z. B. `4-8-2026`). Nach dem Schreiben prüfen,
+     dass der Rohwert eine **Zahl** ist — sonst wurde es als Text gespeichert.
+   - Spalte `sheet.columns.person_column` (**N**) = `claude` (Dropdown-Wert, exakt
+     kleingeschrieben), damit erkennbar ist, wer die Zeile produziert hat.
    - Spalte `sheet.columns.result_folder_link_column` (**O**) = Link auf den
      Tages-/Produkt-Ordner aus Schritt 7, als Formel im vorhandenen Format:
      `=HYPERLINK("<Drive-Ordner-URL>";"<product_name aus Spalte G>")`.
      **Achtung Semikolon** als Argumenttrenner (Locale des Sheets), nicht Komma.
-   - Spalte `sheet.columns.person_column` (**N**) = `claude` (Dropdown-Wert, exakt
-     kleingeschrieben), damit erkennbar ist, wer die Zeile produziert hat.
+   - Spalte `sheet.columns.status_column` (**P**) = `in progress` (klein).
+     **Niemals `Ready`** — ein Lauf liefert praktisch nie alle Ads einer Zeile; `Ready`
+     setzt der Mensch, der die fehlenden Ads ergänzt hat.
 
    Technisch: der Drive-MCP kann keine Zellen schreiben — dafür die **Sheets API mit
    demselben Service-Account** nutzen wie beim Bild-Upload (`GOOGLE_SERVICE_ACCOUNT_JSON`),

@@ -34,13 +34,15 @@ Führe den image-automation Workflow aus dem Repo `j9jeannine/image-automation`,
    `files.update` mit den vollen Bytes überschreiben. Niemals auf den alten
    Markdown-Links-Workaround zurückfallen; jede hochgeladene Datei auf volle Größe/Dekodierung
    verifizieren.
-7. **Sheet-Rückschreiben (Schritt 8.2) ist verpflichtend:** für jede Zeile, die in diesem
-   Lauf wirklich Bilder produziert hat, im Funnel Sheet Spalte **O** den Link auf den
-   Tages-/Produkt-Ordner setzen (`=HYPERLINK("<URL>";"<Produktname aus G>")`, Semikolon
-   als Trenner) und Spalte **N** auf `claude`. Das geht nicht über den Drive-MCP, sondern
-   über die Sheets API mit demselben Service-Account (`GOOGLE_SERVICE_ACCOUNT_JSON`,
-   Scope `.../auth/spreadsheets`). Blockierte Zeilen und Zeilen mit einer anderen Person
-   in Spalte N nicht anfassen. Danach zurücklesen und im Bericht bestätigen.
+7. **Sheet-Rückschreiben (Schritt 8.2) ist verpflichtend** — volle Anleitung in
+   `docs/sheet-writeback-SOP.md`. Für jede Zeile, die in diesem Lauf wirklich Bilder
+   produziert hat, im Funnel Sheet vier Zellen setzen: **L** = Lauf-Datum (echtes Datum,
+   `d-m-yyyy`), **N** = `claude`, **O** = `=HYPERLINK("<URL>";"<Produktname aus G>")`
+   (Semikolon als Trenner!), **P** = `in progress` — niemals `Ready`, das setzt der
+   Mensch, der die fehlenden Ads ergänzt. Das geht nicht über den Drive-MCP, sondern über
+   die Sheets API mit demselben Service-Account (`GOOGLE_SERVICE_ACCOUNT_JSON`, Scope
+   `.../auth/spreadsheets`). Blockierte Zeilen und Zeilen mit einer anderen Person in
+   Spalte N nicht anfassen. Danach zurücklesen und im Bericht bestätigen.
 8. Gibt es in keinem Tab neue/geänderte Kommentar-Threads: Lauf ohne Chat-Nachricht
    beenden (kein Spam).
 9. Wurde mindestens eine Zeile verarbeitet: melde kurz welche Zeilen/Produkte (Tab +
