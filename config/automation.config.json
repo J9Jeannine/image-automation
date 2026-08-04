@@ -54,10 +54,34 @@
   },
 
   "drive": {
-    "base_folder_id": "176ElFPlxj5hvsVJ8O_AaQSlIoL25IzJD",
-    "base_folder_url": "https://drive.google.com/drive/folders/176ElFPlxj5hvsVJ8O_AaQSlIoL25IzJD",
-    "project_folder_name_pattern": "<market_code>/<product_name aus Spalte G>",
-    "note": "Bestehende Unterordner State/, Funnel-PDFs/, QA-Reports/ gehoeren zu einer anderen Automatisierung (FI/FRCA Funnel-QA-Monitor) und werden nicht veraendert. Diese Pipeline legt eigene Unterordner an, siehe README."
+    "base_folder_id": "176EIFPlxj5hvsVJ8O_AaQSlIoL25IzJD",
+    "base_folder_url": "https://drive.google.com/drive/folders/176EIFPlxj5hvsVJ8O_AaQSlIoL25IzJD",
+    "base_folder_name": "image creation",
+    "base_folder_id_typo_warning": "ACHTUNG: Die 6. Stelle ist ein GROSSES I (176E-I-FPl...), kein kleines l. Eine fruehere Version hatte hier faelschlich '176ElFPl...' (kleines l) -- damit gibt sowohl das User-Konto als auch der Service-Account '404 File not found' zurueck. Bei Copy/Paste-Fehlern immer den echten Ordner 'image creation' per Name/Suche verifizieren.",
+    "translated_ads_folder_id": "1JWHztpl2Z6mE9WtcRTObRgwBRp1OsHCb",
+    "translated_ads_subfolders": { "FI": "1Ey4aVRrpzrzolETnzKVxVCZQGZjm0P5K", "FRCA": "1ZeW7nKHrCMNOBH6jIKZrzNYjJWXPvQDW" },
+    "day_folder_name_pattern": "<Lauf-Datum YYYY-MM-DD> - <product_name aus Spalte G>",
+    "day_folder_parent_pattern": "Translated-Ads/<market_code>/",
+    "file_name_pattern": "<product_name>_<market_code>_ad<N>.jpg | <product_name>_<market_code>_produktbild.jpg | <product_name>_<market_code>_ad_copy.md",
+    "day_folder_example": "Translated-Ads/FI/2026-07-25 - itzora/ enthaelt itzora_FI_ad1.jpg .. ad8.jpg, itzora_FI_produktbild.jpg, itzora_FI_ad_copy.md",
+    "note": "Bestehende Unterordner State/, Funnel-PDFs/, QA-Reports/ gehoeren zu einer anderen Automatisierung (FI/FRCA Funnel-QA-Monitor) und werden nicht veraendert. Uebersetzte Ads pro Lauf kommen in einen Tages-/Produkt-Ordner unter Translated-Ads/<market_code>/ (Name: '<YYYY-MM-DD> - <product_name>'). Der Upload der Bild-Binaerdateien laeuft ZWINGEND ueber upload_method (siehe unten) -- niemals der Markdown-Links-Workaround."
+  },
+
+  "upload_method": {
+    "mode": "placeholder_via_drive_mcp_then_service_account_files_update",
+    "mandatory": true,
+    "no_markdown_links_fallback": true,
+    "why": "Der Service-Account (GOOGLE_SERVICE_ACCOUNT_JSON, image-automation-uploader@image-automation-502115.iam.gserviceaccount.com) hat KEIN Storage-Quota (storageQuota.limit=0) und kann daher keine Inhalts-Dateien ANLEGEN -> files.create mit Bytes gibt '403 storageQuotaExceeded'. Er kann aber eine bereits vom User (jeannine.thiry1@gmail.com) besessene Datei UEBERSCHREIBEN (files.update media) -- dabei wird der Speicher dem OWNER (dem User) berechnet, nicht dem Service-Account. Das ist exakt das Muster der bestehenden Dateien (owner=User, lastModifyingUser=Service-Account). Der Drive-MCP-create_file-Kanal schleust base64 durch den Modell-Kontext und schneidet lange Werte ab (~15000 base64-Zeichen ~ 11 KB) -> fuer echte Bilder (100-260 KB) unbrauchbar (liefert abgeschnittene, korrupte JPEGs). Deshalb NUR fuer den winzigen Platzhalter + kleine Textdateien nutzen, echte Bild-Bytes immer per Service-Account files.update.",
+    "steps": [
+      "1. Ziel-Datei als PLATZHALTER im Tages-/Produkt-Ordner anlegen -- Google_Drive.create_file mit contentMimeType='image/jpeg', disableConversionToGoogleType=true, base64Content=<winziges 1x1-JPEG> (bleibt User-owned). Die zurueckgegebene file id merken.",
+      "2. Service-Account-Access-Token minten: JWT (RS256) aus GOOGLE_SERVICE_ACCOUNT_JSON signieren (scope https://www.googleapis.com/auth/drive), gegen token_uri tauschen. Achtung: Token laeuft nach 1h ab -- bei 401 ACCESS_TOKEN_EXPIRED neu minten. Signatur per openssl (das cryptography-Python-Modul ist in der Sandbox defekt): printf '%s' \"$jwt_signing_input\" | openssl dgst -sha256 -sign sa_key.pem | openssl base64 -A | tr '+/' '-_' | tr -d '='.",
+      "3. Pro Datei die vollen Bytes von der Disk hochladen: curl -X PATCH 'https://www.googleapis.com/upload/drive/v3/files/{FILE_ID}?uploadType=media&supportsAllDrives=true' -H 'Authorization: Bearer <SA_TOKEN>' -H 'Content-Type: image/jpeg' --data-binary @<lokale_datei.jpg>. Ergebnis: owner bleibt User, lastModifyingUser=Service-Account, volle Qualitaet, keine Truncation.",
+      "4. Verifizieren: die zurueckgegebene size muss der Quell-Dateigroesse entsprechen UND das Bild muss vollstaendig dekodieren (PIL im.load()). Bei Abweichung erneut hochladen.",
+      "5. Kleine Textdateien (ad_copy.md, processed_comments.json) koennen direkt per Google_Drive.create_file (textContent) angelegt werden -- klein genug, keine Truncation."
+    ],
+    "service_account_env": "GOOGLE_SERVICE_ACCOUNT_JSON",
+    "service_account_email": "image-automation-uploader@image-automation-502115.iam.gserviceaccount.com",
+    "note": "Der Service-Account hat Editor-Zugriff auf den Translated-Ads-Baum (dort funktioniert files.update). Die separaten GOOGLE_OAUTH_*-User-Credentials sind fuer diesen Bild-Upload NICHT noetig; sie liefen zuletzt in 'invalid_grant' (Refresh-Token abgelaufen, weil der OAuth-Consent-Screen auf 'Testing' steht -> 7-Tage-Ablauf). Wer die OAuth-basierten Teile reparieren will: Consent-Screen auf 'In production' setzen und Token neu minten. Fuer den Bild-Upload aber irrelevant -- der Service-Account-Weg oben ist der kanonische."
   },
 
   "foundation_documents": {

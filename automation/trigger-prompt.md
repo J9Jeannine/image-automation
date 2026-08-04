@@ -25,8 +25,17 @@ Führe den image-automation Workflow aus dem Repo `j9jeannine/image-automation`,
    Varianten/Iterationen/New Concepts. Nur falls `foundation_phase.mode !=
    translation_only` zusätzlich `docs/skills/foundation-to-higgsfield.md` für die
    separate Foundation-Phase anwenden.
-6. Gibt es in keinem Tab neue/geänderte Kommentar-Threads: Lauf ohne Chat-Nachricht
+6. **Bild-Upload nach Drive ist verpflichtend (Schritt 7):** die gerenderten Higgsfield-Bilder
+   per curl auf die Disk laden und als **echte JPG-Dateien** in Drive ablegen — Ordner
+   `Translated-Ads/<market_code>/<Lauf-Datum YYYY-MM-DD> - <product_name>/` (Produktname MUSS
+   im Ordnernamen stehen), Dateien `<product_name>_<market_code>_ad<N>.jpg`. Upload-Methode
+   ZWINGEND wie in `config/automation.config.json` → `upload_method`: Platzhalter per
+   Drive-`create_file` anlegen (User-owned), dann per Service-Account (`GOOGLE_SERVICE_ACCOUNT_JSON`)
+   `files.update` mit den vollen Bytes überschreiben. Niemals auf den alten
+   Markdown-Links-Workaround zurückfallen; jede hochgeladene Datei auf volle Größe/Dekodierung
+   verifizieren.
+7. Gibt es in keinem Tab neue/geänderte Kommentar-Threads: Lauf ohne Chat-Nachricht
    beenden (kein Spam).
-7. Wurde mindestens eine Zeile verarbeitet: melde kurz welche Zeilen/Produkte (Tab +
+8. Wurde mindestens eine Zeile verarbeitet: melde kurz welche Zeilen/Produkte (Tab +
    Produktname aus Spalte G), wie viele Ads pro Zeile, Drive-Links zu den neu erzeugten
    Dateien, und ob gerendert wurde oder nur Prompt-Texte erzeugt wurden.
