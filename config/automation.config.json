@@ -9,6 +9,9 @@
       "product_name": "G",
       "ad_library_links_comment_column": "M",
       "price_column": "J",
+      "person_column": "N",
+      "result_folder_link_column": "O",
+      "writeback_note": "Nach jedem erfolgreichen Lauf ZWINGEND zurueckschreiben (siehe docs/workflow.md Schritt 8.2): Spalte O = =HYPERLINK(\"<Drive-Ordner-URL>\";\"<product_name aus G>\") -- Semikolon als Trenner, nicht Komma -- und Spalte N = 'claude'. Der Drive-MCP kann keine Zellen schreiben; dafuer die Sheets API mit demselben Service-Account nutzen (GOOGLE_SERVICE_ACCOUNT_JSON, zusaetzlicher Scope https://www.googleapis.com/auth/spreadsheets, values:batchUpdate mit valueInputOption=USER_ENTERED). Nur Zeilen schreiben, die im aktuellen Lauf wirklich Bilder produziert haben; blockierte Zeilen und Zeilen mit einer anderen Person in Spalte N nicht anfassen.",
       "note": "Spaltenbelegung verifiziert an BEIDEN Tabs (FRCA per Drive-Kommentar-API, FI per XLSX-Export/openpyxl, da das Drive-Tool nur den FRCA-Tab zurueckgab): D = 'Competitor URL / Content', G = 'new PR NAME' = unser Produktname, J = 'Bundle/deal offer' = Preisstufen (EUR fuer FI, CAD fuer FRCA), M = 'Competitor Ad Link/Drive Link' -- die eigentlichen Meta-Ad-Library-Links haengen als Kommentar-Thread an der M-Zelle, inkl. Antworten anderer Teammitglieder. FI-Tab bestaetigt strukturell identisch zu FRCA (getestet an Zeile 52: variclex -> vanix)."
     },
     "tabs": {

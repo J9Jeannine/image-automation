@@ -197,8 +197,31 @@ Die eigentliche Higgsfield-Generierung passiert bereits in Schritt 5 (ein Call p
    `Translated-Ads/<market_code>/<Lauf-Datum> - <product_name>/` (Schritte 5/7): die
    `<product_name>_<market_code>_ad<N>.jpg`, das `_produktbild.jpg` und die `_ad_copy.md`.
    Es darf **kein** Markdown-Links-Ersatz statt echter Bilddateien stehen bleiben.
-2. `State/processed_comments.json` mit den neuen Fingerprints aus Schritt 2 aktualisieren
-   (kleine Textdatei → direkt per `Google_Drive.create_file`/`files.update`).
-3. Kurze Zusammenfassung an den Nutzer: welche Zeilen/Produkte verarbeitet wurden, wie
+2. **Sheet-Rückschreiben — verpflichtend, nicht optional.** Pro verarbeiteter Zeile zwei
+   Zellen im "Funnel Sheet" (`sheet.id`) setzen, damit das Team das Ergebnis im Sheet
+   selbst findet und nicht im Chat suchen muss:
+   - Spalte `sheet.columns.result_folder_link_column` (**O**) = Link auf den
+     Tages-/Produkt-Ordner aus Schritt 7, als Formel im vorhandenen Format:
+     `=HYPERLINK("<Drive-Ordner-URL>";"<product_name aus Spalte G>")`.
+     **Achtung Semikolon** als Argumenttrenner (Locale des Sheets), nicht Komma.
+   - Spalte `sheet.columns.person_column` (**N**) = `claude` (Dropdown-Wert, exakt
+     kleingeschrieben), damit erkennbar ist, wer die Zeile produziert hat.
+
+   Technisch: der Drive-MCP kann keine Zellen schreiben — dafür die **Sheets API mit
+   demselben Service-Account** nutzen wie beim Bild-Upload (`GOOGLE_SERVICE_ACCOUNT_JSON`),
+   Scope zusätzlich `https://www.googleapis.com/auth/spreadsheets`:
+   `POST https://sheets.googleapis.com/v4/spreadsheets/{sheet.id}/values:batchUpdate`
+   mit `valueInputOption: "USER_ENTERED"`. Danach die geschriebenen Zellen zurücklesen
+   und im Bericht bestätigen.
+
+   Nur für Zeilen schreiben, die in **diesem** Lauf tatsächlich Bilder produziert haben.
+   Blockierte Zeilen (keine ladbaren Ad-Bilder) bleiben unangetastet — ein Link auf einen
+   nicht existierenden Ordner ist schlimmer als eine leere Zelle. Ebenso Zeilen, in denen
+   bereits eine andere Person in Spalte N steht, nicht überschreiben.
+3. `State/processed_comments.json` mit den neuen Fingerprints aus Schritt 2 aktualisieren
+   (kleine Textdatei → direkt per `Google_Drive.create_file`/`files.update`). Die
+   geschriebene Sheet-Zelle dort als `sheet_link_written` vermerken.
+4. Kurze Zusammenfassung an den Nutzer: welche Zeilen/Produkte verarbeitet wurden, wie
    viele Ads pro Zeile, Drive-Links zu den neuen Dateien, ob gerendert wurde oder nur
-   Prompt-Texte erzeugt wurden. Bei "nichts Neues" keine Nachricht (siehe Schritt 2.2).
+   Prompt-Texte erzeugt wurden, und welche Sheet-Zellen (N/O) gesetzt wurden. Bei
+   "nichts Neues" keine Nachricht (siehe Schritt 2.2).

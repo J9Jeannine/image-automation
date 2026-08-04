@@ -34,8 +34,16 @@ Führe den image-automation Workflow aus dem Repo `j9jeannine/image-automation`,
    `files.update` mit den vollen Bytes überschreiben. Niemals auf den alten
    Markdown-Links-Workaround zurückfallen; jede hochgeladene Datei auf volle Größe/Dekodierung
    verifizieren.
-7. Gibt es in keinem Tab neue/geänderte Kommentar-Threads: Lauf ohne Chat-Nachricht
+7. **Sheet-Rückschreiben (Schritt 8.2) ist verpflichtend:** für jede Zeile, die in diesem
+   Lauf wirklich Bilder produziert hat, im Funnel Sheet Spalte **O** den Link auf den
+   Tages-/Produkt-Ordner setzen (`=HYPERLINK("<URL>";"<Produktname aus G>")`, Semikolon
+   als Trenner) und Spalte **N** auf `claude`. Das geht nicht über den Drive-MCP, sondern
+   über die Sheets API mit demselben Service-Account (`GOOGLE_SERVICE_ACCOUNT_JSON`,
+   Scope `.../auth/spreadsheets`). Blockierte Zeilen und Zeilen mit einer anderen Person
+   in Spalte N nicht anfassen. Danach zurücklesen und im Bericht bestätigen.
+8. Gibt es in keinem Tab neue/geänderte Kommentar-Threads: Lauf ohne Chat-Nachricht
    beenden (kein Spam).
-8. Wurde mindestens eine Zeile verarbeitet: melde kurz welche Zeilen/Produkte (Tab +
+9. Wurde mindestens eine Zeile verarbeitet: melde kurz welche Zeilen/Produkte (Tab +
    Produktname aus Spalte G), wie viele Ads pro Zeile, Drive-Links zu den neu erzeugten
-   Dateien, und ob gerendert wurde oder nur Prompt-Texte erzeugt wurden.
+   Dateien, welche Sheet-Zellen (N/O) gesetzt wurden, und ob gerendert wurde oder nur
+   Prompt-Texte erzeugt wurden.
