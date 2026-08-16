@@ -1,0 +1,5 @@
+# NS Client AI API — repo-local credential config (contains access_key_id + secret)
+.ns-client-ai.local.json
+
+# NS Client skill installer backups
+.dropshippinglite-agent-skills-backups/
