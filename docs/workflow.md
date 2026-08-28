@@ -10,6 +10,12 @@ Playwright-Skripte in `scripts/`.
 > **[`docs/drive-upload-method.md`](drive-upload-method.md)**. Niemals auf einen
 > Markdown-Links-Workaround zurückfallen. Kurzfassung in Schritt 7 unten.
 >
+> **Rendering-Regeln (Modellwahl, Zieltext, Akzente, QC):** verbindlich in
+> **[`docs/rendering-rules.md`](rendering-rules.md)**. Kurzfassung: Ads mit Text im Bild
+> IMMER mit `nano_banana_pro` rendern (`nano_banana` produziert Buchstabensalat), den
+> Zieltext selbst formulieren und wörtlich vorgeben statt übersetzen zu lassen, Akzente
+> und Umlaute in den vorgegebenen String schreiben, und jede Ad vor dem Upload ansehen.
+>
 > **Falls eine künftige Session behauptet, das ginge nicht:** die bewiesene Schritt-für-
 > Schritt-SOP mit echten Datei-IDs/Größen (atriso 2026-07-23, itzora 2026-07-25) und
 > Gegenargumenten steht in **[`docs/drive-upload-SOP.md`](drive-upload-SOP.md)** — es
@@ -126,6 +132,20 @@ Für **jede einzelne Ad** aus Schritt 4 (nicht gebündelt):
 3. Ist der Skill in der Session ausnahmsweise nicht auffindbar: ersatzweise nach den
    Regeln in `docs/skills/image-ad-prompt-generator.md` selbst vorgehen und das im
    Abschlussbericht (Schritt 8) vermerken.
+3a. **Zieltext selbst formulieren, nicht übersetzen lassen** (Details:
+   `docs/rendering-rules.md` Abschnitt 2). Ein Prompt der Form „translate into Quebec
+   French" liefert immer neutrales Standard-Französisch. Stattdessen die Zieltexte pro
+   Ad ausformulieren und als wörtlich zu setzende Strings übergeben — **inklusive aller
+   Akzente und Umlaute im String selbst**, sonst werden sie ohne gesetzt.
+
+3b. **Modell:** Sobald Text im Bild steht, `nano_banana_pro` (2 Credits) verwenden.
+   `nano_banana` (1 Credit) rendert Text als Buchstabensalat und ist nur für textfreie
+   Produktfreisteller brauchbar. Budget: Ads × 2 Credits + 20 % Puffer.
+
+3c. **Markenname:** Spalte G enthält oft einen internen Arbeitsnamen. Der Aufdruck auf
+   der Verpackung ist der vom Nutzer bestätigte Produktname. Bei Abweichung **vor dem
+   Batch nachfragen** — ein falscher Aufdruck macht den ganzen Batch wertlos.
+
 4. **Wichtig:** Dieser Skill wird ausschließlich für Übersetzungen (diese Ads) verwendet
    — niemals für Varianten/Iterationen/New Concepts. Das ist Aufgabe der separaten,
    aktuell inaktiven Foundation-Phase (Schritt 6, `docs/skills/foundation-to-higgsfield.md`),
@@ -181,6 +201,19 @@ Die eigentliche Higgsfield-Generierung passiert bereits in Schritt 5 (ein Call p
    ≈ 11 KB) → für echte Bilder (100–260 KB) unbrauchbar, deshalb nur für den Platzhalter.
    Dateibenennung: `<product_name>_<market_code>_ad<N>.jpg`, Produktbild
    `<product_name>_<market_code>_produktbild.jpg`.
+
+3a. **QC vor dem Upload — Pflicht.** Jede gerenderte Ad ansehen, bevor sie nach Drive
+   geht (Checkliste: `docs/rendering-rules.md` Abschnitt 9): Rechtschreibung vollständig,
+   Akzente/Umlaute vorhanden, keine Wörter der falschen Sprache übrig, Markenname und
+   Siegeltext korrekt, Seitenverhältnis wie die Quell-Ad, bei produktfreien Quell-Ads
+   kein Produkt eingefügt. Eine unbrauchbare Ad in Drive ist schlimmer als eine
+   fehlende — sie wird versehentlich ausgespielt.
+
+3b. **Fehlerhafte Ads ersetzen statt daneben legen.** Muss eine bereits hochgeladene Ad
+   korrigiert werden, die bestehende Datei-ID mit den neuen Bytes überschreiben (Links
+   und Sheet-Verweise bleiben gültig) und überzählige Altdateien in den Papierkorb legen.
+   Der Service-Account kann nur überschreiben, **nicht löschen** (`403
+   insufficientFilePermissions`) — zum Papierkorb `Google_Drive.trash_file` nutzen.
 
 4. **Verifizieren:** Nach jedem Upload prüfen, dass die zurückgegebene `size` der
    Quell-Dateigröße entspricht UND das Bild vollständig dekodiert (`PIL im.load()`). Bei

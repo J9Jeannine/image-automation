@@ -1,6 +1,5 @@
 {
   "_comment": "Datenquelle ist das bestehende 'Funnel Sheet' in Google Drive (nicht eine freie Meta-Ad-Library-Suche). Ad-Library-Links stehen als Zell-KOMMENTARE (inkl. Antworten) auf Spalte M, nicht als Zellwerte. Siehe docs/workflow.md Schritt 0-2 fuer den vollen Ablauf.",
-
   "sheet": {
     "id": "1SkD7jrC-othtbwTYyz1VCK1HPIkEKHxc_hSAvRp2iL8",
     "url": "https://docs.google.com/spreadsheets/d/1SkD7jrC-othtbwTYyz1VCK1HPIkEKHxc_hSAvRp2iL8/edit",
@@ -14,7 +13,15 @@
       "result_folder_link_column": "O",
       "status_column": "P",
       "status_value_after_run": "in progress",
-      "status_allowed_values": ["Comment Added", "Fixed", "Ready", "For proofreading", "in progress", "For checking", "in correction "],
+      "status_allowed_values": [
+        "Comment Added",
+        "Fixed",
+        "Ready",
+        "For proofreading",
+        "in progress",
+        "For checking",
+        "in correction "
+      ],
       "writeback_note": "Nach jedem erfolgreichen Lauf ZWINGEND vier Zellen zurueckschreiben (Details: docs/sheet-writeback-SOP.md, Kurzfassung: docs/workflow.md Schritt 8.2): L = Lauf-Datum (echtes Datum, Format d-m-yyyy, z.B. '4-8-2026' -- nach dem Schreiben pruefen dass der Rohwert eine ZAHL ist, sonst wurde es als Text gespeichert), N = 'claude' (klein), O = =HYPERLINK(\"<Drive-Ordner-URL>\";\"<product_name aus G>\") -- SEMIKOLON als Trenner, nicht Komma --, P = 'in progress' (klein). NIEMALS P auf 'Ready' setzen: ein Lauf liefert fast nie alle Ads einer Zeile, 'Ready' setzt der Mensch, der die fehlenden ergaenzt. Der Drive-MCP kann keine Zellen schreiben; dafuer die Sheets API mit demselben Service-Account nutzen (GOOGLE_SERVICE_ACCOUNT_JSON, zusaetzlicher Scope https://www.googleapis.com/auth/spreadsheets, values:batchUpdate mit valueInputOption=USER_ENTERED). Nur Zeilen schreiben, die im aktuellen Lauf wirklich Bilder produziert haben; blockierte Zeilen und Zeilen mit einer anderen Person in Spalte N nicht anfassen.",
       "note": "Spaltenbelegung verifiziert an BEIDEN Tabs (FRCA per Drive-Kommentar-API, FI per XLSX-Export/openpyxl, da das Drive-Tool nur den FRCA-Tab zurueckgab): D = 'Competitor URL / Content', G = 'new PR NAME' = unser Produktname, J = 'Bundle/deal offer' = Preisstufen (EUR fuer FI, CAD fuer FRCA), M = 'Competitor Ad Link/Drive Link' -- die eigentlichen Meta-Ad-Library-Links haengen als Kommentar-Thread an der M-Zelle, inkl. Antworten anderer Teammitglieder. FI-Tab bestaetigt strukturell identisch zu FRCA (getestet an Zeile 52: variclex -> vanix)."
     },
@@ -33,24 +40,20 @@
       }
     }
   },
-
   "product_image_source": {
     "mode": "competitor_funnel_photo_once_per_row",
     "note": "Das Produktbild wird EINMAL PRO ZEILE/PRODUKT erzeugt (nicht pro Ad!): das groesste Produktfoto von der Competitor-Funnel-Seite (Spalte D) wird per curl heruntergeladen (kein Playwright noetig -- siehe network_access.note) und per Higgsfield EINMAL umbenannt (Produktname -> Spalte G, Rest visuell identisch zum Competitor-Foto). Dieses eine Bild wird danach fuer ALLE Ads dieser Zeile wiederverwendet -- nur bei Ads, die tatsaechlich ein Produkt zeigen, und nur dort eingesetzt."
   },
-
   "network_access": {
     "facebook_ad_library_page_blocked": true,
     "facebook_cdn_scontent_reachable": true,
     "note": "In der Sandbox dieser Session ist www.facebook.com/ads/library/... (die Permalink-Seite selbst) durch die Netzwerk-Policy blockiert (403 vom Proxy, bestaetigt und nicht erneut zu versuchen). Das eigentliche Bild-/Video-CDN scontent.*.fbcdn.net ist dagegen normal per curl erreichbar -- getestet und bestaetigt (600x600 JPEG erfolgreich geladen). Der einzige fehlende Baustein ist also NICHT der Bilddownload selbst, sondern das Aufloesen des facebook.com/ads/library/?id=... Permalinks zur dahinterliegenden fbcdn.net-URL, da genau diese Aufloesung ein Laden der blockierten Permalink-Seite erfordern wuerde. Sobald eine direkte fbcdn.net-Bild-/Video-URL vorliegt (vom Nutzer zugeschickt, z.B. per Rechtsklick->Bildadresse kopieren im Browser), funktioniert der Rest der Pipeline normal per curl-Download. Competitor-Funnel-Domains (Spalte D) sind ebenfalls per curl erreichbar. Playwright/Chromium schlaegt in dieser Sandbox unabhaengig davon bei JEDER HTTPS-Seite mit ERR_CONNECTION_RESET fehl (Proxy-Inkompatibilitaet mit dem Browser-Prozess) -- Produktbilder und Ads werden daher ausschliesslich per curl geholt, nie per Screenshot. Falls ein Lauf einen Permalink nicht aufloesen kann, muss er den Nutzer um die direkte fbcdn.net-Bild-/Video-URL bitten, statt es stumm zu ueberspringen oder zu wiederholen."
   },
-
   "cadence": {
     "mode": "daily_check_new_comments_only",
     "cron": "0 5 * * *",
     "note": "Taeglich um 6:00 Uhr Lisbon-Zeit pruefen (Cron laeuft in UTC; 6:00 Lisbon = 05:00 UTC waehrend Sommerzeit/DST -- im Winter waere es 06:00 UTC, Cron passt sich NICHT automatisch an DST an, ggf. im Oktober/Maerz per update_trigger nachjustieren). Prueft, ob in Spalte M neue/unverarbeitete Kommentar-Threads existieren (FI ab Zeile 52, FRCA ab Zeile 33). Nur Zeilen mit neuem Kommentar-Inhalt (siehe State-Datei) werden verarbeitet -- kein Spam, wenn nichts Neues da ist."
   },
-
   "foundation_phase": {
     "mode": "translation_only",
     "note": "Optionen: 'translation_only' (nur Ad-Uebersetzung je Zeile, aktueller Default), 'combined' (zusaetzlich woechentliche 48+12-Konzept-Produktion aus Foundation-Dokumenten pro Produkt), 'foundation_once_then_weekly_json' (Foundation-Dokumente einmalig separat pflegen, danach kombiniert). Noch nicht gebraucht/bestaetigt -- bei Bedarf umstellen.",
@@ -59,21 +62,22 @@
       "top_performer_iterations": 12
     }
   },
-
   "drive": {
     "base_folder_id": "176EIFPlxj5hvsVJ8O_AaQSlIoL25IzJD",
     "base_folder_url": "https://drive.google.com/drive/folders/176EIFPlxj5hvsVJ8O_AaQSlIoL25IzJD",
     "base_folder_name": "image creation",
     "base_folder_id_typo_warning": "ACHTUNG: Die 6. Stelle ist ein GROSSES I (176E-I-FPl...), kein kleines l. Eine fruehere Version hatte hier faelschlich '176ElFPl...' (kleines l) -- damit gibt sowohl das User-Konto als auch der Service-Account '404 File not found' zurueck. Bei Copy/Paste-Fehlern immer den echten Ordner 'image creation' per Name/Suche verifizieren.",
     "translated_ads_folder_id": "1JWHztpl2Z6mE9WtcRTObRgwBRp1OsHCb",
-    "translated_ads_subfolders": { "FI": "1Ey4aVRrpzrzolETnzKVxVCZQGZjm0P5K", "FRCA": "1ZeW7nKHrCMNOBH6jIKZrzNYjJWXPvQDW" },
+    "translated_ads_subfolders": {
+      "FI": "1Ey4aVRrpzrzolETnzKVxVCZQGZjm0P5K",
+      "FRCA": "1ZeW7nKHrCMNOBH6jIKZrzNYjJWXPvQDW"
+    },
     "day_folder_name_pattern": "<Lauf-Datum YYYY-MM-DD> - <product_name aus Spalte G>",
     "day_folder_parent_pattern": "Translated-Ads/<market_code>/",
     "file_name_pattern": "<product_name>_<market_code>_ad<N>.jpg | <product_name>_<market_code>_produktbild.jpg | <product_name>_<market_code>_ad_copy.md",
     "day_folder_example": "Translated-Ads/FI/2026-07-25 - itzora/ enthaelt itzora_FI_ad1.jpg .. ad8.jpg, itzora_FI_produktbild.jpg, itzora_FI_ad_copy.md",
     "note": "Bestehende Unterordner State/, Funnel-PDFs/, QA-Reports/ gehoeren zu einer anderen Automatisierung (FI/FRCA Funnel-QA-Monitor) und werden nicht veraendert. Uebersetzte Ads pro Lauf kommen in einen Tages-/Produkt-Ordner unter Translated-Ads/<market_code>/ (Name: '<YYYY-MM-DD> - <product_name>'). Der Upload der Bild-Binaerdateien laeuft ZWINGEND ueber upload_method (siehe unten) -- niemals der Markdown-Links-Workaround."
   },
-
   "upload_method": {
     "mode": "placeholder_via_drive_mcp_then_service_account_files_update",
     "mandatory": true,
@@ -90,7 +94,6 @@
     "service_account_email": "image-automation-uploader@image-automation-502115.iam.gserviceaccount.com",
     "note": "Der Service-Account hat Editor-Zugriff auf den Translated-Ads-Baum (dort funktioniert files.update). Die separaten GOOGLE_OAUTH_*-User-Credentials sind fuer diesen Bild-Upload NICHT noetig; sie liefen zuletzt in 'invalid_grant' (Refresh-Token abgelaufen, weil der OAuth-Consent-Screen auf 'Testing' steht -> 7-Tage-Ablauf). Wer die OAuth-basierten Teile reparieren will: Consent-Screen auf 'In production' setzen und Token neu minten. Fuer den Bild-Upload aber irrelevant -- der Service-Account-Weg oben ist der kanonische."
   },
-
   "foundation_documents": {
     "research_doc_id": null,
     "avatar_sheet_id": null,
@@ -98,5 +101,26 @@
     "necessary_beliefs_id": null,
     "swipe_file_id": null,
     "note": "Optional, pro Produkt. Falls vorhanden, IDs/Links eintragen; werden als Kontext fuer die Foundation-Phase genutzt (siehe docs/skills/foundation-to-higgsfield.md). Aktuell nicht befuellt -- foundation_phase.mode steht auf 'translation_only', daher kein Blocker."
+  },
+  "rendering": {
+    "rules_doc": "docs/rendering-rules.md",
+    "model_for_ads_with_text": "nano_banana_pro",
+    "model_for_textfree_product_shots": "nano_banana",
+    "credits_per_image": {
+      "nano_banana": 1,
+      "nano_banana_pro": 2
+    },
+    "budget_rule": "Anzahl Ads x 2 Credits + 20% Puffer. nano_banana (1 Credit) NIE fuer Ads mit Text im Bild verwenden -- es produziert Buchstabensalat (belegt 2026-08-28 fuer Franzoesisch und Finnisch) und muss dann auf Pro wiederholt werden, kostet also 3 statt 2.",
+    "target_text_rule": "Das Modell darf NICHT uebersetzen. Zieltext pro Ad selbst ausformulieren und als woertlich zu setzenden String uebergeben ('copied character for character'), INKLUSIVE aller Akzente und Umlaute im String selbst -- 'render accents correctly' reicht nicht, das Modell setzt exakt was dasteht. Ein Uebersetzungs-Prompt liefert immer neutrales Standard-Franzoesisch statt Quebecois.",
+    "brand_name_rule": "Spalte G enthaelt oft einen internen Arbeitsnamen (z.B. 'dernaflex2'), nicht den Aufdruck fuer die Verpackung (z.B. 'Dermaflex'). Bei Abweichung VOR dem Batch beim Nutzer nachfragen.",
+    "tube_text": {
+      "FRCA": "CREME APAISANTE CONTRE L'INTERTRIGO",
+      "FI": "INTERTRIGO-VOIDE",
+      "seal": "SOIN MEDICAL"
+    },
+    "qc_before_upload": "Pflicht: jede Ad vor dem Upload ansehen -- Rechtschreibung vollstaendig, Akzente/Umlaute vorhanden, keine Fremdsprachreste, Markenname und Siegeltext korrekt, Seitenverhaeltnis wie Quell-Ad, bei produktfreien Quell-Ads kein Produkt eingefuegt.",
+    "rate_limit": "Max ~6 Requests gleichzeitig submitten. Ein 429 bedeutet NICHT, dass kein Bild entstanden ist -- eine parallele Session kann das Limit saettigen. Vor jeder Aussage ueber verlorene Credits show_generations pruefen und mit transactions abgleichen.",
+    "nsfw": "Auf nano_banana abgelehnte Quell-Ads erst auf nano_banana_pro erneut versuchen, bevor sie als blockiert gemeldet werden.",
+    "cleanup": "Fehlerhafte Ads ersetzen: bestehende Datei-ID mit neuen Bytes ueberschreiben (Links bleiben gueltig), ueberzaehlige Altdateien per Google_Drive.trash_file in den Papierkorb. Der Service-Account kann NICHT loeschen (403 insufficientFilePermissions)."
   }
 }
