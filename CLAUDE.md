@@ -32,7 +32,14 @@ Die drei Kernsätze:
 Zielvarianten:
 
 - **FRCA** = Québec-Französisch (wie in Québec geschrieben/gesprochen), **nicht**
-  Frankreich-Französisch. Anrede immer **tu**, nie *vous*.
+  Frankreich-Französisch. Anrede immer **tu**, nie *vous* — **aber `tu` allein ist KEIN
+  Nachweis.** Französische Werbung duzt genauso. Jede FRCA-Ad mit Fliesstext braucht
+  zusätzlich mindestens einen echten Québec-Marker aus `docs/language-rules.md` 4.1a
+  (`tanné de`, `comme du monde`, `pour vrai`, `pis`, `ben`, `là, c'est réglé`,
+  `en santé`, `prescription`, `bas support`, `argent remis`, weggelassenes `ne` …).
+  Prüffrage vor jedem Render: *Könnte dieser Text so in einer Frankreich-Anzeige stehen?*
+  Ja → durchgefallen. Diese Regel existiert, weil zweimal Ads durchgingen, die die
+  Verbotsliste bestanden und trotzdem reine Frankreich-Copy waren.
 - **FI** = natürliches Finnisch eines Muttersprachlers. Keine maschinell
   zusammengesetzten Komposita, keine erfundenen Wörter.
 

@@ -102,7 +102,71 @@ Ad-Copy (Primary Text / Headline im Anzeigentext), nicht ins Bild.
 Ziel: natürliches Québec-Französisch, wie es in kanadischer Einzelhandelswerbung
 geschrieben wird. **Nicht** Frankreich-Französisch, nicht "neutrales" Französisch.
 
-**Anrede: immer `tu`, nie `vous`.**
+#### 4.1.0 POSITIV-PFLICHT — die Verbotsliste allein reicht NICHT
+
+**Das ist der wichtigste Absatz dieses Abschnitts. Er wurde ergänzt, weil die Regel
+zweimal versagt hat.**
+
+Beobachteter Fehler (2026-08-29, VenoSmooth FRCA und FeliZen FRCA): Texte wie
+`Tes varices, enfin comprises.`, `La vraie cause de tes varices enfin expliquée` oder
+`Des varices sur tes jambes — enfin réglées.` bestehen die Verbotsliste unten
+**vollständig** — kein `SOLDES`, kein `vous`, korrekte Akzente — und sind trotzdem
+reine Frankreich-Copy. Die Ads wurden von der Nutzerin zweimal zurückgewiesen und
+mussten zweimal neu gerendert werden.
+
+Ursache: **`tu` ist kein Québec-Marker.** Französische Werbung duzt genauso. Wer nur
+`vous` → `tu` tauscht und die Verbotsliste abhakt, produziert neutrales Französisch und
+meldet es fälschlich als geprüft.
+
+Deshalb gilt zusätzlich und blockierend:
+
+> **Jede einzelne Ad mit sichtbarem Fliesstext muss mindestens EINEN Marker aus der
+> Liste 4.1a enthalten.** Eine Ad, die nur die Verbotsliste besteht, ist NICHT
+> freigegeben. Fehlt der Marker, ist der LOCKED STRING neu zu schreiben, bevor
+> gerendert wird.
+
+Ausgenommen sind nur Ads ohne Fliesstext (reine Produkt-/Vorher-Nachher-Fotos, reine
+Preis-Badges).
+
+#### 4.1a Marker-Liste — mindestens einer pro Ad, wörtlich belegt
+
+| Marker | Bedeutung / Einsatz | Frankreich sagt |
+|---|---|---|
+| `tanné de …` | es leid sein, genervt sein — starker Hook | fatigué de, lassé de |
+| `comme du monde` | anständig, richtig, ordentlich | correctement, comme il faut |
+| `pour vrai` | wirklich, echt | vraiment |
+| `pis` | und (gesprochen) | et |
+| `pis là` | und dann | et là |
+| `ben` | ganz, sehr (`ben simple`) | bien |
+| `là, c'est réglé` | jetzt ist es erledigt | c'est terminé, c'est fini |
+| `c'est quoi …` | was ist … (Frageform) | quelle est … |
+| weggelassenes `ne` | `se rendent pas` statt `ne se rendent pas` | volle Negation |
+| `pantoute` | überhaupt nicht | pas du tout |
+| `chicane` | Streit, Zoff | dispute |
+| `en santé` | gesund | en bonne santé |
+| `prescription` | Rezept | ordonnance |
+| `bas support` | Kompressionsstrümpfe | bas de contention |
+| `argent remis` | Geld-zurück | remboursement |
+| `prendre une marche` | spazieren gehen | aller marcher |
+| `magasiner` | einkaufen | faire du shopping |
+| `fin de semaine` | Wochenende | week-end |
+| `courriel` | E-Mail | e-mail |
+| `on s'excuse` | Entschuldigung | nous sommes désolés |
+| `aubaine` | Schnäppchen | bonne affaire, bon plan |
+| `pas de X, pas de Y` | statt `sans X, sans Y` | sans … sans … |
+
+Die Liste ist erweiterbar, aber nie leer anwendbar: **kein Marker = kein Freigabe.**
+
+#### 4.1b Prüffrage vor jedem Render
+
+Für jeden LOCKED STRING einer FRCA-Ad genau diese Frage beantworten und die Antwort in
+der `ad_copy.md` protokollieren:
+
+> *Könnte dieser Text unverändert in einer französischen Anzeige für Frankreich stehen?*
+
+**Ja → durchgefallen, neu schreiben.** Nur ein „Nein, wegen `<Marker>`" gilt als bestanden.
+
+**Anrede: immer `tu`, nie `vous`** — notwendig, aber allein **kein** Nachweis (siehe 4.1.0).
 
 | verboten (Frankreich / neutral) | erforderlich (Québec) |
 |---|---|
@@ -154,6 +218,11 @@ Für **jedes einzelne** Bild, nicht stichprobenartig:
 2. Jedes sichtbare Wort abtippen (Transkription) und gegen den LOCKED STRING
    diffen — Zeichen für Zeichen, inklusive Akzente und `ä`/`ö`.
 3. Zusätzlich gegen die Verbotsliste aus Abschnitt 4 prüfen.
+3a. **FRCA zusätzlich: Marker-Prüfung nach 4.1.0.** Enthält der transkribierte Text
+   mindestens einen Marker aus 4.1a? Wenn nein → Bild **nicht** hochladen, LOCKED STRING
+   neu schreiben. Den gefundenen Marker namentlich in der State-Datei notieren
+   (z. B. `ad7: Marker "là, c'est réglé" + weggelassenes ne`). Ein Häkchen ohne
+   genannten Marker gilt als nicht geprüft.
 4. Abweichung = Bild wird **nicht** hochgeladen. Neu generieren, dabei den LOCKED STRING
    kürzen (weniger Wörter, größere Schrift), bis der Render exakt passt.
 5. Die Transkription jedes hochgeladenen Bildes in der State-Datei protokollieren.
