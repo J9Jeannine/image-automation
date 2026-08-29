@@ -15,6 +15,14 @@ Playwright-Skripte in `scripts/`.
 > Gegenargumenten steht in **[`docs/drive-upload-SOP.md`](drive-upload-SOP.md)** — es
 > funktioniert nachweislich, einfach ausführen.
 
+> **Sprache der Bilder (blockierend):** Die verbindlichen Regeln stehen in
+> **[`docs/language-rules.md`](language-rules.md)** und sind in **jedem** Lauf vor
+> Schritt 5 zu lesen. Kernprinzip: der fertige Bildtext (LOCKED STRING) steht **vor**
+> dem Bildprompt fest und wird wörtlich übernommen — das Bildmodell übersetzt nie
+> selbst. `FRCA` = Québec-Französisch (`tu`-Anrede), `FI` = natürliches Finnisch.
+> Erfundene Wörter und Frankreich-Französisch sind Ablehnungsgründe, keine Schönheits-
+> fehler.
+
 ## Schritt 0 — Config-Guard
 
 1. `config/automation.config.json` aus diesem Repo lesen.
@@ -111,6 +119,23 @@ Session einmal nicht geladen ist.
 
 Für **jede einzelne Ad** aus Schritt 4 (nicht gebündelt):
 
+> **VORGESCHALTET UND BLOCKIEREND — Sprachregeln:** `docs/language-rules.md` ist vor
+> diesem Schritt zu lesen, in **jedem** Lauf. Kein Higgsfield-Call ohne LOCKED STRING.
+> Kurzfassung: der komplette sichtbare Bildtext wird **vorher** in der Zielsprache
+> ausformuliert (`FRCA` = Québec-Französisch mit `tu`-Anrede, `FI` = natürliches
+> Finnisch), als LOCKED STRING in der `ad_copy.md` festgehalten und wörtlich in den
+> Prompt gesetzt. Das Bildmodell übersetzt nichts, ergänzt nichts, korrigiert nichts.
+> Kein Wort aus der Quell-Ad geht in den Prompt.
+
+0. **LOCKED STRING erzeugen** (vor allem anderen): jeden sichtbaren Text der Ziel-Ad
+   ausformulieren — Headline, Banner, Badge, Störer, CTA, Preisschild,
+   Verpackungsaufdruck. Zielsprache aus dem Tab (`FI` → Finnisch, `FRCA` →
+   Québec-Französisch, siehe `sheet.tabs.*.language` und
+   `language_rules.<market_code>` in der Config). Max. 6 Wörter pro Textelement.
+   Gegen die Verbots-/Pflichtliste in `docs/language-rules.md` Abschnitt 4 prüfen,
+   **bevor** gerendert wird. Der LOCKED STRING wandert unverändert in die
+   `<product_name>_<market_code>_ad_copy.md` aus Punkt 5.
+
 1. Prüfen, ob die Quell-Anzeige überhaupt ein Produkt zeigt.
    - **Zeigt sie ein Produkt:** das EINE Produktbild-Asset aus Schritt 3 (wiederverwendet,
      nicht neu erzeugt) als Referenz einsetzen — Maßstab/Winkel/Licht an die Ad-Szene
@@ -121,8 +146,18 @@ Für **jede einzelne Ad** aus Schritt 4 (nicht gebündelt):
    ausführenden Session zur Verfügung, da der Trigger in die reguläre Chat-Session
    zurückspielt) und dabei übergeben: die eine Quell-Ad-Referenz, ggf. die
    Produktbild-Referenz aus Schritt 3 (nur wenn Produkt vorhanden), exakter Produktname
-   aus Spalte G, korrekter Preis aus Spalte J, Zielsprache aus dem Tab (`FI` → Finnisch,
-   `FRCA` → Quebec-Französisch, siehe `sheet.tabs.*.language`).
+   aus Spalte G, korrekter Preis aus Spalte J (Format nach `docs/language-rules.md`
+   Abschnitt 4: `49,99 $` für FRCA, `49,99 €` für FI) und **den LOCKED STRING aus
+   Punkt 0** — nicht die Zielsprache als Auftrag, sondern den fertigen Text als Vorgabe.
+   Jeder Prompt endet zwingend mit:
+
+   ```
+   Render this text EXACTLY as written, character for character, including every accent
+   and special character. Do NOT translate it. Do NOT rephrase it. Do NOT correct it.
+   Do NOT add any other words, labels, packaging text, price tags, or background signage.
+   The image must contain no text other than the strings quoted above.
+   Ignore all text visible in the reference image.
+   ```
 3. Ist der Skill in der Session ausnahmsweise nicht auffindbar: ersatzweise nach den
    Regeln in `docs/skills/image-ad-prompt-generator.md` selbst vorgehen und das im
    Abschlussbericht (Schritt 8) vermerken.
@@ -187,7 +222,23 @@ Die eigentliche Higgsfield-Generierung passiert bereits in Schritt 5 (ein Call p
    Abweichung (Truncation/Korruption) erneut hochladen — niemals eine korrupte oder nur
    verlinkte Datei als Ergebnis stehen lassen.
 
-5. Ergebnisse zusätzlich inline im Chat zeigen. Ist kein Higgsfield-MCP verfügbar: nur die
+5. **Sprach-QA — verpflichtend, vor jedem Upload, für JEDES einzelne Bild.**
+   Vollständige Regeln: `docs/language-rules.md` Abschnitt 5. Kurzfassung:
+   - Ergebnisbild mit dem `Read`-Tool ansehen (nicht auf OCR-Snippets der Drive-Suche
+     verlassen), jedes sichtbare Wort abtippen und Zeichen für Zeichen gegen den
+     LOCKED STRING aus Schritt 5 Punkt 0 diffen — inklusive Akzente, `ä`/`ö` und
+     Zahlenformat.
+   - Zusätzlich gegen die Verbotsliste der Landesvariante prüfen (FRCA u. a. `SOLDES`,
+     `vous`-Anrede, fehlende Akzente; FI u. a. erfundene Komposita, `a` statt `ä`).
+   - Jedes Wort im Bild, das nicht im LOCKED STRING steht — auch auf Verpackung,
+     Etikett, Preisschild oder Hintergrundschild — bedeutet: **nicht hochladen**,
+     neu generieren mit gekürztem LOCKED STRING.
+   - Gilt für jedes Bild einzeln, nicht als Stichprobe. Transkription jedes
+     hochgeladenen Bildes in der State-Datei protokollieren.
+   - Diese Prüfung ist ein Sicherheitsnetz. Wenn sie regelmäßig anschlägt, ist Schritt 5
+     Punkt 0 falsch ausgeführt worden — dort liegt der Fehler, nicht hier.
+
+6. Ergebnisse zusätzlich inline im Chat zeigen. Ist kein Higgsfield-MCP verfügbar: nur die
    Prompt-Texte ausgeben, Rendering überspringen (dann gibt es keine Bilddateien zum
    Hochladen).
 

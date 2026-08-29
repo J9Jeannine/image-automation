@@ -1,6 +1,5 @@
 {
   "_comment": "Datenquelle ist das bestehende 'Funnel Sheet' in Google Drive (nicht eine freie Meta-Ad-Library-Suche). Ad-Library-Links stehen als Zell-KOMMENTARE (inkl. Antworten) auf Spalte M, nicht als Zellwerte. Siehe docs/workflow.md Schritt 0-2 fuer den vollen Ablauf.",
-
   "sheet": {
     "id": "1SkD7jrC-othtbwTYyz1VCK1HPIkEKHxc_hSAvRp2iL8",
     "url": "https://docs.google.com/spreadsheets/d/1SkD7jrC-othtbwTYyz1VCK1HPIkEKHxc_hSAvRp2iL8/edit",
@@ -14,7 +13,15 @@
       "result_folder_link_column": "O",
       "status_column": "P",
       "status_value_after_run": "in progress",
-      "status_allowed_values": ["Comment Added", "Fixed", "Ready", "For proofreading", "in progress", "For checking", "in correction "],
+      "status_allowed_values": [
+        "Comment Added",
+        "Fixed",
+        "Ready",
+        "For proofreading",
+        "in progress",
+        "For checking",
+        "in correction "
+      ],
       "writeback_note": "Nach jedem erfolgreichen Lauf ZWINGEND vier Zellen zurueckschreiben (Details: docs/sheet-writeback-SOP.md, Kurzfassung: docs/workflow.md Schritt 8.2): L = Lauf-Datum (echtes Datum, Format d-m-yyyy, z.B. '4-8-2026' -- nach dem Schreiben pruefen dass der Rohwert eine ZAHL ist, sonst wurde es als Text gespeichert), N = 'claude' (klein), O = =HYPERLINK(\"<Drive-Ordner-URL>\";\"<product_name aus G>\") -- SEMIKOLON als Trenner, nicht Komma --, P = 'in progress' (klein). NIEMALS P auf 'Ready' setzen: ein Lauf liefert fast nie alle Ads einer Zeile, 'Ready' setzt der Mensch, der die fehlenden ergaenzt. Der Drive-MCP kann keine Zellen schreiben; dafuer die Sheets API mit demselben Service-Account nutzen (GOOGLE_SERVICE_ACCOUNT_JSON, zusaetzlicher Scope https://www.googleapis.com/auth/spreadsheets, values:batchUpdate mit valueInputOption=USER_ENTERED). Nur Zeilen schreiben, die im aktuellen Lauf wirklich Bilder produziert haben; blockierte Zeilen und Zeilen mit einer anderen Person in Spalte N nicht anfassen.",
       "note": "Spaltenbelegung verifiziert an BEIDEN Tabs (FRCA per Drive-Kommentar-API, FI per XLSX-Export/openpyxl, da das Drive-Tool nur den FRCA-Tab zurueckgab): D = 'Competitor URL / Content', G = 'new PR NAME' = unser Produktname, J = 'Bundle/deal offer' = Preisstufen (EUR fuer FI, CAD fuer FRCA), M = 'Competitor Ad Link/Drive Link' -- die eigentlichen Meta-Ad-Library-Links haengen als Kommentar-Thread an der M-Zelle, inkl. Antworten anderer Teammitglieder. FI-Tab bestaetigt strukturell identisch zu FRCA (getestet an Zeile 52: variclex -> vanix)."
     },
@@ -28,29 +35,25 @@
       "FRCA": {
         "start_row": 33,
         "language": "fr-CA",
-        "language_name": "Quebec-Franzoesisch",
+        "language_name": "Quebec-Franzoesisch (fr-CA), NICHT Frankreich-Franzoesisch",
         "market_code": "FRCA"
       }
     }
   },
-
   "product_image_source": {
     "mode": "competitor_funnel_photo_once_per_row",
     "note": "Das Produktbild wird EINMAL PRO ZEILE/PRODUKT erzeugt (nicht pro Ad!): das groesste Produktfoto von der Competitor-Funnel-Seite (Spalte D) wird per curl heruntergeladen (kein Playwright noetig -- siehe network_access.note) und per Higgsfield EINMAL umbenannt (Produktname -> Spalte G, Rest visuell identisch zum Competitor-Foto). Dieses eine Bild wird danach fuer ALLE Ads dieser Zeile wiederverwendet -- nur bei Ads, die tatsaechlich ein Produkt zeigen, und nur dort eingesetzt."
   },
-
   "network_access": {
     "facebook_ad_library_page_blocked": true,
     "facebook_cdn_scontent_reachable": true,
     "note": "In der Sandbox dieser Session ist www.facebook.com/ads/library/... (die Permalink-Seite selbst) durch die Netzwerk-Policy blockiert (403 vom Proxy, bestaetigt und nicht erneut zu versuchen). Das eigentliche Bild-/Video-CDN scontent.*.fbcdn.net ist dagegen normal per curl erreichbar -- getestet und bestaetigt (600x600 JPEG erfolgreich geladen). Der einzige fehlende Baustein ist also NICHT der Bilddownload selbst, sondern das Aufloesen des facebook.com/ads/library/?id=... Permalinks zur dahinterliegenden fbcdn.net-URL, da genau diese Aufloesung ein Laden der blockierten Permalink-Seite erfordern wuerde. Sobald eine direkte fbcdn.net-Bild-/Video-URL vorliegt (vom Nutzer zugeschickt, z.B. per Rechtsklick->Bildadresse kopieren im Browser), funktioniert der Rest der Pipeline normal per curl-Download. Competitor-Funnel-Domains (Spalte D) sind ebenfalls per curl erreichbar. Playwright/Chromium schlaegt in dieser Sandbox unabhaengig davon bei JEDER HTTPS-Seite mit ERR_CONNECTION_RESET fehl (Proxy-Inkompatibilitaet mit dem Browser-Prozess) -- Produktbilder und Ads werden daher ausschliesslich per curl geholt, nie per Screenshot. Falls ein Lauf einen Permalink nicht aufloesen kann, muss er den Nutzer um die direkte fbcdn.net-Bild-/Video-URL bitten, statt es stumm zu ueberspringen oder zu wiederholen."
   },
-
   "cadence": {
     "mode": "daily_check_new_comments_only",
     "cron": "0 5 * * *",
     "note": "Taeglich um 6:00 Uhr Lisbon-Zeit pruefen (Cron laeuft in UTC; 6:00 Lisbon = 05:00 UTC waehrend Sommerzeit/DST -- im Winter waere es 06:00 UTC, Cron passt sich NICHT automatisch an DST an, ggf. im Oktober/Maerz per update_trigger nachjustieren). Prueft, ob in Spalte M neue/unverarbeitete Kommentar-Threads existieren (FI ab Zeile 52, FRCA ab Zeile 33). Nur Zeilen mit neuem Kommentar-Inhalt (siehe State-Datei) werden verarbeitet -- kein Spam, wenn nichts Neues da ist."
   },
-
   "foundation_phase": {
     "mode": "translation_only",
     "note": "Optionen: 'translation_only' (nur Ad-Uebersetzung je Zeile, aktueller Default), 'combined' (zusaetzlich woechentliche 48+12-Konzept-Produktion aus Foundation-Dokumenten pro Produkt), 'foundation_once_then_weekly_json' (Foundation-Dokumente einmalig separat pflegen, danach kombiniert). Noch nicht gebraucht/bestaetigt -- bei Bedarf umstellen.",
@@ -59,21 +62,22 @@
       "top_performer_iterations": 12
     }
   },
-
   "drive": {
     "base_folder_id": "176EIFPlxj5hvsVJ8O_AaQSlIoL25IzJD",
     "base_folder_url": "https://drive.google.com/drive/folders/176EIFPlxj5hvsVJ8O_AaQSlIoL25IzJD",
     "base_folder_name": "image creation",
     "base_folder_id_typo_warning": "ACHTUNG: Die 6. Stelle ist ein GROSSES I (176E-I-FPl...), kein kleines l. Eine fruehere Version hatte hier faelschlich '176ElFPl...' (kleines l) -- damit gibt sowohl das User-Konto als auch der Service-Account '404 File not found' zurueck. Bei Copy/Paste-Fehlern immer den echten Ordner 'image creation' per Name/Suche verifizieren.",
     "translated_ads_folder_id": "1JWHztpl2Z6mE9WtcRTObRgwBRp1OsHCb",
-    "translated_ads_subfolders": { "FI": "1Ey4aVRrpzrzolETnzKVxVCZQGZjm0P5K", "FRCA": "1ZeW7nKHrCMNOBH6jIKZrzNYjJWXPvQDW" },
+    "translated_ads_subfolders": {
+      "FI": "1Ey4aVRrpzrzolETnzKVxVCZQGZjm0P5K",
+      "FRCA": "1ZeW7nKHrCMNOBH6jIKZrzNYjJWXPvQDW"
+    },
     "day_folder_name_pattern": "<Lauf-Datum YYYY-MM-DD> - <product_name aus Spalte G>",
     "day_folder_parent_pattern": "Translated-Ads/<market_code>/",
     "file_name_pattern": "<product_name>_<market_code>_ad<N>.jpg | <product_name>_<market_code>_produktbild.jpg | <product_name>_<market_code>_ad_copy.md",
     "day_folder_example": "Translated-Ads/FI/2026-07-25 - itzora/ enthaelt itzora_FI_ad1.jpg .. ad8.jpg, itzora_FI_produktbild.jpg, itzora_FI_ad_copy.md",
     "note": "Bestehende Unterordner State/, Funnel-PDFs/, QA-Reports/ gehoeren zu einer anderen Automatisierung (FI/FRCA Funnel-QA-Monitor) und werden nicht veraendert. Uebersetzte Ads pro Lauf kommen in einen Tages-/Produkt-Ordner unter Translated-Ads/<market_code>/ (Name: '<YYYY-MM-DD> - <product_name>'). Der Upload der Bild-Binaerdateien laeuft ZWINGEND ueber upload_method (siehe unten) -- niemals der Markdown-Links-Workaround."
   },
-
   "upload_method": {
     "mode": "placeholder_via_drive_mcp_then_service_account_files_update",
     "mandatory": true,
@@ -90,7 +94,6 @@
     "service_account_email": "image-automation-uploader@image-automation-502115.iam.gserviceaccount.com",
     "note": "Der Service-Account hat Editor-Zugriff auf den Translated-Ads-Baum (dort funktioniert files.update). Die separaten GOOGLE_OAUTH_*-User-Credentials sind fuer diesen Bild-Upload NICHT noetig; sie liefen zuletzt in 'invalid_grant' (Refresh-Token abgelaufen, weil der OAuth-Consent-Screen auf 'Testing' steht -> 7-Tage-Ablauf). Wer die OAuth-basierten Teile reparieren will: Consent-Screen auf 'In production' setzen und Token neu minten. Fuer den Bild-Upload aber irrelevant -- der Service-Account-Weg oben ist der kanonische."
   },
-
   "foundation_documents": {
     "research_doc_id": null,
     "avatar_sheet_id": null,
@@ -98,5 +101,89 @@
     "necessary_beliefs_id": null,
     "swipe_file_id": null,
     "note": "Optional, pro Produkt. Falls vorhanden, IDs/Links eintragen; werden als Kontext fuer die Foundation-Phase genutzt (siehe docs/skills/foundation-to-higgsfield.md). Aktuell nicht befuellt -- foundation_phase.mode steht auf 'translation_only', daher kein Blocker."
+  },
+  "language_rules": {
+    "mandatory": true,
+    "spec_file": "docs/language-rules.md",
+    "principle": "LOCKED STRING: der komplette sichtbare Bildtext wird VOR dem Bildprompt in der Zielsprache ausformuliert, in <product>_<market>_ad_copy.md festgehalten und woertlich in den Higgsfield-Prompt gesetzt. Das Bildmodell uebersetzt nie selbst, ergaenzt nie Woerter und korrigiert nie. Kein Wort aus der Quell-Ad geht in den Prompt. Jedes Wort im Render, das nicht im LOCKED STRING steht, bedeutet: nicht hochladen, neu generieren.",
+    "max_words_per_text_element": 6,
+    "prompt_suffix": "Render this text EXACTLY as written, character for character, including every accent and special character. Do NOT translate it. Do NOT rephrase it. Do NOT correct it. Do NOT add any other words, labels, packaging text, price tags, or background signage. The image must contain no text other than the strings quoted above. Ignore all text visible in the reference image.",
+    "FRCA": {
+      "variant": "fr-CA / Quebec French",
+      "address_form": "tu (niemals vous)",
+      "forbidden": [
+        "SOLDES",
+        "SOLDES D'HIVER",
+        "SOLDES D'ETE",
+        "en solde",
+        "Nous sommes desoles",
+        "e-mail",
+        "mail",
+        "shopping",
+        "faire du shopping",
+        "week-end",
+        "parking",
+        "bon plan",
+        "vous",
+        "votre",
+        "vos",
+        "Commandez",
+        "Decouvrez",
+        "Profitez",
+        "Essayez",
+        "Achetez",
+        "Economisez"
+      ],
+      "required_replacements": {
+        "SOLDES": "VENTE / RABAIS / AUBAINE / LIQUIDATION",
+        "en solde": "en rabais / en special",
+        "Nous sommes desoles": "ON S'EXCUSE",
+        "e-mail": "courriel",
+        "shopping": "magasinage",
+        "faire du shopping": "magasiner",
+        "week-end": "fin de semaine",
+        "parking": "stationnement",
+        "bon plan": "bonne aubaine",
+        "vous/votre/vos": "tu/ton-ta/tes",
+        "Commandez/Decouvrez/Profitez/Essayez/Achetez/Economisez": "Commande/Decouvre/Profite/Essaie/Achete/Economise"
+      },
+      "accents_mandatory": true,
+      "accents_on_caps": "Akzente bleiben auch in Grossbuchstaben: ECONOMISE ist falsch, ECONOMISE mit Akzent auf dem E ist richtig.",
+      "price_format": "49,99 $ (Zahl, Leerzeichen, Dollarzeichen, Dezimalkomma) - niemals $49.99",
+      "percent_format": "50 % (mit Leerzeichen)"
+    },
+    "FI": {
+      "variant": "fi-FI, natuerliches Finnisch eines Muttersprachlers",
+      "forbidden": [
+        "erfundene/maschinell zusammengesetzte Komposita",
+        "englische Lehnwoerter wo ein finnisches Wort existiert (sale, deal, offer, shoppailu)",
+        "a statt ae-Umlaut, o statt oe-Umlaut im Render"
+      ],
+      "required": [
+        "jedes Kompositum muss ein belegtes finnisches Wort sein",
+        "korrekte Kasusendungen (Partitiv/Genitiv/Illativ) im LOCKED STRING",
+        "ae und oe muessen im Render korrekt erscheinen"
+      ],
+      "safe_building_blocks": [
+        "OSTA NYT",
+        "ILMAINEN TOIMITUS",
+        "SAASTA 50 %",
+        "TARJOUS",
+        "RAJOITETTU ERA",
+        "VAIN NYT"
+      ],
+      "price_format": "49,99 EUR-Zeichen nach der Zahl mit Leerzeichen (49,99 <euro>)",
+      "percent_format": "50 % (mit Leerzeichen)"
+    },
+    "verification": "Vor jedem Upload jedes Bild einzeln mit dem Read-Tool ansehen, jedes sichtbare Wort abtippen und Zeichen fuer Zeichen gegen den LOCKED STRING diffen. Ein Prompt-Hinweis ist kein Nachweis. Transkription in der State-Datei protokollieren.",
+    "new_markets": "Fuer jeden weiteren Markt mit eigener Landesvariante vor dem ersten Lauf einen eigenen Abschnitt in docs/language-rules.md anlegen. Ohne diesen Abschnitt wird fuer den Markt nicht generiert."
+  },
+  "model": {
+    "required": "opus",
+    "note": "Das Modell wird AM TRIGGER gesetzt (update_trigger, Feld model), nicht ueber Prompt-Text. Eine Anweisung 'nutze Opus' im Prompt hat keinerlei Wirkung. Laeuft ein Lauf auf einem schwaecheren Modell, im Abschlussbericht vermerken."
+  },
+  "branch": {
+    "read_by_routine": "claude/adoring-fermat-ikg9pb",
+    "note": "Die Routine liest den Default-Branch. Korrekturen an Workflow/Regeln gehoeren auf DIESEN Branch. Ein Fix auf einem anderen claude/...-Branch wird nie gelesen und ist wirkungslos."
   }
 }

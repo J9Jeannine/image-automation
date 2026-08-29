@@ -1,3 +1,12 @@
+**ZUERST LESEN — nicht überspringen:** `CLAUDE.md` und `docs/language-rules.md` aus
+diesem Repo. Die Sprachregeln sind blockierend: der komplette sichtbare Bildtext wird
+**vor** dem Bildprompt in der Zielsprache ausformuliert (LOCKED STRING) und wörtlich in
+den Higgsfield-Prompt gesetzt — das Bildmodell übersetzt nie selbst. `FRCA` =
+Québec-Französisch mit `tu`-Anrede (nie Frankreich-Französisch, nie `SOLDES`), `FI` =
+natürliches Finnisch ohne erfundene Komposita. Kein Wort aus der Quell-Ad geht in den
+Prompt. Jedes Wort im Render, das nicht im LOCKED STRING steht, bedeutet: nicht
+hochladen, neu generieren.
+
 Führe den image-automation Workflow aus dem Repo `j9jeannine/image-automation`, Branch
 `claude/adoring-fermat-ikg9pb`, aus.
 
@@ -13,7 +22,9 @@ Führe den image-automation Workflow aus dem Repo `j9jeannine/image-automation`,
 4. **Pro Zeile genau EIN Produktbild erzeugen** (Schritt 3): Competitor-Foto aus Spalte D
    per curl holen, per Higgsfield einmalig auf den Produktnamen aus Spalte G umbenennen.
    Dieses eine Bild für ALLE Ads dieser Zeile wiederverwenden — nie pro Ad neu erzeugen.
-5. Für jede Ad aus dem M-Kommentar-Thread (Schritt 4/5): erst versuchen zu öffnen. Ist
+5. Für jede Ad aus dem M-Kommentar-Thread (Schritt 4/5): **zuerst den LOCKED STRING
+   nach `docs/language-rules.md` schreiben** (fertiger Zieltext, max. 6 Wörter pro
+   Textelement, gegen die Verbotsliste geprüft), dann erst rendern. Ad erst versuchen zu öffnen. Ist
    `facebook.com` blockiert (bekannte Einschränkung dieser Sandbox, siehe
    `network_access` in der Config) — **den Nutzer nach den direkten
    Bild-/Video-URLs fragen**, nicht stumm überspringen oder mehrfach versuchen. Dann:
@@ -25,7 +36,12 @@ Führe den image-automation Workflow aus dem Repo `j9jeannine/image-automation`,
    Varianten/Iterationen/New Concepts. Nur falls `foundation_phase.mode !=
    translation_only` zusätzlich `docs/skills/foundation-to-higgsfield.md` für die
    separate Foundation-Phase anwenden.
-6. **Bild-Upload nach Drive ist verpflichtend (Schritt 7):** die gerenderten Higgsfield-Bilder
+6. **Sprach-QA vor dem Upload (Schritt 7.5):** jedes Bild einzeln mit dem `Read`-Tool
+   ansehen, jedes sichtbare Wort abtippen und Zeichen für Zeichen gegen den LOCKED
+   STRING diffen (inkl. Akzente, `ä`/`ö`, Zahlenformat `49,99 $` / `49,99 €`).
+   Abweichung = nicht hochladen, neu generieren. Ein Prompt-Hinweis ist kein Nachweis.
+
+7. **Bild-Upload nach Drive ist verpflichtend (Schritt 7):** die gerenderten Higgsfield-Bilder
    per curl auf die Disk laden und als **echte JPG-Dateien** in Drive ablegen — Ordner
    `Translated-Ads/<market_code>/<Lauf-Datum YYYY-MM-DD> - <product_name>/` (Produktname MUSS
    im Ordnernamen stehen), Dateien `<product_name>_<market_code>_ad<N>.jpg`. Upload-Methode
