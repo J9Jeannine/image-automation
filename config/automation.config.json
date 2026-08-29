@@ -182,10 +182,33 @@
   },
   "model": {
     "required": "opus",
-    "note": "Das Modell wird AM TRIGGER gesetzt (update_trigger, Feld model), nicht ueber Prompt-Text. Eine Anweisung 'nutze Opus' im Prompt hat keinerlei Wirkung. Laeuft ein Lauf auf einem schwaecheren Modell, im Abschlussbericht vermerken."
+    "note": "Das Modell wird AM TRIGGER gesetzt (update_trigger, Feld model), nicht ueber Prompt-Text. Eine Anweisung 'nutze Opus' im Prompt hat keinerlei Wirkung. Laeuft ein Lauf auf einem schwaecheren Modell, im Abschlussbericht vermerken. ACHTUNG: das ist das Claude/Reasoning-Modell dieser Routine, NICHT das Higgsfield-Bildmodell - siehe getrennt dafuer 'image_model' unten.",
+    "distinct_from": "image_model"
+  },
+  "image_model": {
+    "required": "nano_banana_pro",
+    "param_name": "model",
+    "used_in": ["Schritt 3 (Produktbild)", "Schritt 5 (Ad-Generierung)"],
+    "rule": "JEDER Higgsfield.generate_image-Call (Produktbild UND jede einzelne Ad) uebergibt den Parameter model direkt und ausschliesslich als nano_banana_pro. KEIN Ausprobieren mit einem anderen/Default-Modell zuerst und Wechsel erst bei Fehlschlag oder schlechtem Ergebnis - das verbrennt Credits fuer verworfene Zwischenversuche. Schlaegt die Generierung mit nano_banana_pro fehl (z.B. Content-Policy, Timeout), im Abschlussbericht vermerken statt stillschweigend ein anderes Modell zu probieren.",
+    "why": "Mehrfache Versuche mit wechselnden Modellen (erst Standard, dann bei Misserfolg 'Banana Pro') haben in der Vergangenheit Credits fuer verworfene Zwischenergebnisse verbrannt, obwohl das Zielmodell von Anfang an feststand."
   },
   "branch": {
     "read_by_routine": "claude/adoring-fermat-ikg9pb",
     "note": "Die Routine liest den Default-Branch. Korrekturen an Workflow/Regeln gehoeren auf DIESEN Branch. Ein Fix auf einem anderen claude/...-Branch wird nie gelesen und ist wirkungslos."
+  },
+  "concurrency_lock": {
+    "mandatory": true,
+    "why": "Am 2026-08-28 liefen zwei Sessions parallel auf derselben Zeile (Dermaflex FI) - Ordner 'Dermaflex' und 'dernaflex2' gleichzeitig angelegt, 12 Bilder komplett doppelt generiert und wieder verworfen. Reine Credit-Verschwendung (~24+ Credits fuer nichts).",
+    "lock_file_path": "<Projektordner>/<market_code>/State/row_locks.json",
+    "lock_key_format": "<market_code>!<Zeilennummer>, z.B. FRCA!56",
+    "ttl_minutes": 30,
+    "rule": "Vor jeder Generierung fuer eine Zeile: Lock lesen. Juenger als ttl_minutes vorhanden -> Zeile in diesem Lauf ueberspringen, im Bericht vermerken. Sonst Lock mit aktuellem Zeitstempel schreiben, nach Abschluss der Zeile wieder entfernen. Siehe docs/workflow.md Schritt 2a."
+  },
+  "resume_missing_only": {
+    "mandatory": true,
+    "why": "Bricht ein Lauf mitten in einer Zeile ab (Credits alle, Session-Absturz, Fehler), soll der naechste Lauf NICHT die komplette Zeile neu generieren - das verbrennt Credits fuer bereits fertige, korrekte Bilder ein zweites Mal. Nur das Fehlende oder als falsch markierte wird nachgeholt.",
+    "flag_file_path": "<Projektordner>/<market_code>/State/flagged_for_regeneration.json",
+    "flag_key_format": "<market_code>!<Zeilennummer>!ad<N>, z.B. FRCA!56!ad8",
+    "rule": "Vor jeder Ad-Generierung (Schritt 5) und vor der Produktbild-Generierung (Schritt 3): Zielordner in Drive auflisten. Existiert <product_name>_<market_code>_ad<N>.jpg (bzw. _produktbild.jpg) bereits UND steht der zugehoerige Key nicht in flagged_for_regeneration.json -> NICHT neu generieren, vorhandene Datei stehen lassen und fuer Schritt 8 als bereits erledigt zaehlen. Fehlt die Datei ODER steht der Key in flagged_for_regeneration.json -> generieren (bzw. neu generieren), danach den Key aus flagged_for_regeneration.json entfernen. Faellt die Sprach-QA (Schritt 7.5) bei einem Bild durch -> Key in flagged_for_regeneration.json EINTRAGEN statt nur im Bericht zu vermerken, damit ein spaeterer Lauf genau dieses eine Bild nachholt. Siehe docs/workflow.md Schritt 2b."
   }
 }

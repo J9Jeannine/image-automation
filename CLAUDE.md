@@ -39,21 +39,45 @@ Zielvarianten:
 **Ein Prompt-Hinweis allein ist kein Nachweis.** Erst der geprüfte Render zählt
 (`docs/language-rules.md`, Abschnitt 5).
 
-## 2. Modell
+## 2. Modelle — ZWEI verschiedene, beide fest verankert
 
-Diese Automatisierung läuft auf **Opus**. Das Modell wird am Trigger gesetzt
-(`update_trigger`, Feld `model`), **nicht** über Prompt-Text — eine Anweisung wie
-"nutze Opus" im Prompt hat keinerlei Wirkung. Wird ein Lauf auf einem schwächeren
-Modell gestartet, im Abschlussbericht ausdrücklich vermerken.
+Nicht verwechseln, beide sind Pflicht:
 
-## 3. Branch
+- **Claude-Modell dieser Routine: Opus.** Wird am Trigger gesetzt (`update_trigger`,
+  Feld `model`), **nicht** über Prompt-Text — eine Anweisung wie "nutze Opus" im Prompt
+  hat keinerlei Wirkung. Wird ein Lauf auf einem schwächeren Modell gestartet, im
+  Abschlussbericht ausdrücklich vermerken.
+- **Higgsfield-Bildmodell: `nano_banana_pro`.** Wird bei **jedem** `generate_image`-Call
+  (Produktbild in Schritt 3 UND jede einzelne Ad in Schritt 5) direkt als Parameter
+  `model: nano_banana_pro` übergeben. **Kein Ausprobieren mit einem Standard-/anderen
+  Modell zuerst und Wechsel erst bei Fehlschlag** — das hat in der Vergangenheit Credits
+  für verworfene Zwischenversuche verbrannt. Siehe `config/automation.config.json` →
+  `image_model`.
+
+## 3. Nebenläufigkeit
+
+Zwei gleichzeitig laufende Sessions dürfen nie dieselbe Sheet-Zeile bearbeiten — das hat
+bereits einmal einen kompletten doppelten Bildersatz erzeugt und Credits verschwendet.
+Jede Session sperrt eine Zeile vor der Generierung über
+`State/row_locks.json` (30-Minuten-TTL) und gibt sie danach wieder frei. Siehe
+`docs/workflow.md` Schritt 2a. Verpflichtend, kein Sonderfall.
+
+## 3a. Resume — nach Abbruch nur Fehlendes nachholen
+
+Bricht ein Lauf mitten in einer Zeile ab (Credits alle, Absturz, Fehler), generiert der
+nächste Lauf **nicht** die ganze Zeile neu, sondern nur die Ad-Bilder, die im
+Zielordner noch fehlen oder in `State/flagged_for_regeneration.json` als falsch markiert
+sind. Bereits vorhandene, nicht markierte Bilder bleiben unangetastet. Siehe
+`docs/workflow.md` Schritt 2b. Verpflichtend, kein Sonderfall.
+
+## 4. Branch
 
 Die Routine liest **`claude/adoring-fermat-ikg9pb`** (Default-Branch), siehe
 `automation/trigger-prompt.md`. Korrekturen an Workflow/Regeln gehören auf **diesen**
 Branch. Ein Fix auf einem anderen `claude/...`-Branch wird von der Routine nie gelesen
 und ist wirkungslos.
 
-## 4. Einzige Quelle der Wahrheit
+## 5. Einzige Quelle der Wahrheit
 
 - Ablauf: `docs/workflow.md`
 - Sprache: `docs/language-rules.md`

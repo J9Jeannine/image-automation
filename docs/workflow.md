@@ -55,6 +55,52 @@ Datenquelle ist **kein** freies Ad-Library-Suchergebnis, sondern das bestehende
    (Head-Post + alle Reply-Inhalte) speichern. Nur Zeilen mit einem **neuen oder
    geänderten** Fingerprint gegenüber dem letzten Lauf weiterverarbeiten. Ist nichts neu:
    Lauf beenden, keine weiteren Schritte, keine Chat-Nachricht nötig (kein Spam).
+2a. **Zeilen-Sperre — verpflichtend, bevor irgendetwas für eine Zeile generiert wird.**
+   Grund: zwei gleichzeitig laufende Sessions (z. B. der tägliche 6-Uhr-Trigger und ein
+   manueller "Jetzt ausführen"-Lauf) haben bereits einmal dieselbe Zeile parallel
+   bearbeitet — Ergebnis: ein kompletter doppelter Bildersatz (12 Bilder), der danach
+   wieder überschrieben/gelöscht wurde. Reine Higgsfield-Credits verbrannt, für nichts.
+   Dagegen:
+   - `<Projektordner>/<market_code>/State/row_locks.json` lesen (existiert die Datei
+     nicht, als `{}` behandeln). Schlüssel: `<market_code>!<Zeilennummer>`
+     (z. B. `FRCA!56`).
+   - Existiert für diese Zeile ein Eintrag **und** ist dessen `locked_at` jünger als
+     **30 Minuten**: diese Zeile in diesem Lauf **überspringen**, nichts generieren,
+     im Abschlussbericht (Schritt 8) vermerken ("Zeile X übersprungen — durch andere
+     Session gesperrt seit HH:MM").
+   - Sonst (kein Eintrag, oder Eintrag älter als 30 Minuten = vermutlich abgestürzte/
+     hängengebliebene Session): Eintrag mit aktuellem Zeitstempel und Session-Kennung
+     schreiben, dann erst mit Schritt 3 für diese Zeile fortfahren.
+   - Nach Abschluss dieser Zeile (egal ob erfolgreich, übersprungen wegen Blockierung,
+     oder fehlgeschlagen) den Lock-Eintrag für diese Zeile wieder **entfernen**.
+   - Diese Sperre ist pro Zeile, nicht global — andere Zeilen im selben Lauf sind davon
+     unberührt.
+
+2b. **Resume — nur Fehlendes oder als falsch Markiertes generieren, niemals die ganze
+   Zeile neu.** Grund: bricht ein Lauf mitten in einer Zeile ab (Credits alle,
+   Absturz, Fehler), soll der nächste Lauf nicht bereits fertige, korrekte Bilder ein
+   zweites Mal erzeugen — das verbrennt Credits ohne Nutzen. Vor **jeder** Generierung
+   (Schritt 3 Produktbild UND jede einzelne Ad in Schritt 5):
+   - Zielordner `Translated-Ads/<market_code>/<Lauf-Datum> - <product_name>/` in Drive
+     auflisten (existiert er noch nicht, gilt als leer).
+   - `<Projektordner>/<market_code>/State/flagged_for_regeneration.json` lesen
+     (existiert die Datei nicht, als `{}` behandeln). Schlüssel:
+     `<market_code>!<Zeilennummer>!ad<N>` (Produktbild: `...!produktbild`).
+   - Existiert `<product_name>_<market_code>_ad<N>.jpg` (bzw. `_produktbild.jpg`)
+     bereits im Zielordner **und** ihr Schlüssel steht **nicht** in
+     `flagged_for_regeneration.json`: **nicht neu generieren.** Datei unangetastet
+     lassen, für Schritt 8 als bereits erledigt zählen.
+   - Fehlt die Datei **oder** ihr Schlüssel steht in `flagged_for_regeneration.json`:
+     generieren (bzw. neu generieren). Nach erfolgreichem Upload und bestandener
+     Sprach-QA (Schritt 7.5) den Schlüssel aus `flagged_for_regeneration.json`
+     entfernen.
+   - Erzeugt eine Ad-QA (Schritt 7.5) einen Treffer (falscher Text): den Schlüssel
+     dieses Bildes in `flagged_for_regeneration.json` **eintragen**, statt es nur im
+     Abschlussbericht zu vermerken — sonst weiß ein späterer Lauf nicht, dass genau
+     dieses eine Bild nachgeholt werden muss.
+   - Das gilt unabhängig von Schritt 2a: eine durch Zeilen-Sperre übersprungene Zeile
+     wird beim nächsten Lauf ganz normal nach dieser Resume-Logik behandelt (nicht
+     alles neu, nur was fehlt).
 3. Pro zu verarbeitender Zeile zusätzlich lesen:
    - Spalte `sheet.columns.competitor_url` (D) — Competitor-Funnel-/Artikel-Link.
    - Spalte `sheet.columns.product_name` (G) — unser Produktname ("new PR NAME"),
@@ -74,10 +120,30 @@ Ad. Das Ergebnis (ein Bild) wird in Schritt 5 für alle Ads dieser Zeile wiederv
    zuverlässig für HTTPS, siehe Caveat in der README) und das größte/Produkt-Bild aus dem
    HTML extrahieren (z. B. per Bildgrößen-Query-Parameter die volle Auflösung anfordern,
    nicht die Thumbnail-Variante).
-2. Dieses Competitor-Produktfoto **einmalig** per `Higgsfield.generate_image` bearbeiten:
-   Produktform/-design/Farben/Licht/Winkel exakt beibehalten, nur den sichtbaren
-   Produktnamen durch `product_name` (Spalte G) ersetzen (inkl. ®/™-Handling).
-3. Das Ergebnis ist DAS Produktbild-Asset für diese Zeile — merken (media_id/Job-ID) für
+2. **Vor dem Higgsfield-Call: jeden sichtbaren Text auf der Verpackung/dem Etikett des
+   Competitor-Fotos erfassen** — nicht nur den Produktnamen, auch Zusatzzeilen wie
+   Produktkategorie, Pflegehinweis, Siegel/Badges (z. B. "SOIN MÉDICAL", "MEDICAL",
+   "NATURAL FORMULA"). Für jede dieser Zusatzzeilen einen LOCKED STRING in der
+   Zielsprache der Zeile festlegen (siehe `docs/language-rules.md`) — genau wie für den
+   Ad-Overlay-Text in Schritt 5. **Dieses Produktbild wird für ALLE Ads der Zeile
+   wiederverwendet — steht hier noch fremdsprachiger Verpackungstext, taucht er in jedem
+   einzelnen Ad dieser Zeile wieder auf.** Beobachteter Fehler: ein Competitor-Foto mit
+   französischem "SOIN MÉDICAL" auf der Tube wurde für eine FI-Zeile wiederverwendet —
+   das französische Etikett erschien dadurch unübersetzt in mehreren fertigen
+   Finnisch-Ads.
+3. Dieses Competitor-Produktfoto **einmalig** per `Higgsfield.generate_image` bearbeiten:
+   Produktform/-design/Farben/Licht/Winkel exakt beibehalten, sichtbaren Produktnamen
+   durch `product_name` (Spalte G) ersetzen (inkl. ®/™-Handling) und **jede in Punkt 2
+   erfasste Verpackungszeile durch ihren LOCKED STRING in der Zielsprache ersetzen** —
+   der Prompt bekommt denselben "render exactly, do not translate"-Block wie in
+   `docs/language-rules.md` Abschnitt 1. Keine fremdsprachige Verpackungszeile darf
+   unverändert durchgereicht werden, auch wenn nur der Produktname als "zu ändern"
+   erscheint. **Modell-Parameter `model` immer und direkt `nano_banana_pro`** (siehe
+   `config/automation.config.json` → `image_model`) — kein Versuch mit einem anderen
+   Modell zuerst.
+4. Ergebnis mit dem `Read`-Tool ansehen und jede Verpackungszeile gegen ihren LOCKED
+   STRING prüfen (wie in Schritt 7.5), bevor das Bild als Asset gilt.
+5. Das Ergebnis ist DAS Produktbild-Asset für diese Zeile — merken (media_id/Job-ID) für
    Schritt 5. Bei mehreren Ads derselben Zeile wird dieses eine Bild wiederverwendet,
    nicht neu erzeugt.
 
@@ -158,6 +224,12 @@ Für **jede einzelne Ad** aus Schritt 4 (nicht gebündelt):
    The image must contain no text other than the strings quoted above.
    Ignore all text visible in the reference image.
    ```
+
+   **Modell-Parameter `model` immer und direkt `nano_banana_pro`** (siehe
+   `config/automation.config.json` → `image_model`) — nicht erst ein Standard-/
+   Default-Modell versuchen und bei Misserfolg oder schlechtem Ergebnis auf ein anderes
+   wechseln. Das direkte Anfordern des Zielmodells verhindert verbrannte Credits durch
+   verworfene Zwischenversuche.
 3. Ist der Skill in der Session ausnahmsweise nicht auffindbar: ersatzweise nach den
    Regeln in `docs/skills/image-ad-prompt-generator.md` selbst vorgehen und das im
    Abschlussbericht (Schritt 8) vermerken.
@@ -232,9 +304,15 @@ Die eigentliche Higgsfield-Generierung passiert bereits in Schritt 5 (ein Call p
      `vous`-Anrede, fehlende Akzente; FI u. a. erfundene Komposita, `a` statt `ä`).
    - Jedes Wort im Bild, das nicht im LOCKED STRING steht — auch auf Verpackung,
      Etikett, Preisschild oder Hintergrundschild — bedeutet: **nicht hochladen**,
-     neu generieren mit gekürztem LOCKED STRING.
+     neu generieren mit gekürztem LOCKED STRING. **Zusätzlich den Schlüssel dieses
+     Bildes (`<market_code>!<Zeilennummer>!ad<N>`) in
+     `State/flagged_for_regeneration.json` eintragen** (siehe Schritt 2b) — nicht nur
+     im Abschlussbericht vermerken, sonst weiß ein späterer/neuer Lauf nicht, dass
+     genau dieses eine Bild noch nachgeholt werden muss.
    - Gilt für jedes Bild einzeln, nicht als Stichprobe. Transkription jedes
-     hochgeladenen Bildes in der State-Datei protokollieren.
+     hochgeladenen Bildes in der State-Datei protokollieren. Nach erfolgreichem
+     erneuten Upload und bestandener Prüfung den Schlüssel aus
+     `flagged_for_regeneration.json` wieder entfernen.
    - Diese Prüfung ist ein Sicherheitsnetz. Wenn sie regelmäßig anschlägt, ist Schritt 5
      Punkt 0 falsch ausgeführt worden — dort liegt der Fehler, nicht hier.
 

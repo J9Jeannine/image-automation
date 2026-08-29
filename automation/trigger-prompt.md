@@ -18,10 +18,20 @@ Führe den image-automation Workflow aus dem Repo `j9jeannine/image-automation`,
 3. Führe Schritte 1-8 aus `docs/workflow.md` der Reihe nach aus: Sheet-Tabs `FI`
    (ab Zeile 52) und `FRCA` (ab Zeile 33) auf neue/geänderte Kommentar-Threads in
    Spalte M prüfen (siehe Schritt 2 für den Abgleich gegen
-   `State/processed_comments.json`).
+   `State/processed_comments.json`). **Vor jeder Generierung pro Zeile zwingend Schritt
+   2a beachten (Zeilen-Sperre über `State/row_locks.json`)** — verhindert, dass zwei
+   gleichzeitig laufende Sessions (z. B. dieser Trigger und ein manueller Lauf)
+   dieselbe Zeile doppelt bearbeiten und Credits verbrennen. **Zusätzlich zwingend
+   Schritt 2b beachten (Resume):** vor jeder Generierung (Produktbild UND jede Ad)
+   prüfen, ob die Zieldatei im Drive-Ordner schon existiert und nicht in
+   `State/flagged_for_regeneration.json` als falsch markiert ist — falls ja, NICHT neu
+   generieren, sondern überspringen. Nach einem Abbruch (z. B. Credits alle) generiert
+   der nächste Lauf so automatisch nur das Fehlende, nie die ganze Zeile neu.
 4. **Pro Zeile genau EIN Produktbild erzeugen** (Schritt 3): Competitor-Foto aus Spalte D
-   per curl holen, per Higgsfield einmalig auf den Produktnamen aus Spalte G umbenennen.
-   Dieses eine Bild für ALLE Ads dieser Zeile wiederverwenden — nie pro Ad neu erzeugen.
+   per curl holen, per Higgsfield einmalig auf den Produktnamen aus Spalte G umbenennen,
+   Modell-Parameter dabei immer direkt `nano_banana_pro` (nie erst ein anderes Modell
+   versuchen). Dieses eine Bild für ALLE Ads dieser Zeile wiederverwenden — nie pro Ad
+   neu erzeugen.
 5. Für jede Ad aus dem M-Kommentar-Thread (Schritt 4/5): **zuerst den LOCKED STRING
    nach `docs/language-rules.md` schreiben** (fertiger Zieltext, max. 6 Wörter pro
    Textelement, gegen die Verbotsliste geprüft), dann erst rendern. Ad erst versuchen zu öffnen. Ist
@@ -31,7 +41,8 @@ Führe den image-automation Workflow aus dem Repo `j9jeannine/image-automation`,
    den `Skill`-Tool mit `skill: "image-ad-prompt-generator"` aufrufen (echter, im Account
    aktivierter Skill — nicht die lokale Doku-Kopie), pro Ad genau ein Ergebnisbild im
    exakten Seitenverhältnis der Quell-Anzeige, Produktbild nur einsetzen wenn die
-   Quell-Ad ein Produkt zeigt, korrekten Preis aus Spalte J in der Ad-Copy nutzen. Dieser
+   Quell-Ad ein Produkt zeigt, korrekten Preis aus Spalte J in der Ad-Copy nutzen, Modell
+   immer direkt `nano_banana_pro`. Dieser
    Skill ist ausschließlich für Übersetzungen zu nutzen, niemals für
    Varianten/Iterationen/New Concepts. Nur falls `foundation_phase.mode !=
    translation_only` zusätzlich `docs/skills/foundation-to-higgsfield.md` für die
@@ -39,7 +50,10 @@ Führe den image-automation Workflow aus dem Repo `j9jeannine/image-automation`,
 6. **Sprach-QA vor dem Upload (Schritt 7.5):** jedes Bild einzeln mit dem `Read`-Tool
    ansehen, jedes sichtbare Wort abtippen und Zeichen für Zeichen gegen den LOCKED
    STRING diffen (inkl. Akzente, `ä`/`ö`, Zahlenformat `49,99 $` / `49,99 €`).
-   Abweichung = nicht hochladen, neu generieren. Ein Prompt-Hinweis ist kein Nachweis.
+   Abweichung = nicht hochladen, neu generieren, **und den Schlüssel dieses Bildes in
+   `State/flagged_for_regeneration.json` eintragen** (Schritt 2b) — sonst weiß ein
+   späterer Lauf nicht, dass genau dieses Bild noch fehlt. Ein Prompt-Hinweis ist kein
+   Nachweis.
 
 7. **Bild-Upload nach Drive ist verpflichtend (Schritt 7):** die gerenderten Higgsfield-Bilder
    per curl auf die Disk laden und als **echte JPG-Dateien** in Drive ablegen — Ordner
