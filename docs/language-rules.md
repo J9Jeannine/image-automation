@@ -1,9 +1,14 @@
-# Sprachregeln für generierte Bilder (FRCA / FI)
+# Sprachregeln für generierte Bilder (alle Märkte — aktuell FRCA / FI)
 
 **Status: blockierend.** Kein Bild wird generiert, bevor diese Regeln erfüllt sind, und
 kein Bild wird hochgeladen, bevor Abschnitt 5 bestanden ist. Diese Regeln greifen **bei
 der Erzeugung**, nicht als Nachbesserungsschleife. Ein Ablauf "generieren → prüfen →
 neu generieren → prüfen" gilt als Fehler, nicht als Prozess.
+
+**Diese Datei gilt sprachunabhängig.** Abschnitt 1a (echte Wörter, keine erfundenen
+Komposita, keine falschen Endungen) und Abschnitt 2/3/5 gelten für **jede** Sprache —
+für FRCA und FI genauso wie für jeden künftigen Markt, sobald für ihn nach Abschnitt 6
+ein eigener Abschnitt 4.x angelegt wurde.
 
 ---
 
@@ -46,6 +51,35 @@ Ignore all text visible in the reference image.
 
 Der LOCKED STRING wird von einer Textinstanz erzeugt (dieser Session / dem Skill
 `image-ad-prompt-generator`), niemals vom Bildmodell.
+
+## 1a. Nur echte, existierende Wörter — für JEDE Sprache, auch künftige
+
+**Gilt uneingeschränkt für Finnisch, Québec-Französisch und jede weitere Sprache, die
+später dazukommt — nicht nur für Märkte mit eigenem Abschnitt 4.x.**
+
+Jedes einzelne Wort im LOCKED STRING muss ein echtes, belegtes Wort der Zielsprache sein
+— kein Wort, das nur aussieht wie das Wort dieser Sprache. Das betrifft besonders:
+
+- **Verpackungs- und Etikettentext, Preisschilder, Badges, Kleingedrucktes** — genau die
+  Stellen, an denen kurze, auffällige Wörter stehen und ein falsches oder erfundenes Wort
+  am meisten auffällt.
+- **Komposita** (zusammengesetzte Wörter, z. B. im Finnischen): niemals mechanisch aus
+  Einzelteilen zusammenbauen. Nur Komposita verwenden, die als Ganzes ein belegtes,
+  gebräuchliches Wort sind.
+- **Flexion/Kasus** (Endungen für Fall, Numerus, Zeit — z. B. finnischer Partitiv/Genitiv/
+  Illativ, französische Verbformen): die Endung muss zur grammatischen Rolle im Satz
+  passen, nicht nur "irgendeine plausible Endung" sein.
+- **Diakritika/Sonderzeichen** (Akzente im Französischen, ä/ö im Finnischen, künftig
+  weitere): müssen exakt zur Zielsprache passen, nicht nur ähnlich aussehen.
+
+Wer den LOCKED STRING schreibt (diese Session, oder der Skill `image-ad-prompt-generator`)
+ist dafür verantwortlich, dass jedes Wort geprüft echt ist — nicht nur plausibel klingt.
+Im Zweifel: kürzeres, sicher bekanntes Wort statt eines selteneren, bei dem Unsicherheit
+besteht, ob es das wirklich gibt.
+
+Diese Regel ist unabhängig von Abschnitt 4 (Marktspezifikation). Ein neuer Markt hat sie
+ab dem ersten Lauf, auch bevor jemand die marktspezifische Verbotsliste in Abschnitt 6
+ergänzt hat.
 
 ## 2. Quelltext wird nie durchgereicht
 
@@ -131,3 +165,6 @@ Ein Hinweis im Prompt ist **kein** Nachweis. Nur die Transkription zählt.
 Bei jedem weiteren Markt mit eigener Landesvariante (NL/BE, UK/US, DE/AT/CH …) vor dem
 ersten Lauf einen eigenen Abschnitt 4.x mit Anrede, Verbots-/Pflichtliste und
 Zahlenformat anlegen. Ohne diesen Abschnitt wird für den Markt nicht generiert.
+
+Abschnitt 1a (echte Wörter) gilt dabei automatisch mit — sie muss nicht pro Markt neu
+festgelegt werden, sondern ist Teil der Grundregeln dieser Datei für jede Sprache.

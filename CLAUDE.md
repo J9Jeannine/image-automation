@@ -22,6 +22,12 @@ Die drei Kernsätze:
 3. **Kein Wort im gerenderten Bild darf fehlen im LOCKED STRING.** Erscheint im Render
    irgendein Wort, das nicht im LOCKED STRING steht — auch auf Verpackung, Etikett,
    Preisschild, Hintergrundschild — ist das Bild abgelehnt und wird neu generiert.
+4. **Jedes Wort im LOCKED STRING selbst muss ein echtes, existierendes Wort der
+   Zielsprache sein — für JEDE Sprache, nicht nur FRCA/FI.** Keine erfundenen oder nur
+   plausibel klingenden Wörter, keine mechanisch zusammengebauten Komposita, keine
+   falschen Endungen — besonders kritisch auf Verpackungen, Etiketten und Preisschildern.
+   Vollständige Regel: `docs/language-rules.md` Abschnitt 1a. Gilt automatisch für jeden
+   künftigen Markt.
 
 Zielvarianten:
 

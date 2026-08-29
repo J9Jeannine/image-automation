@@ -176,7 +176,9 @@
       "percent_format": "50 % (mit Leerzeichen)"
     },
     "verification": "Vor jedem Upload jedes Bild einzeln mit dem Read-Tool ansehen, jedes sichtbare Wort abtippen und Zeichen fuer Zeichen gegen den LOCKED STRING diffen. Ein Prompt-Hinweis ist kein Nachweis. Transkription in der State-Datei protokollieren.",
-    "new_markets": "Fuer jeden weiteren Markt mit eigener Landesvariante vor dem ersten Lauf einen eigenen Abschnitt in docs/language-rules.md anlegen. Ohne diesen Abschnitt wird fuer den Markt nicht generiert."
+    "new_markets": "Fuer jeden weiteren Markt mit eigener Landesvariante vor dem ersten Lauf einen eigenen Abschnitt in docs/language-rules.md anlegen. Ohne diesen Abschnitt wird fuer den Markt nicht generiert.",
+    "applies_to": "ALLE Sprachen/Maerkte, aktuell und zukuenftig, nicht nur FRCA/FI",
+    "universal_word_authenticity_rule": "Jedes Wort im LOCKED STRING muss ein echtes, belegtes Wort der Zielsprache sein - kein Wort, das nur plausibel aussieht. Gilt besonders fuer Verpackungs-/Etikettentext, Preisschilder, Badges. Keine mechanisch zusammengebauten Komposita, keine falschen Kasus-/Flexionsendungen, korrekte Diakritika. Siehe docs/language-rules.md Abschnitt 1a - gilt fuer jede Sprache automatisch, auch fuer neue Maerkte, sobald deren Abschnitt 4.x angelegt ist."
   },
   "model": {
     "required": "opus",
