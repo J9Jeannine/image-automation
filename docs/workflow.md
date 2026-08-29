@@ -187,7 +187,33 @@ Die eigentliche Higgsfield-Generierung passiert bereits in Schritt 5 (ein Call p
    Abweichung (Truncation/Korruption) erneut hochladen — niemals eine korrupte oder nur
    verlinkte Datei als Ergebnis stehen lassen.
 
-5. Ergebnisse zusätzlich inline im Chat zeigen. Ist kein Higgsfield-MCP verfügbar: nur die
+5. **Sprach-QA — VERPFLICHTEND, vor jedem Upload, für JEDES einzelne Bild.** Higgsfield
+   übernimmt bei einem Teil der Bilder (beobachtet: bis zu 50 % eines 12er-Batches) den
+   Banner-Text unverändert aus der Quell-Ad, statt ihn zu lokalisieren — auch wenn der
+   Prompt die Ziel-Landesvariante explizit vorschreibt. Das passiert selbst dann, wenn die
+   Quelle bereits in derselben Sprache ist (z. B. Quell-Ad auf Frankreich-Französisch,
+   Ziel FRCA = Québec-Französisch — beide "Französisch", aber unterschiedliche
+   Landesvariante). Eine Anweisung im Prompt reicht **nicht** als Nachweis, dass das
+   Ergebnis stimmt — das Bild selbst muss geprüft werden:
+   - Nach jeder Higgsfield-Generierung das Ergebnisbild mit dem `Read`-Tool ansehen
+     (nicht nur die OCR-Textsnippets aus der Drive-Suche verlassen) und den sichtbaren
+     Text gegen eine Verbotsliste für die Ziel-Landesvariante prüfen.
+     - **FRCA (Québec-Französisch):** verboten sind u. a. `SOLDES` (Frankreich-Begriff
+       für gesetzlich geregelte Ausverkaufsperioden — in Québec unüblich; stattdessen
+       `VENTE`, `RABAIS`, `AUBAINE`), sowie generell jede Frankreich-typische Wendung.
+     - Andere Zielmärkte mit eigener Landesvariante (z. B. NL/BE, UK/US): analog eine
+       kurze Verbotsliste/Stichprobe vor dem ersten Upload festlegen.
+   - Enthält ein Bild einen verbotenen Begriff oder wirkt sonst wie die falsche
+     Landesvariante: **nicht hochladen**, sondern mit verschärftem Prompt (Verbotsliste
+     explizit im Prompt nennen, "keinen Quelltext unverändert übernehmen, auch wenn er
+     schon in der Zielsprache aussieht") neu generieren, bevor der Schritt als erledigt
+     gilt.
+   - Diese Prüfung gilt für **jedes** Bild im Batch einzeln, nicht nur für eine
+     Stichprobe — ein Lauf ist erst dann fertig, wenn alle Bilder die Prüfung bestanden
+     haben (oder das Ergebnis der Prüfung im Abschlussbericht unter Schritt 8 vermerkt
+     ist, falls Credits fehlen, um ein fehlerhaftes Bild neu zu generieren).
+
+6. Ergebnisse zusätzlich inline im Chat zeigen. Ist kein Higgsfield-MCP verfügbar: nur die
    Prompt-Texte ausgeben, Rendering überspringen (dann gibt es keine Bilddateien zum
    Hochladen).
 
