@@ -99,31 +99,113 @@ Ad-Copy (Primary Text / Headline im Anzeigentext), nicht ins Bild.
 
 ### 4.1 FRCA — Québec-Französisch
 
-Ziel: natürliches Québec-Französisch, wie es in kanadischer Einzelhandelswerbung
-geschrieben wird. **Nicht** Frankreich-Französisch, nicht "neutrales" Französisch.
+Ziel: natürliches Québec-Französisch, wie es in kanadischer Einzelhandels- und
+Beautywerbung geschrieben wird. **Nicht** Frankreich-Französisch, nicht "neutrales"
+Französisch.
 
-**Anrede: immer `tu`, nie `vous`.**
+> **Warum die Verbotsliste allein bisher nicht gereicht hat:** Die Liste unter (D) ist
+> eine Promo-Wortliste (SOLDES, courriel, week-end, parking). In einer Hautpflege- oder
+> Kosmetik-Ad kommt **kein einziges** dieser Wörter je vor. Die Prüfung war deshalb
+> immer bestanden — und der Text trotzdem Frankreich-Französisch, weil nirgends stand,
+> wie man Québécois *schreibt*. Die Abschnitte (A), (C) und (E) schließen genau diese
+> Lücke. Sie sind der Kern dieser Marktspezifikation, nicht die Verbotsliste.
+
+**Zweistufig, verpflichtend:** erst den französischen Text schreiben, dann Zeile für
+Zeile gegen (A) bis (E) durchgehen und neu schreiben. Erst die überarbeitete Fassung
+wird LOCKED STRING.
+
+#### (A) Register — die wichtigste Regel
+
+Frankreich-Beautywerbung ist abstrakt und lyrisch. Québec-Werbung ist einfach, konkret
+und direkt. Diese Registerdifferenz ist der Grund, warum ein Text "korrekt" sein kann
+und trotzdem sofort als Frankreich-Text erkannt wird.
+
+| verboten (Frankreich-Beautyregister) | erforderlich (Québec, schlicht) |
+|---|---|
+| sublimer, sublimateur | raffermir, raffermissant |
+| repulper, repulpé | plus ferme, rebondi |
+| geste beauté, rituel beauté, routine beauté | streichen — direkt sagen, was es tut |
+| révéler l'éclat, coup d'éclat, éclat sublimé | peau plus lumineuse |
+| une peau de rêve, peau divine, bonne mine | une peau ferme |
+| booster, boosté | renforcer, renforcé |
+| cocooning, peau nette | streichen |
+
+Faustregel: sagt der Satz, **was das Produkt tut**, oder beschreibt er ein Gefühl?
+Québec sagt, was es tut.
+
+#### (B) Anrede: immer `tu`, nie `vous`
+
+Das Verb wird mitkonjugiert — nur das Pronomen zu tauschen ist ein Fehler.
+
+| verboten | erforderlich |
+|---|---|
+| Vous / Votre / Vos (als Leseransprache) | Tu / Ton / Ta / Tes |
+| Commandez / Découvrez / Profitez / Essayez / Achetez / Économisez | Commande / Découvre / Profite / Essaie / Achète / Économise |
+| Dites adieu / Retrouvez / Redécouvrez | Dis adieu / Retrouve / Redécouvre |
+| votre peau, vos bras | ta peau, tes bras |
+
+#### (C) Kategorie-Vokabular (Kosmetik / Körperpflege)
+
+Québec ist bei Anglizismen **strenger** als Frankreich. Was in Paris normal ist, wirkt
+in Montréal nachlässig.
+
+| verboten (Frankreich / Anglizismus) | erforderlich (Québec) |
+|---|---|
+| spray | vaporisateur |
+| lifting, effet lift | effet raffermissant |
+| peeling | exfoliation |
+| patch | timbre |
+| make-up | maquillage |
+| waterproof | résistant à l'eau |
+| glow | éclat |
+| soin de la peau (Singular) | soins de la peau |
+| patte-d'oie (Singular) | pattes-d'oie (immer Plural) |
+
+#### (D) Promo-Vokabular
 
 | verboten (Frankreich / neutral) | erforderlich (Québec) |
 |---|---|
 | SOLDES, SOLDES D'HIVER / D'ÉTÉ | VENTE, VENTE D'HIVER / D'ÉTÉ, RABAIS, AUBAINE, LIQUIDATION |
 | en solde | en rabais, en spécial |
+| réduction, remise, promo | rabais |
+| offre promotionnelle | spécial |
+| livraison offerte | livraison gratuite |
 | Nous sommes désolés | ON S'EXCUSE |
 | e-mail, mail | courriel |
+| SMS | texto |
 | shopping, faire du shopping | magasinage, magasiner |
 | week-end | fin de semaine |
 | parking | stationnement |
 | bon plan | bonne aubaine |
-| Vous / Votre / Vos (als Leseransprache) | Tu / Ton / Ta / Tes |
-| Commandez / Découvrez / Profitez / Essayez / Achetez / Économisez | Commande / Découvre / Profite / Essaie / Achète / Économise |
+| en Canada | au Canada |
 
-**Weitere Pflichten:**
+Nie Frankreich-Registermarker verwenden: vachement, truc, hyper, super sympa, au top,
+canon, bluffant, en un rien de temps.
 
+#### (E) Québec-Typografie — hier ist Frankreich am sichtbarsten
+
+Diese Punkte sind Zeichen-für-Zeichen zu prüfen. Sie sind der zuverlässigste
+FR-FR-Marker in kurzen Bildtexten und der häufigste Fehler bisher.
+
+- **Kein Leerzeichen vor `!` `?` `;`** → `Dis adieu à la peau relâchée!`
+  Niemals `relâchée !` — das ist Frankreich-Satz.
+- **Leerzeichen vor `:` und `%`** → `Ce qui disparaît avant l'été :` · `98 %`
+- Preisformat CAD: Zahl, Leerzeichen, Dollarzeichen, Dezimal**komma** — `49,99 $`.
+  Niemals `$49.99`, niemals `49,99$`.
+- Dezimalkomma: `4,8`. Tausender mit Leerzeichen: `20 428`.
+- Uhrzeit `23 h 59`. Datum `20 février 26`, Monat klein.
+- Anführungszeichen: « Guillemets mit Innenabstand ».
 - Akzente sind Pflicht und müssen korrekt sein: `É È À Ç Ê Î Ô Û`.
   Großbuchstaben behalten ihren Akzent (`ÉCONOMISE`, nicht `ECONOMISE`).
-- Preisformat CAD: Zahl, Leerzeichen, Dollarzeichen, Dezimal**komma** — `49,99 $`.
-  Niemals `$49.99`.
-- Prozent mit Leerzeichen: `50 %`.
+
+#### (F) Bewährte kurze Bausteine
+
+Neutral formuliert, ohne Produktversprechen — Claims kommen aus Spalte G/J und der
+Quell-Ad, nicht aus dieser Liste:
+
+`PEAU PLUS FERME` · `SANS CHIRURGIE` · `RAFFERMIT ET HYDRATE` · `DIS ADIEU À LA PEAU
+RELÂCHÉE` · `COMMANDE MAINTENANT` · `LIVRAISON GRATUITE` · `ÉCONOMISE 50 %` ·
+`ESSAIE-LE 30 JOURS` · `SPÉCIAL` · `EN RABAIS`
 
 ### 4.2 FI — Finnisch
 

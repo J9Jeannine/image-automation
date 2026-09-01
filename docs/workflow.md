@@ -20,6 +20,10 @@ Playwright-Skripte in `scripts/`.
 > Schritt 5 zu lesen. Kernprinzip: der fertige Bildtext (LOCKED STRING) steht **vor**
 > dem Bildprompt fest und wird wörtlich übernommen — das Bildmodell übersetzt nie
 > selbst. `FRCA` = Québec-Französisch (`tu`-Anrede), `FI` = natürliches Finnisch.
+> **Für FRCA reicht die Verbotsliste nicht** — sie ist eine Promo-Wortliste, die in
+> einer Kosmetik-Ad nie greift. Verbindlich sind zusätzlich Register (4.1 A),
+> Kategorie-Vokabular (4.1 C) und Typografie (4.1 E), insbesondere: **kein Leerzeichen
+> vor `!` `?` `;`**.
 > Erfundene Wörter und Frankreich-Französisch sind Ablehnungsgründe, keine Schönheits-
 > fehler.
 
@@ -300,8 +304,16 @@ Die eigentliche Higgsfield-Generierung passiert bereits in Schritt 5 (ein Call p
      verlassen), jedes sichtbare Wort abtippen und Zeichen für Zeichen gegen den
      LOCKED STRING aus Schritt 5 Punkt 0 diffen — inklusive Akzente, `ä`/`ö` und
      Zahlenformat.
-   - Zusätzlich gegen die Verbotsliste der Landesvariante prüfen (FRCA u. a. `SOLDES`,
-     `vous`-Anrede, fehlende Akzente; FI u. a. erfundene Komposita, `a` statt `ä`).
+   - Zusätzlich gegen die Landesvariante prüfen. **FRCA — diese fünf Punkte einzeln
+     abhaken und einzeln protokollieren; "keine Auffälligkeiten" ohne die Einzelliste
+     ist kein gültiger Log-Eintrag:**
+     1. `vous / votre / vos` oder eine `-ez`-Verbform als Leseransprache
+     2. **Leerzeichen vor `!` `?` `;`** (Frankreich-Satz — häufigster Fehler)
+     3. ein Wort aus dem Frankreich-Beautyregister oder der Verbotsliste
+        (`docs/language-rules.md` Abschnitt 4.1 A, C, D)
+     4. fehlender oder falscher Akzent, auch in Großbuchstaben
+     5. Preis nicht im Format `49,99 $`
+     FI u. a. erfundene Komposita, `a` statt `ä`.
    - Jedes Wort im Bild, das nicht im LOCKED STRING steht — auch auf Verpackung,
      Etikett, Preisschild oder Hintergrundschild — bedeutet: **nicht hochladen**,
      neu generieren mit gekürztem LOCKED STRING. **Zusätzlich den Schlüssel dieses
