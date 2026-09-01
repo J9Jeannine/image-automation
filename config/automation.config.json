@@ -202,20 +202,8 @@
       },
       "accents_mandatory": true,
       "accents_on_caps": "Akzente bleiben auch in Grossbuchstaben: ECONOMISE ist falsch, ECONOMISE mit Akzent auf dem E ist richtig.",
-      "price_format": "49,99 $ (Zahl, Leerzeichen, Dollarzeichen, Dezimalkomma) - niemals $49.99",
+      "price_format": "Der BETRAG kommt IMMER aus Spalte J der jeweiligen Zeile - niemals aus dieser Config, niemals aus der Quell-Ad. Nur das FORMAT ist hier festgelegt: Zahl mit Dezimalkomma, Leerzeichen, Dollarzeichen -> '<Betrag> $'. Richtig: 29,95 $ / 119,00 $ / 9,99 $. Falsch: $29.95 / 29,95$ / 29.95 $. Zahlen in dieser Config sind Formatbeispiele, keine Preise.",
       "percent_format": "50 % (mit Leerzeichen)",
-      "register_rule_beauty": "WICHTIGSTE REGEL: Frankreich-Beautyregister ist verboten. sublimer/sublimateur -> raffermir/raffermissant; repulper -> plus ferme; geste/rituel/routine beaute -> streichen, direkt sagen was es tut; reveler l'eclat / coup d'eclat -> peau plus lumineuse; peau de reve / bonne mine -> une peau ferme; booster -> renforcer; cocooning / peau nette -> streichen. Faustregel: sagen was das Produkt TUT, kein Gefuehl beschreiben.",
-      "category_vocabulary_beauty": {
-        "spray": "vaporisateur",
-        "lifting / effet lift": "effet raffermissant",
-        "peeling": "exfoliation",
-        "patch": "timbre",
-        "make-up": "maquillage",
-        "waterproof": "resistant a l'eau",
-        "glow": "eclat",
-        "soin de la peau (Singular)": "soins de la peau",
-        "patte-d'oie (Singular)": "pattes-d'oie (immer Plural)"
-      },
       "typography": {
         "no_space_before": "Kein Leerzeichen vor ! ? ; -> 'relachee!' niemals 'relachee !'. Haeufigster und sichtbarster FR-FR-Marker in kurzen Bildtexten.",
         "space_before": "Leerzeichen vor : und % -> \"avant l'ete :\" und '98 %'",
@@ -225,18 +213,35 @@
         "quotes": "<< Guillemets mit Innenabstand >>"
       },
       "safe_building_blocks": [
-        "PEAU PLUS FERME",
-        "SANS CHIRURGIE",
-        "RAFFERMIT ET HYDRATE",
-        "DIS ADIEU A LA PEAU RELACHEE (mit Akzenten)",
         "COMMANDE MAINTENANT",
         "LIVRAISON GRATUITE",
         "ECONOMISE 50 %",
         "ESSAIE-LE 30 JOURS",
         "SPECIAL",
-        "EN RABAIS"
+        "EN RABAIS",
+        "QUANTITES LIMITEES",
+        "SATISFACTION GARANTIE",
+        "VENTE D'HIVER",
+        "SEULEMENT AUJOURD'HUI"
       ],
-      "why_blacklist_alone_failed": "Die Verbotsliste ist eine Promo-Wortliste (SOLDES, courriel, week-end, parking). In einer Hautpflege-/Kosmetik-Ad kommt keins dieser Woerter je vor, die Pruefung war deshalb immer bestanden und der Text trotzdem Frankreich-Franzoesisch. Entscheidend sind register_rule_beauty, category_vocabulary_beauty und typography - nicht die Verbotsliste."
+      "why_blacklist_alone_failed": "Die Verbotsliste ist eine Promo-Wortliste (SOLDES, courriel, week-end, parking). In einer Hautpflege-/Kosmetik-Ad kommt keins dieser Woerter je vor, die Pruefung war deshalb immer bestanden und der Text trotzdem Frankreich-Franzoesisch. Entscheidend sind register_rule_beauty, category_vocabulary_beauty und typography - nicht die Verbotsliste.",
+      "applies_to_all_products": "Gilt fuer JEDES Produkt und JEDE Kategorie - Hautpflege, Nahrungsergaenzung, Gelenke, Haushalt, Auto, Haustier, Werkzeug, Kleidung und jede spaetere. Die Wortlisten hier sind Beispiele des Prinzips, KEINE abschliessenden Listen. Ein Wort, das in keiner Liste steht, ist nicht erlaubt - es ist ungeprueft.",
+      "universal_test": "VERBINDLICH fuer jeden Ausdruck, jedes Produkt, jede Kategorie: Existiert dieser Ausdruck im Quebec-Franzoesisch fuer sich allein, in einem Satz der mit diesem Produkt und mit der Quellsprache nichts zu tun hat? Wuerde eine Quebecoise in dieser Situation genau das sagen? Laesst er sich nur damit begruenden, dass er in der Quell-Ad stand oder 'auf Franzoesisch geht', ist er nicht geprueft - neu schreiben. Dieser Test ist die Regel; die Wortlisten sind nur Abkuerzungen fuer bekannte Faelle.",
+      "register_rule": "Frankreich-Werbung ist abstrakt, lyrisch, gefuehlsbeschreibend. Quebec-Werbung ist einfach, konkret, direkt. Faustregel: sagt der Satz, was das Produkt TUT, oder beschreibt er ein Gefuehl? Quebec sagt, was es tut. Gilt fuer Hautcreme wie fuer Hundefutter, Gelenkkapseln oder Staubsauger.",
+      "category_check_procedure": "VERPFLICHTEND vor dem Schreiben, fuer jedes Produkt neu: Produktkategorie bestimmen und deren eigene Begriffe gegen die quebecer Handelsueblichkeit pruefen (Produktbezeichnungen, Koerperteile, Symptome, Materialien, Werkzeuge, Geraete, Kleidung, Raeume, Fahrzeuge, Tiere). Wo ein Frankreich-Wort und ein Quebec-Wort existieren, gilt das Wort von kanadischen Handelsseiten. Grundregel: Quebec ist bei Anglizismen strenger als Frankreich - im Zweifel das franzoesische Wort. Kategorie nicht in category_vocabulary_examples? Kein Freibrief - dann gilt universal_test.",
+      "category_vocabulary_examples": {
+        "_hinweis": "Beispiele des Prinzips, ausdruecklich KEINE abschliessende Liste. Neue Kategorien nach dem Lauf hier ergaenzen.",
+        "Kosmetik / Hautpflege": "spray -> vaporisateur; lifting -> effet raffermissant; peeling -> exfoliation; patch -> timbre; make-up -> maquillage; waterproof -> resistant a l'eau; glow -> eclat; soin de la peau -> soins de la peau; patte-d'oie -> pattes-d'oie (immer Plural)",
+        "Gelenke / Koerper": "articulations; douleurs articulaires; genoux; hanches; dos",
+        "Zahnpflege": "soins dentaires; prothese dentaire; dentier; gencives",
+        "Haushalt / Geraete": "washing machine -> laveuse; dryer -> secheuse; vacuum -> balayeuse",
+        "Kleidung": "chaussures -> souliers; socks -> bas; pull -> chandail",
+        "Auto": "voiture (informell char); carburant -> gaz; pneus d'hiver",
+        "Haus / Garten": "basement -> sous-sol; porch -> galerie; Schneeraeumen -> deneigement",
+        "Haustier": "nourriture pour chien / chat; veterinaire; laisse; niche",
+        "Gesundheit allgemein": "aux urgences -> a l'urgence; Dr / Dre / Mme ohne Punkt"
+      },
+      "new_category": "Bevor fuer ein Produkt einer Kategorie generiert wird, die in category_vocabulary_examples fehlt: category_check_procedure durchfuehren und die gefundenen Paare dort ergaenzen. Der Lauf wird nicht blockiert - universal_test traegt die Pruefung -, aber die Zeile gehoert nachgetragen."
     },
     "FI": {
       "variant": "fi-FI, natuerliches Finnisch eines Muttersprachlers",

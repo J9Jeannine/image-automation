@@ -99,28 +99,47 @@ Ad-Copy (Primary Text / Headline im Anzeigentext), nicht ins Bild.
 
 ### 4.1 FRCA — Québec-Französisch
 
-Ziel: natürliches Québec-Französisch, wie es in kanadischer Einzelhandels- und
-Beautywerbung geschrieben wird. **Nicht** Frankreich-Französisch, nicht "neutrales"
-Französisch.
+Ziel: natürliches Québec-Französisch, wie es in kanadischer Werbung geschrieben wird.
+**Nicht** Frankreich-Französisch, nicht "neutrales" Französisch.
 
-> **Warum die Verbotsliste allein bisher nicht gereicht hat:** Die Liste unter (D) ist
-> eine Promo-Wortliste (SOLDES, courriel, week-end, parking). In einer Hautpflege- oder
-> Kosmetik-Ad kommt **kein einziges** dieser Wörter je vor. Die Prüfung war deshalb
-> immer bestanden — und der Text trotzdem Frankreich-Französisch, weil nirgends stand,
-> wie man Québécois *schreibt*. Die Abschnitte (A), (C) und (E) schließen genau diese
-> Lücke. Sie sind der Kern dieser Marktspezifikation, nicht die Verbotsliste.
+> **Diese Spezifikation gilt für JEDES Produkt und JEDE Kategorie** — Hautpflege,
+> Nahrungsergänzung, Gelenke, Haushalt, Auto, Haustier, Werkzeug, Kleidung, und jede
+> Kategorie, die später dazukommt. Die Tabellen unten sind **Beispiele des Prinzips,
+> keine abschließenden Listen.** Ein Wort, das in keiner Tabelle steht, ist damit nicht
+> erlaubt — es ist ungeprüft. Verbindlich ist der Test unter (A).
+
+> **Warum Verbotslisten allein nie reichen:** Eine Liste kann nur prüfen, was sie kennt.
+> Die ursprüngliche FRCA-Liste war eine reine Promo-Wortliste (SOLDES, courriel,
+> week-end, parking). In einer Hautpflege-Ad kommt keins dieser Wörter vor — die Prüfung
+> war deshalb immer bestanden und der Text trotzdem Frankreich-Französisch. Dasselbe
+> passiert mit jeder Liste bei jedem neuen Produkt. **Der Test unter (A) ist die Regel,
+> die Listen sind nur Abkürzungen für bekannte Fälle.**
 
 **Zweistufig, verpflichtend:** erst den französischen Text schreiben, dann Zeile für
 Zeile gegen (A) bis (E) durchgehen und neu schreiben. Erst die überarbeitete Fassung
 wird LOCKED STRING.
 
-#### (A) Register — die wichtigste Regel
+#### (A) Der Test — gilt für jedes Wort, jedes Produkt, jede Kategorie
 
-Frankreich-Beautywerbung ist abstrakt und lyrisch. Québec-Werbung ist einfach, konkret
-und direkt. Diese Registerdifferenz ist der Grund, warum ein Text "korrekt" sein kann
-und trotzdem sofort als Frankreich-Text erkannt wird.
+**Auf jeden Ausdruck im Text anwenden, bevor er LOCKED STRING wird:**
 
-| verboten (Frankreich-Beautyregister) | erforderlich (Québec, schlicht) |
+> Existiert dieser Ausdruck im Québec-Französisch für sich allein — in einem Satz, der
+> mit diesem Produkt und mit der Quellsprache nichts zu tun hat? Würde eine Québécoise
+> in dieser Situation genau das sagen?
+
+Lässt sich ein Ausdruck nur damit begründen, dass er in der Quell-Ad stand oder dass er
+"auf Französisch geht", ist er nicht geprüft. Neu schreiben mit einem Ausdruck, der im
+Québec-Französisch eigenständig existiert.
+
+**Registerdifferenz — der häufigste Grund, warum ein korrekter Text falsch klingt:**
+Frankreich-Werbung ist abstrakt, lyrisch und gefühlsbeschreibend. Québec-Werbung ist
+einfach, konkret und direkt. **Faustregel: sagt der Satz, was das Produkt TUT, oder
+beschreibt er ein Gefühl? Québec sagt, was es tut.** Das gilt für Hautcreme genauso wie
+für Hundefutter, Gelenkkapseln oder einen Staubsauger.
+
+Beispiel Kosmetik — **Muster, keine vollständige Liste:**
+
+| verboten (Frankreich-Werberegister) | erforderlich (Québec, schlicht) |
 |---|---|
 | sublimer, sublimateur | raffermir, raffermissant |
 | repulper, repulpé | plus ferme, rebondi |
@@ -130,10 +149,10 @@ und trotzdem sofort als Frankreich-Text erkannt wird.
 | booster, boosté | renforcer, renforcé |
 | cocooning, peau nette | streichen |
 
-Faustregel: sagt der Satz, **was das Produkt tut**, oder beschreibt er ein Gefühl?
-Québec sagt, was es tut.
+Dasselbe Muster in anderen Kategorien: `une expérience unique` → sagen, was es kann ·
+`révolutionne ton quotidien` → sagen, was es macht · `le secret des pros` → streichen.
 
-#### (B) Anrede: immer `tu`, nie `vous`
+#### (B) Anrede: immer `tu`, nie `vous` — produktunabhängig
 
 Das Verb wird mitkonjugiert — nur das Pronomen zu tauschen ist ein Fehler.
 
@@ -141,27 +160,38 @@ Das Verb wird mitkonjugiert — nur das Pronomen zu tauschen ist ein Fehler.
 |---|---|
 | Vous / Votre / Vos (als Leseransprache) | Tu / Ton / Ta / Tes |
 | Commandez / Découvrez / Profitez / Essayez / Achetez / Économisez | Commande / Découvre / Profite / Essaie / Achète / Économise |
-| Dites adieu / Retrouvez / Redécouvrez | Dis adieu / Retrouve / Redécouvre |
-| votre peau, vos bras | ta peau, tes bras |
+| Dites adieu / Retrouvez / Redécouvrez / Oubliez | Dis adieu / Retrouve / Redécouvre / Oublie |
+| votre peau, vos articulations, votre maison | ta peau, tes articulations, ta maison |
 
-#### (C) Kategorie-Vokabular (Kosmetik / Körperpflege)
+#### (C) Kategorie-Vokabular — VERPFLICHTENDER SCHRITT, nicht nur eine Liste
 
-Québec ist bei Anglizismen **strenger** als Frankreich. Was in Paris normal ist, wirkt
-in Montréal nachlässig.
+**Vor dem Schreiben, für jedes Produkt neu:** Produktkategorie bestimmen und deren
+eigene Begriffe gegen die québecer Handelsüblichkeit prüfen — Produktbezeichnungen,
+Körperteile, Symptome, Materialien, Werkzeuge, Geräte, Kleidung, Räume, Fahrzeuge,
+Tiere. Existieren ein Frankreich-Wort und ein Québec-Wort, gilt das Wort, das auf
+kanadischen Handelsseiten steht.
 
-| verboten (Frankreich / Anglizismus) | erforderlich (Québec) |
+**Grundregel: Québec ist bei Anglizismen strenger als Frankreich.** Was in Paris normal
+ist, wirkt in Montréal nachlässig. Im Zweifel das französische Wort.
+
+Beispiele des Prinzips — **ausdrücklich keine abschließende Liste:**
+
+| Kategorie | Frankreich / Anglizismus → Québec |
 |---|---|
-| spray | vaporisateur |
-| lifting, effet lift | effet raffermissant |
-| peeling | exfoliation |
-| patch | timbre |
-| make-up | maquillage |
-| waterproof | résistant à l'eau |
-| glow | éclat |
-| soin de la peau (Singular) | soins de la peau |
-| patte-d'oie (Singular) | pattes-d'oie (immer Plural) |
+| Kosmetik / Hautpflege | spray → vaporisateur · lifting → effet raffermissant · peeling → exfoliation · patch → timbre · make-up → maquillage · waterproof → résistant à l'eau · glow → éclat · soin de la peau → soins de la peau · patte-d'oie → pattes-d'oie (immer Plural) |
+| Gelenke / Körper | articulations · douleurs articulaires · genoux · hanches · dos |
+| Zahnpflege | soins dentaires · prothèse dentaire · dentier · gencives |
+| Haushalt / Geräte | washing machine → laveuse · dryer → sécheuse · vacuum → balayeuse |
+| Kleidung | chaussures → souliers · socks → bas · pull → chandail |
+| Auto | voiture (informell: char) · carburant → gaz · pneus d'hiver |
+| Haus / Garten | basement → sous-sol · porch → galerie · Schneeräumen → déneigement |
+| Haustier | nourriture pour chien / chat · vétérinaire · laisse · niche |
+| Gesundheit allgemein | aux urgences → à l'urgence · Dr / Dre / Mme (ohne Punkt) |
 
-#### (D) Promo-Vokabular
+Steht die Kategorie des Produkts nicht in dieser Tabelle, ist das **kein Freibrief** —
+dann gilt (A) und der Prüfschritt oben. Neue Kategorien nach (G) ergänzen.
+
+#### (D) Promo- und Shop-Vokabular — produktunabhängig
 
 | verboten (Frankreich / neutral) | erforderlich (Québec) |
 |---|---|
@@ -182,30 +212,39 @@ in Montréal nachlässig.
 Nie Frankreich-Registermarker verwenden: vachement, truc, hyper, super sympa, au top,
 canon, bluffant, en un rien de temps.
 
-#### (E) Québec-Typografie — hier ist Frankreich am sichtbarsten
+#### (E) Québec-Typografie — produktunabhängig, hier ist Frankreich am sichtbarsten
 
-Diese Punkte sind Zeichen-für-Zeichen zu prüfen. Sie sind der zuverlässigste
-FR-FR-Marker in kurzen Bildtexten und der häufigste Fehler bisher.
+Zeichen für Zeichen zu prüfen. Zuverlässigster FR-FR-Marker in kurzen Bildtexten.
 
 - **Kein Leerzeichen vor `!` `?` `;`** → `Dis adieu à la peau relâchée!`
   Niemals `relâchée !` — das ist Frankreich-Satz.
 - **Leerzeichen vor `:` und `%`** → `Ce qui disparaît avant l'été :` · `98 %`
-- Preisformat CAD: Zahl, Leerzeichen, Dollarzeichen, Dezimal**komma** — `49,99 $`.
-  Niemals `$49.99`, niemals `49,99$`.
+- **Preis:** Der Betrag kommt **immer aus Spalte J** der jeweiligen Zeile — niemals aus
+  dieser Datei, niemals aus der Quell-Ad. Nur das *Format* ist hier festgelegt:
+  Zahl mit Dezimal**komma**, Leerzeichen, Dollarzeichen → `<Betrag> $`.
+  Richtig: `29,95 $` · `119,00 $` · `9,99 $`. Falsch: `$29.95` · `29,95$` · `29.95 $`.
+  Die Zahlen in dieser Datei sind Formatbeispiele, keine Preise.
 - Dezimalkomma: `4,8`. Tausender mit Leerzeichen: `20 428`.
 - Uhrzeit `23 h 59`. Datum `20 février 26`, Monat klein.
 - Anführungszeichen: « Guillemets mit Innenabstand ».
 - Akzente sind Pflicht und müssen korrekt sein: `É È À Ç Ê Î Ô Û`.
   Großbuchstaben behalten ihren Akzent (`ÉCONOMISE`, nicht `ECONOMISE`).
 
-#### (F) Bewährte kurze Bausteine
+#### (F) Bewährte kurze Bausteine — produktunabhängig
 
-Neutral formuliert, ohne Produktversprechen — Claims kommen aus Spalte G/J und der
-Quell-Ad, nicht aus dieser Liste:
+Enthalten bewusst **keine** Produktversprechen. Claims kommen aus Spalte G/J und der
+Quell-Ad, nie aus dieser Liste:
 
-`PEAU PLUS FERME` · `SANS CHIRURGIE` · `RAFFERMIT ET HYDRATE` · `DIS ADIEU À LA PEAU
-RELÂCHÉE` · `COMMANDE MAINTENANT` · `LIVRAISON GRATUITE` · `ÉCONOMISE 50 %` ·
-`ESSAIE-LE 30 JOURS` · `SPÉCIAL` · `EN RABAIS`
+`COMMANDE MAINTENANT` · `LIVRAISON GRATUITE` · `ÉCONOMISE 50 %` · `ESSAIE-LE 30 JOURS` ·
+`SPÉCIAL` · `EN RABAIS` · `QUANTITÉS LIMITÉES` · `SATISFACTION GARANTIE` ·
+`VENTE D'HIVER` · `SEULEMENT AUJOURD'HUI`
+
+#### (G) Neue Produktkategorie
+
+Bevor für ein Produkt einer Kategorie generiert wird, die in (C) nicht vorkommt: den
+Prüfschritt aus (C) durchführen und die gefundenen Paare als neue Zeile in (C)
+ergänzen. Der Lauf wird dadurch nicht blockiert — (A) trägt die Prüfung —, aber die
+Zeile gehört nachgetragen, damit die nächste Ad davon profitiert.
 
 ### 4.2 FI — Finnisch
 

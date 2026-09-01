@@ -23,7 +23,8 @@ Playwright-Skripte in `scripts/`.
 > **Für FRCA reicht die Verbotsliste nicht** — sie ist eine Promo-Wortliste, die in
 > einer Kosmetik-Ad nie greift. Verbindlich sind zusätzlich Register (4.1 A),
 > Kategorie-Vokabular (4.1 C) und Typografie (4.1 E), insbesondere: **kein Leerzeichen
-> vor `!` `?` `;`**.
+> vor `!` `?` `;`**. Die Wortlisten in 4.1 sind **Beispiele, keine abschließenden
+> Listen** — verbindlich für jedes Produkt und jede Kategorie ist der Test in 4.1 (A).
 > Erfundene Wörter und Frankreich-Französisch sind Ablehnungsgründe, keine Schönheits-
 > fehler.
 
@@ -309,10 +310,14 @@ Die eigentliche Higgsfield-Generierung passiert bereits in Schritt 5 (ein Call p
      ist kein gültiger Log-Eintrag:**
      1. `vous / votre / vos` oder eine `-ez`-Verbform als Leseransprache
      2. **Leerzeichen vor `!` `?` `;`** (Frankreich-Satz — häufigster Fehler)
-     3. ein Wort aus dem Frankreich-Beautyregister oder der Verbotsliste
-        (`docs/language-rules.md` Abschnitt 4.1 A, C, D)
+     3. ein Ausdruck, der den Test aus `docs/language-rules.md` 4.1 (A) nicht besteht
+        — gilt für **jedes Produkt und jede Kategorie**, nicht nur für die Wörter in
+        den Beispieltabellen 4.1 (C)/(D). Die Listen sind Abkürzungen für bekannte
+        Fälle; ein Wort, das dort fehlt, ist nicht erlaubt, sondern ungeprüft.
      4. fehlender oder falscher Akzent, auch in Großbuchstaben
-     5. Preis nicht im Format `49,99 $`
+     5. Preis nicht im Format `<Betrag> $` (Dezimalkomma, Leerzeichen, Dollarzeichen).
+        Der Betrag stammt aus Spalte J — Zahlen in `language-rules.md` sind
+        Formatbeispiele, keine Preise.
      FI u. a. erfundene Komposita, `a` statt `ä`.
    - Jedes Wort im Bild, das nicht im LOCKED STRING steht — auch auf Verpackung,
      Etikett, Preisschild oder Hintergrundschild — bedeutet: **nicht hochladen**,
