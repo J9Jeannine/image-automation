@@ -266,6 +266,52 @@ Bewährte kurze Bausteine: `OSTA NYT`, `ILMAINEN TOIMITUS`, `SÄÄSTÄ 50 %`, `T
 
 ---
 
+## 4a. FREIGABE VOR DEM RENDERN — blockierend
+
+**Das ist die Stelle, an der FRCA bisher durchgerutscht ist.** Die Prüfung in
+Abschnitt 5 findet *nach* dem Rendern statt und vergleicht das Bild mit dem LOCKED
+STRING. Sie kann deshalb nur finden, ob das Bildmodell den Text verfälscht hat — **nie,
+ob der LOCKED STRING selbst schon Frankreich-Französisch war.** Ein sauber gerenderter
+Frankreich-Satz bestand jede bisherige Kontrolle.
+
+Der Unterschied zu FI ist genau hier: finnischer Text ist erkennbar finnisch oder gar
+nicht. Frankreich-Französisch dagegen **ist** gültiges Französisch — der Fehler ist
+unsichtbar, solange niemand gezielt danach sucht. Deshalb braucht FRCA eine eigene
+Freigabe, FI nicht.
+
+**Vor dem ERSTEN `generate_image`-Call einer Ad sind beide Schritte Pflicht:**
+
+**(1) Maschinelle Prüfung — blockierend, kein Ermessen**
+
+```
+python3 scripts/check_locked_string.py <MARKET_CODE> <pfad_zur_ad_copy.md>
+```
+
+Exit-Code 1 = **nicht rendern.** LOCKED STRING korrigieren, erneut laufen lassen.
+Erst bei Exit 0 darf gerendert werden. Das Skript prüft mechanisch:
+Leerzeichen vor `!` `?` `;` · fehlendes Leerzeichen vor `:` `%` · `vous/votre/vos` ·
+2.-Person-Plural-Verbformen · Wörter aus den Verbotslisten in Abschnitt 4 ·
+fehlende Akzente in Großbuchstaben · falsches Preisformat · Textelemente über 6 Wörter.
+
+**(2) Register-Freigabe — Urteilsschritt, muss protokolliert werden**
+
+Das Skript kann Register und Idiomatik **nicht** prüfen. Deshalb zusätzlich, in der
+`<product>_<market>_ad_copy.md`, für jedes Textelement eine Zeile schreiben:
+
+```
+FREIGABE 4.1(A): "<Textelement>" — existiert im Québec-Französisch eigenständig? JA, weil <Begründung in einem Halbsatz>
+```
+
+**Fehlt dieser Block in der ad_copy.md, ist die Ad nicht freigegeben und darf nicht
+gerendert werden.** Eine pauschale Zeile wie „alles geprüft" ist keine Freigabe — es
+braucht eine Zeile pro Textelement. Der Grund: eine Selbstprüfung ohne schriftliches
+Ergebnis findet nichts; erst das Ausformulieren zwingt zum tatsächlichen Hinsehen.
+
+Im Abschlussbericht des Laufs steht pro Zeile, ob (1) bestanden hat und dass (2)
+protokolliert wurde.
+
+---
+
 ## 5. Prüfung vor dem Upload (Sicherheitsnetz, nicht die Lösung)
 
 Für **jedes einzelne** Bild, nicht stichprobenartig:

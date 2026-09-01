@@ -207,6 +207,26 @@ Für **jede einzelne Ad** aus Schritt 4 (nicht gebündelt):
    **bevor** gerendert wird. Der LOCKED STRING wandert unverändert in die
    `<product_name>_<market_code>_ad_copy.md` aus Punkt 5.
 
+0b. **FREIGABE — blockierend, vor dem ersten `generate_image`-Call.**
+   Vollständige Regel: `docs/language-rules.md` Abschnitt 4a. Zwei Pflichtschritte:
+
+   ```
+   python3 scripts/check_locked_string.py <MARKET_CODE> <pfad_zur_ad_copy.md>
+   ```
+
+   **Exit-Code 1 = nicht rendern.** LOCKED STRING korrigieren, erneut prüfen. Erst
+   bei Exit 0 weiter. Kein Higgsfield-Call, solange das Skript blockiert — das spart
+   auch Credits, weil ein sprachlich falsches Bild gar nicht erst entsteht.
+
+   Zusätzlich in die `ad_copy.md`, eine Zeile **pro Textelement**:
+   `FREIGABE 4.1(A): "<Text>" — eigenständig im Québec-Französisch? JA, weil <Grund>`
+   Fehlt der Block, ist die Ad nicht freigegeben. „Alles geprüft" zählt nicht.
+
+   Grund für diesen Schritt: die Sprach-QA in Schritt 8.5 läuft **nach** dem Rendern
+   und vergleicht Bild gegen LOCKED STRING. Sie findet nie, dass der LOCKED STRING
+   selbst schon Frankreich-Französisch war. Genau dort ist FRCA monatelang
+   durchgerutscht.
+
 1. Prüfen, ob die Quell-Anzeige überhaupt ein Produkt zeigt.
    - **Zeigt sie ein Produkt:** das EINE Produktbild-Asset aus Schritt 3 (wiederverwendet,
      nicht neu erzeugt) als Referenz einsetzen — Maßstab/Winkel/Licht an die Ad-Szene

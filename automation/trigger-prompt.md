@@ -2,8 +2,11 @@
 diesem Repo. Die Sprachregeln sind blockierend: der komplette sichtbare Bildtext wird
 **vor** dem Bildprompt in der Zielsprache ausformuliert (LOCKED STRING) und wörtlich in
 den Higgsfield-Prompt gesetzt — das Bildmodell übersetzt nie selbst. `FRCA` =
-Québec-Französisch mit `tu`-Anrede (nie Frankreich-Französisch, nie `SOLDES`), `FI` =
-natürliches Finnisch ohne erfundene Komposita. Kein Wort aus der Quell-Ad geht in den
+Québec-Französisch mit `tu`-Anrede, `FI` = natürliches Finnisch ohne erfundene
+Komposita. **Für FRCA reicht die Verbotsliste nicht** — verbindlich sind der Test in
+`docs/language-rules.md` 4.1 (A), die Kategorie-Prüfung 4.1 (C) und die Québec-Typografie
+4.1 (E), insbesondere: kein Leerzeichen vor `!` `?` `;`. **Und vor jedem Rendern die
+blockierende Freigabe nach Abschnitt 4a.** Kein Wort aus der Quell-Ad geht in den
 Prompt. Jedes Wort im Render, das nicht im LOCKED STRING steht, bedeutet: nicht
 hochladen, neu generieren.
 
@@ -34,7 +37,11 @@ Führe den image-automation Workflow aus dem Repo `j9jeannine/image-automation`,
    neu erzeugen.
 5. Für jede Ad aus dem M-Kommentar-Thread (Schritt 4/5): **zuerst den LOCKED STRING
    nach `docs/language-rules.md` schreiben** (fertiger Zieltext, max. 6 Wörter pro
-   Textelement, gegen die Verbotsliste geprüft), dann erst rendern. Ad erst versuchen zu öffnen. Ist
+   Textelement), **dann die Freigabe nach Abschnitt 4a durchlaufen — blockierend:**
+   `python3 scripts/check_locked_string.py <MARKET_CODE> <ad_copy.md>` muss Exit 0
+   liefern, und in der `ad_copy.md` muss pro Textelement eine `FREIGABE 4.1(A):`-Zeile
+   stehen. Exit 1 oder fehlender Block = nicht rendern, LOCKED STRING korrigieren.
+   Erst danach rendern. Ad erst versuchen zu öffnen. Ist
    `facebook.com` blockiert (bekannte Einschränkung dieser Sandbox, siehe
    `network_access` in der Config) — **den Nutzer nach den direkten
    Bild-/Video-URLs fragen**, nicht stumm überspringen oder mehrfach versuchen. Dann:
@@ -49,7 +56,10 @@ Führe den image-automation Workflow aus dem Repo `j9jeannine/image-automation`,
    separate Foundation-Phase anwenden.
 6. **Sprach-QA vor dem Upload (Schritt 7.5):** jedes Bild einzeln mit dem `Read`-Tool
    ansehen, jedes sichtbare Wort abtippen und Zeichen für Zeichen gegen den LOCKED
-   STRING diffen (inkl. Akzente, `ä`/`ö`, Zahlenformat `49,99 $` / `49,99 €`).
+   STRING diffen (inkl. Akzente, `ä`/`ö`, Zahlenformat `<Betrag> $` / `<Betrag> €` —
+   der Betrag kommt aus Spalte J, die Zahlen in den Docs sind Formatbeispiele).
+   Zusätzlich die fünf FRCA-Punkte aus `docs/workflow.md` Schritt 8.5 einzeln
+   protokollieren.
    Abweichung = nicht hochladen, neu generieren, **und den Schlüssel dieses Bildes in
    `State/flagged_for_regeneration.json` eintragen** (Schritt 2b) — sonst weiß ein
    späterer Lauf nicht, dass genau dieses Bild noch fehlt. Ein Prompt-Hinweis ist kein

@@ -36,6 +36,17 @@ Zielvarianten:
 - **FI** = natürliches Finnisch eines Muttersprachlers. Keine maschinell
   zusammengesetzten Komposita, keine erfundenen Wörter.
 
+5. **FREIGABE VOR DEM RENDERN — blockierend.** Vor dem ersten `generate_image`-Call
+   jeder Ad muss `python3 scripts/check_locked_string.py <MARKET_CODE> <ad_copy.md>`
+   mit Exit-Code 0 durchlaufen sein, und in der `ad_copy.md` muss pro Textelement eine
+   `FREIGABE 4.1(A):`-Zeile stehen. Exit 1 oder fehlender Block = **nicht rendern**.
+   Vollständige Regel: `docs/language-rules.md` Abschnitt 4a.
+   Der Grund: die QA in Abschnitt 5 vergleicht das Bild mit dem LOCKED STRING und kann
+   deshalb nie finden, dass der LOCKED STRING selbst schon Frankreich-Französisch war.
+   Genau dort ist FRCA monatelang durchgerutscht — bei FI kann das nicht passieren,
+   weil falsches Finnisch als Nicht-Finnisch auffällt, falsches Québécois aber immer
+   noch gültiges Französisch ist.
+
 **Ein Prompt-Hinweis allein ist kein Nachweis.** Erst der geprüfte Render zählt
 (`docs/language-rules.md`, Abschnitt 5).
 
