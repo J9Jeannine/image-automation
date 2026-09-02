@@ -60,6 +60,33 @@ Datenquelle ist **kein** freies Ad-Library-Suchergebnis, sondern das bestehende
    (Head-Post + alle Reply-Inhalte) speichern. Nur Zeilen mit einem **neuen oder
    geänderten** Fingerprint gegenüber dem letzten Lauf weiterverarbeiten. Ist nichts neu:
    Lauf beenden, keine weiteren Schritte, keine Chat-Nachricht nötig (kein Spam).
+
+   **Fingerprint-Verfahren — verbindlich, für jeden Lauf identisch:**
+
+   ```
+   sha256( "\n".join([headPost.content] + [r.content for r in replies]) ).hexdigest()
+   ```
+
+   Roh-Inhalte genau so, wie `Google_Drive.read_file_content` (`includeComments: true`)
+   sie liefert — **nicht** URL-dekodiert, nicht getrimmt, Reihenfolge unverändert.
+   Ergebnis: 64 Zeichen Kleinbuchstaben-Hex, gespeichert als `fingerprint` der Zeile.
+   Niemals einen Platzhalter-String (`"moodie_fi60_6url"` o. ä.) oder ein selbst
+   ausgedachtes Hash-Verfahren eintragen.
+
+   Grund: am 2026-09-02 standen in `processed_comments.json` Fingerprints aus mindestens
+   drei verschiedenen Verfahren. Dadurch hätte der nächste Lauf **41 bereits fertige
+   Zeilen** (~250 Bilder) als "geändert" erkannt und komplett neu generiert. Ein
+   uneinheitliches Verfahren ist damit direkt eine Credit-Verbrennung in der
+   Größenordnung mehrerer kompletter Läufe. Die Fingerprints wurden an diesem Tag auf
+   das obige Verfahren normalisiert (Gegenprobe: kein Kommentar-Post war neuer als das
+   `last_run`-Datum seiner Zeile, der Inhalt hatte sich also nicht geändert).
+
+   **Plausibilitätsprüfung, bevor ein Massen-Rerun startet:** meldet der Abgleich auf
+   einmal sehr viele geänderte Zeilen (Faustregel: mehr als 3, oder Zeilen, deren
+   `last_run` Wochen zurückliegt), erst den Zeitstempel des jüngsten Posts jedes Threads
+   gegen `last_run` der Zeile halten. Ist **kein** Post neuer als `last_run`, hat sich
+   nichts geändert — dann ist das Hash-Verfahren defekt, nicht der Thread. In dem Fall
+   die Fingerprints normalisieren und **nicht** generieren.
 2a. **Zeilen-Sperre — verpflichtend, bevor irgendetwas für eine Zeile generiert wird.**
    Grund: zwei gleichzeitig laufende Sessions (z. B. der tägliche 6-Uhr-Trigger und ein
    manueller "Jetzt ausführen"-Lauf) haben bereits einmal dieselbe Zeile parallel
