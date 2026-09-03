@@ -42,7 +42,8 @@ owned by the user, in the user's Drive:
 
 > **Note on the file names in the tables above:** they use the *old* scheme
 > (`<product>_<market>_ad<N>.jpg`), which was replaced on 2026-09-03 by
-> `<N>_<product>_<market>.jpg` (e.g. `1_Pawox_FI.jpg`). The tables are kept verbatim as
+> `<N>_<product>_<market>.jpg` (e.g. `1_Pawox_FI.jpg`), and the product image was renamed
+> from `_produktbild.jpg` to `_productimage.jpg`. The tables are kept verbatim as
 > historical proof that the upload method works — do **not** copy their naming.
 
 **The success fingerprint on every one of these files:** `owner = jeannine.thiry1@gmail.com`
@@ -83,7 +84,7 @@ and small text files.
    `<N>_<product>_<market>.jpg` (number first, e.g. `1_Pawox_FI.jpg`, so the folder
    sorts in ad order; `<N>` is the ad's position in the column-M comment thread and is
    never renumbered when a source ad is missing) and
-   `<product>_<market>_produktbild.jpg`.
+   `<product>_<market>_productimage.jpg`.
 
 4. **Mint a service-account token** from `GOOGLE_SERVICE_ACCOUNT_JSON` (JWT RS256, scope
    `https://www.googleapis.com/auth/drive`, sign with `openssl` — the Python `cryptography`

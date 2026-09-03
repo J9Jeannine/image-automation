@@ -80,7 +80,8 @@ we combine them. Neither alone is sufficient.
       source ad can't be fetched, its number stays vacant — later ads are **not**
       renumbered to close the gap.
     - `<market_code>` is the tab's code, `FI` / `FRCA`, uppercase.
-  - Product image: `<product_name>_<market_code>_produktbild.jpg`
+  - Product image: `<product_name>_<market_code>_productimage.jpg` (English `productimage`,
+    not the older German `produktbild`)
   - Ad copy: `<product_name>_<market_code>_ad_copy.md`
 
 ---

@@ -98,9 +98,16 @@ Ad-Bilddateien heißen **`<N>_<Produktname>_<Marktcode>.jpg`** — Zahl zuerst.
 - Die Zahl steht vorn, damit der Drive-Ordner von selbst in Ad-Reihenfolge sortiert.
 
 Das alte Schema `<product>_<market>_ad<N>.jpg` ist **abgelöst** und wird nicht mehr
-verwendet. **Produktbild und Ad-Copy behalten** ihre Form
-(`<Produktname>_<Marktcode>_produktbild.jpg`, `<Produktname>_<Marktcode>_ad_copy.md`) —
-sie sind keine Ads und haben keine Nummer.
+verwendet.
+
+**Produktbild und Ad-Copy tragen keine Nummer** — sie sind keine Ads:
+
+```
+Cervi_FI_productimage.jpg    Cervi_FI_ad_copy.md
+```
+
+Das Produktbild heißt **englisch `productimage`**, nicht `produktbild`. Das deutsche
+`_produktbild.jpg` ist abgelöst und darf in keinem neuen Lauf mehr entstehen.
 
 Gilt ab 2026-09-03 für jeden künftigen Lauf. Vollständig in
 `config/automation.config.json` → `drive.file_name_pattern` und `docs/workflow.md`

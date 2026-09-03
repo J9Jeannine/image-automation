@@ -140,7 +140,7 @@ angelegte Struktur (Stand jetzt):
 ```
 Translated-Ads/                    (id: 1JWHztpl2Z6mE9WtcRTObRgwBRp1OsHCb)
   FI/                               (id: 1Ey4aVRrpzrzolETnzKVxVCZQGZjm0P5K)
-    2026-09-03 - Cervi/             echte Bilddateien: 1_Cervi_FI.jpg .. 8_Cervi_FI.jpg, Cervi_FI_produktbild.jpg, Cervi_FI_ad_copy.md
+    2026-09-03 - Cervi/             echte Bilddateien: 1_Cervi_FI.jpg .. 8_Cervi_FI.jpg, Cervi_FI_productimage.jpg, Cervi_FI_ad_copy.md
     2026-07-25 - itzora/            aelterer Lauf, noch im alten Namensschema (itzora_FI_ad1..8.jpg)
     vanix/                          (id: 1TwCfnOts6cXmiLJFCLbsPNW4HkTlQKaJ)
       2026-07-09-vanix-fi           Google Doc: CDN-Links + übersetzte Ad-Copy (alter Lauf, vor Upload-Fix)
