@@ -180,6 +180,7 @@ Beispiele des Prinzips — **ausdrücklich keine abschließende Liste:**
 |---|---|
 | Kosmetik / Hautpflege | spray → vaporisateur · lifting → effet raffermissant · peeling → exfoliation · patch → timbre · make-up → maquillage · waterproof → résistant à l'eau · glow → éclat · soin de la peau → soins de la peau · patte-d'oie → pattes-d'oie (immer Plural) |
 | Gelenke / Körper | articulations · douleurs articulaires · genoux · hanches · dos |
+| Beine / Venen / Kreislauf | swollen feet → pieds enflés (Québec sagt *enflé*, nicht *gonflé*) · chevilles enflées · jambes lourdes · dégonfler les jambes (konkret, statt „drainer") · varices · mollets · rétention d'eau |
 | Zahnpflege | soins dentaires · prothèse dentaire · dentier · gencives |
 | Haushalt / Geräte | washing machine → laveuse · dryer → sécheuse · vacuum → balayeuse |
 | Kleidung | chaussures → souliers · socks → bas · pull → chandail |
