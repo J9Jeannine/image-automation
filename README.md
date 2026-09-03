@@ -72,7 +72,8 @@ die Drive-Verbindung anlegen (User-owned), **(2)** der Service-Account
 **Owner** (User) berechnet wird, funktioniert das in voller Qualität — Ergebnis:
 `owner=User`, `lastModifyingUser=Service-Account`. Vollständige Schritte + Begründung:
 `config/automation.config.json` → `upload_method` und `docs/workflow.md` Schritt 7. Echte
-Bilddateien landen als `<product>_<market>_ad<N>.jpg` im Tages-/Produkt-Ordner
+Bilddateien landen als `<N>_<product>_<market>.jpg` (Zahl zuerst, z. B. `1_Pawox_FI.jpg`)
+im Tages-/Produkt-Ordner
 `Translated-Ads/<market>/<YYYY-MM-DD> - <product>/`.
 
 **Beobachtete Instabilität bei automatischen (Trigger-)Läufen:** Im zweiten,
@@ -139,7 +140,8 @@ angelegte Struktur (Stand jetzt):
 ```
 Translated-Ads/                    (id: 1JWHztpl2Z6mE9WtcRTObRgwBRp1OsHCb)
   FI/                               (id: 1Ey4aVRrpzrzolETnzKVxVCZQGZjm0P5K)
-    2026-07-25 - itzora/            echte Bilddateien: itzora_FI_ad1..8.jpg, _produktbild.jpg, _ad_copy.md
+    2026-09-03 - Cervi/             echte Bilddateien: 1_Cervi_FI.jpg .. 8_Cervi_FI.jpg, Cervi_FI_produktbild.jpg, Cervi_FI_ad_copy.md
+    2026-07-25 - itzora/            aelterer Lauf, noch im alten Namensschema (itzora_FI_ad1..8.jpg)
     vanix/                          (id: 1TwCfnOts6cXmiLJFCLbsPNW4HkTlQKaJ)
       2026-07-09-vanix-fi           Google Doc: CDN-Links + übersetzte Ad-Copy (alter Lauf, vor Upload-Fix)
   FRCA/                             (id: 1ZeW7nKHrCMNOBH6jIKZrzNYjJWXPvQDW)

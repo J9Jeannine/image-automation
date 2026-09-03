@@ -91,7 +91,7 @@ Datenquelle ist **kein** freies Ad-Library-Suchergebnis, sondern das bestehende
    - `<Projektordner>/<market_code>/State/flagged_for_regeneration.json` lesen
      (existiert die Datei nicht, als `{}` behandeln). Schlüssel:
      `<market_code>!<Zeilennummer>!ad<N>` (Produktbild: `...!produktbild`).
-   - Existiert `<product_name>_<market_code>_ad<N>.jpg` (bzw. `_produktbild.jpg`)
+   - Existiert `<N>_<product_name>_<market_code>.jpg` (bzw. `_produktbild.jpg`)
      bereits im Zielordner **und** ihr Schlüssel steht **nicht** in
      `flagged_for_regeneration.json`: **nicht neu generieren.** Datei unangetastet
      lassen, für Schritt 8 als bereits erledigt zählen.
@@ -311,8 +311,11 @@ Die eigentliche Higgsfield-Generierung passiert bereits in Schritt 5 (ein Call p
    Speicher dem User → funktioniert (Ergebnis: `owner=User`, `lastModifyingUser=Service-Account`,
    volle Qualität). Der Drive-MCP-Base64-Kanal schneidet lange Werte ab (~15 000 base64-Zeichen
    ≈ 11 KB) → für echte Bilder (100–260 KB) unbrauchbar, deshalb nur für den Platzhalter.
-   Dateibenennung: `<product_name>_<market_code>_ad<N>.jpg`, Produktbild
-   `<product_name>_<market_code>_produktbild.jpg`.
+   Dateibenennung: Ads `<N>_<product_name>_<market_code>.jpg` (z. B. `1_Pawox_FI.jpg`),
+   Produktbild `<product_name>_<market_code>_produktbild.jpg`. Die Zahl steht **vorn**,
+   damit der Ordner in Drive automatisch in Ad-Reihenfolge sortiert. `<N>` ist die
+   Position der Quell-Ad im M-Kommentar-Thread und bleibt fest: fehlt eine Quell-Ad,
+   bleibt ihre Nummer frei (Lücke), sie wird nicht nachgerückt.
 
 4. **Verifizieren:** Nach jedem Upload prüfen, dass die zurückgegebene `size` der
    Quell-Dateigröße entspricht UND das Bild vollständig dekodiert (`PIL im.load()`). Bei
@@ -361,7 +364,7 @@ Die eigentliche Higgsfield-Generierung passiert bereits in Schritt 5 (ein Call p
 
 1. Alle Text-/Bild-Outputs liegen bereits als **echte Dateien** im Tages-/Produkt-Ordner
    `Translated-Ads/<market_code>/<Lauf-Datum> - <product_name>/` (Schritte 5/7): die
-   `<product_name>_<market_code>_ad<N>.jpg`, das `_produktbild.jpg` und die `_ad_copy.md`.
+   `<N>_<product_name>_<market_code>.jpg`, das `_produktbild.jpg` und die `_ad_copy.md`.
    Es darf **kein** Markdown-Links-Ersatz statt echter Bilddateien stehen bleiben.
 2. **Sheet-Rückschreiben — verpflichtend, nicht optional.** Vollständige Anleitung:
    **[`docs/sheet-writeback-SOP.md`](sheet-writeback-SOP.md)**. Pro verarbeiteter Zeile

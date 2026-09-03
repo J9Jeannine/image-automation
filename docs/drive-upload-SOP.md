@@ -40,6 +40,11 @@ owned by the user, in the user's Drive:
 |---|---|---|---|---|---|
 | atriso_FI_ad1.jpg | 1t5uzEAZSmlnohSDiJuL4hh7PZJ0w-jpX | 166636 | 1000² | user | service account |
 
+> **Note on the file names in the tables above:** they use the *old* scheme
+> (`<product>_<market>_ad<N>.jpg`), which was replaced on 2026-09-03 by
+> `<N>_<product>_<market>.jpg` (e.g. `1_Pawox_FI.jpg`). The tables are kept verbatim as
+> historical proof that the upload method works — do **not** copy their naming.
+
 **The success fingerprint on every one of these files:** `owner = jeannine.thiry1@gmail.com`
 **and** `lastModifyingUser = image-automation-uploader@...gserviceaccount.com`. That
 combination is only producible by the method below. If you see it on existing files, that is
@@ -75,7 +80,10 @@ and small text files.
 3. **Create each image file as a user-owned placeholder** via `Google_Drive.create_file`
    (`contentMimeType: image/jpeg`, `disableConversionToGoogleType: true`, `base64Content` =
    the 1×1 JPEG in `docs/drive-upload-method.md`). Keep each returned file **id**. Name files
-   `<product>_<market>_ad<N>.jpg` and `<product>_<market>_produktbild.jpg`.
+   `<N>_<product>_<market>.jpg` (number first, e.g. `1_Pawox_FI.jpg`, so the folder
+   sorts in ad order; `<N>` is the ad's position in the column-M comment thread and is
+   never renumbered when a source ad is missing) and
+   `<product>_<market>_produktbild.jpg`.
 
 4. **Mint a service-account token** from `GOOGLE_SERVICE_ACCOUNT_JSON` (JWT RS256, scope
    `https://www.googleapis.com/auth/drive`, sign with `openssl` — the Python `cryptography`
@@ -89,7 +97,7 @@ and small text files.
      "https://www.googleapis.com/upload/drive/v3/files/${FILE_ID}?uploadType=media&supportsAllDrives=true&fields=name,size" \
      -H "Authorization: Bearer ${SA_TOKEN}" \
      -H "Content-Type: image/jpeg" \
-     --data-binary @"/path/${PRODUCT}_${MARKET}_ad${N}.jpg"
+     --data-binary @"/path/${N}_${PRODUCT}_${MARKET}.jpg"
    ```
 
    `PATCH` + `uploadType=media` = **update** (allowed). Never `POST /files` = create

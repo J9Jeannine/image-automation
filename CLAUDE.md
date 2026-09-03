@@ -81,6 +81,31 @@ Zielordner noch fehlen oder in `State/flagged_for_regeneration.json` als falsch 
 sind. Bereits vorhandene, nicht markierte Bilder bleiben unangetastet. Siehe
 `docs/workflow.md` Schritt 2b. Verpflichtend, kein Sonderfall.
 
+## 3b. Dateinamen der Ads — feste Form, jeder Lauf, jede Session
+
+Ad-Bilddateien heißen **`<N>_<Produktname>_<Marktcode>.jpg`** — Zahl zuerst.
+
+```
+1_Pawox_FI.jpg   8_Cervi_FI.jpg   2_Circuva_FRCA.jpg
+```
+
+- `<N>` = Position der Quell-Ad im M-Kommentar-Thread. Die Nummer ist **fest**: lässt
+  sich eine Quell-Ad nicht laden, bleibt ihre Nummer **frei** (Lücke im Ordner).
+  Spätere Ads werden **nicht** nachgerückt — sonst zeigt eine Nummer bei jedem Lauf
+  auf eine andere Anzeige.
+- `<Produktname>` = Spalte G, **verbatim** (inkl. Schreibweise und Trademark-Zeichen).
+- `<Marktcode>` = `FI` / `FRCA`, groß.
+- Die Zahl steht vorn, damit der Drive-Ordner von selbst in Ad-Reihenfolge sortiert.
+
+Das alte Schema `<product>_<market>_ad<N>.jpg` ist **abgelöst** und wird nicht mehr
+verwendet. **Produktbild und Ad-Copy behalten** ihre Form
+(`<Produktname>_<Marktcode>_produktbild.jpg`, `<Produktname>_<Marktcode>_ad_copy.md`) —
+sie sind keine Ads und haben keine Nummer.
+
+Gilt ab 2026-09-03 für jeden künftigen Lauf. Vollständig in
+`config/automation.config.json` → `drive.file_name_pattern` und `docs/workflow.md`
+Schritt 7.
+
 ## 4. Branch
 
 Die Routine liest **`claude/adoring-fermat-ikg9pb`** (Default-Branch), siehe

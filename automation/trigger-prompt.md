@@ -68,7 +68,9 @@ Führe den image-automation Workflow aus dem Repo `j9jeannine/image-automation`,
 7. **Bild-Upload nach Drive ist verpflichtend (Schritt 7):** die gerenderten Higgsfield-Bilder
    per curl auf die Disk laden und als **echte JPG-Dateien** in Drive ablegen — Ordner
    `Translated-Ads/<market_code>/<Lauf-Datum YYYY-MM-DD> - <product_name>/` (Produktname MUSS
-   im Ordnernamen stehen), Dateien `<product_name>_<market_code>_ad<N>.jpg`. Upload-Methode
+   im Ordnernamen stehen), Dateien `<N>_<product_name>_<market_code>.jpg` (Zahl zuerst,
+   z. B. `1_Pawox_FI.jpg` — siehe `config/automation.config.json` →
+   `drive.file_name_pattern`). Upload-Methode
    ZWINGEND wie in `config/automation.config.json` → `upload_method`: Platzhalter per
    Drive-`create_file` anlegen (User-owned), dann per Service-Account (`GOOGLE_SERVICE_ACCOUNT_JSON`)
    `files.update` mit den vollen Bytes überschreiben. Niemals auf den alten

@@ -74,7 +74,12 @@ we combine them. Neither alone is sufficient.
     - `Translated-Ads/FI` = `1Ey4aVRrpzrzolETnzKVxVCZQGZjm0P5K`
     - `Translated-Ads/FRCA` = `1ZeW7nKHrCMNOBH6jIKZrzNYjJWXPvQDW`
 - **File names inside that folder:**
-  - Ads: `<product_name>_<market_code>_ad<N>.jpg` (e.g. `itzora_FI_ad1.jpg`)
+  - Ads: `<N>_<product_name>_<market_code>.jpg` (e.g. `1_Pawox_FI.jpg`, `8_Cervi_FI.jpg`)
+    - The number comes **first** so the folder sorts in ad order in Drive.
+    - `<N>` is the ad's position in the column-M comment thread and is fixed: if a
+      source ad can't be fetched, its number stays vacant — later ads are **not**
+      renumbered to close the gap.
+    - `<market_code>` is the tab's code, `FI` / `FRCA`, uppercase.
   - Product image: `<product_name>_<market_code>_produktbild.jpg`
   - Ad copy: `<product_name>_<market_code>_ad_copy.md`
 
@@ -96,7 +101,7 @@ Keep the returned folder id.
 
 For every image you will upload, call `Google_Drive.create_file`:
 
-- `title`: e.g. `itzora_FI_ad1.jpg`
+- `title`: e.g. `1_Pawox_FI.jpg`
 - `parentId`: the day/product folder id from Step 0
 - `contentMimeType`: `image/jpeg`
 - `disableConversionToGoogleType`: `true`
@@ -154,7 +159,7 @@ curl -s -X PATCH \
   "https://www.googleapis.com/upload/drive/v3/files/${FILE_ID}?uploadType=media&supportsAllDrives=true&fields=name,size" \
   -H "Authorization: Bearer ${SA_TOKEN}" \
   -H "Content-Type: image/jpeg" \
-  --data-binary @"/path/to/${PRODUCT}_${MARKET}_ad${N}.jpg"
+  --data-binary @"/path/to/${N}_${PRODUCT}_${MARKET}.jpg"
 ```
 
 Note `PATCH` + `/upload/…?uploadType=media` = **update the media of an existing file**. Do
