@@ -36,7 +36,7 @@ Für jede Ad, vor dem ersten Higgsfield-Call:
 1. Jeden sichtbaren Text der Ziel-Ad ausformulieren — Headline, Banner, Badge, Störer,
    Button/CTA, Preisschild, Verpackungsaufdruck, Kleingedrucktes. In der Zielsprache,
    fertig, endgültig.
-2. Diese Strings als **LOCKED STRING** in `<product_name>_<market_code>_ad_copy.md`
+2. Diese Strings als **LOCKED STRING** in `State/<product>_<market>_locked_strings.md`
    festhalten, mit einer Zeile pro Textelement, bevor gerendert wird.
 3. Den LOCKED STRING wörtlich in den Higgsfield-Prompt einsetzen, in Anführungszeichen,
    gefolgt von genau diesem Block:
@@ -284,7 +284,7 @@ Freigabe, FI nicht.
 **(1) Maschinelle Prüfung — blockierend, kein Ermessen**
 
 ```
-python3 scripts/check_locked_string.py <MARKET_CODE> <pfad_zur_ad_copy.md>
+python3 scripts/check_locked_string.py <MARKET_CODE> <pfad_zur_locked_strings.md>
 ```
 
 Exit-Code 1 = **nicht rendern.** LOCKED STRING korrigieren, erneut laufen lassen.
@@ -296,13 +296,13 @@ fehlende Akzente in Großbuchstaben · falsches Preisformat · Textelemente übe
 **(2) Register-Freigabe — Urteilsschritt, muss protokolliert werden**
 
 Das Skript kann Register und Idiomatik **nicht** prüfen. Deshalb zusätzlich, in der
-`<product>_<market>_ad_copy.md`, für jedes Textelement eine Zeile schreiben:
+`State/<product>_<market>_locked_strings.md`, für jedes Textelement eine Zeile schreiben:
 
 ```
 FREIGABE 4.1(A): "<Textelement>" — existiert im Québec-Französisch eigenständig? JA, weil <Begründung in einem Halbsatz>
 ```
 
-**Fehlt dieser Block in der ad_copy.md, ist die Ad nicht freigegeben und darf nicht
+**Fehlt dieser Block in der locked_strings.md, ist die Ad nicht freigegeben und darf nicht
 gerendert werden.** Eine pauschale Zeile wie „alles geprüft" ist keine Freigabe — es
 braucht eine Zeile pro Textelement. Der Grund: eine Selbstprüfung ohne schriftliches
 Ergebnis findet nichts; erst das Ausformulieren zwingt zum tatsächlichen Hinsehen.

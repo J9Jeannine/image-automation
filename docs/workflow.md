@@ -91,7 +91,7 @@ Datenquelle ist **kein** freies Ad-Library-Suchergebnis, sondern das bestehende
    - `<Projektordner>/<market_code>/State/flagged_for_regeneration.json` lesen
      (existiert die Datei nicht, als `{}` behandeln). Schlüssel:
      `<market_code>!<Zeilennummer>!ad<N>` (Produktbild: `...!produktbild`).
-   - Existiert `<product_name>_<market_code>_ad<N>.jpg` (bzw. `_produktbild.jpg`)
+   - Existiert `<N>_<Productname>_<countrycode>` (bzw. `_produktbild.jpg`)
      bereits im Zielordner **und** ihr Schlüssel steht **nicht** in
      `flagged_for_regeneration.json`: **nicht neu generieren.** Datei unangetastet
      lassen, für Schritt 8 als bereits erledigt zählen.
@@ -194,7 +194,7 @@ Für **jede einzelne Ad** aus Schritt 4 (nicht gebündelt):
 > diesem Schritt zu lesen, in **jedem** Lauf. Kein Higgsfield-Call ohne LOCKED STRING.
 > Kurzfassung: der komplette sichtbare Bildtext wird **vorher** in der Zielsprache
 > ausformuliert (`FRCA` = Québec-Französisch mit `tu`-Anrede, `FI` = natürliches
-> Finnisch), als LOCKED STRING in der `ad_copy.md` festgehalten und wörtlich in den
+> Finnisch), als LOCKED STRING in `State/<product>_<market>_locked_strings.md` festgehalten und wörtlich in den
 > Prompt gesetzt. Das Bildmodell übersetzt nichts, ergänzt nichts, korrigiert nichts.
 > Kein Wort aus der Quell-Ad geht in den Prompt.
 
@@ -205,13 +205,13 @@ Für **jede einzelne Ad** aus Schritt 4 (nicht gebündelt):
    `language_rules.<market_code>` in der Config). Max. 6 Wörter pro Textelement.
    Gegen die Verbots-/Pflichtliste in `docs/language-rules.md` Abschnitt 4 prüfen,
    **bevor** gerendert wird. Der LOCKED STRING wandert unverändert in die
-   `<product_name>_<market_code>_ad_copy.md` aus Punkt 5.
+   `State/<product>_<market>_locked_strings.md` aus Punkt 5.
 
 0b. **FREIGABE — blockierend, vor dem ersten `generate_image`-Call.**
    Vollständige Regel: `docs/language-rules.md` Abschnitt 4a. Zwei Pflichtschritte:
 
    ```
-   python3 scripts/check_locked_string.py <MARKET_CODE> <pfad_zur_ad_copy.md>
+   python3 scripts/check_locked_string.py <MARKET_CODE> <pfad_zur_locked_strings.md>
    ```
 
    **Exit-Code 1 = nicht rendern.** LOCKED STRING korrigieren, erneut prüfen. Erst
@@ -263,10 +263,14 @@ Für **jede einzelne Ad** aus Schritt 4 (nicht gebündelt):
    aktuell inaktiven Foundation-Phase (Schritt 6, `docs/skills/foundation-to-higgsfield.md`),
    die einen anderen Skill/Ablauf nutzt. Pro Ad wird **genau ein** Ergebnisbild erzeugt,
    nicht mehrere Varianten.
-5. Output (übersetzte Headline + Primary Text inkl. korrektem Preis, Liste der
-   verarbeiteten Ad-Permalinks) als Markdown `<product_name>_<market_code>_ad_copy.md`
-   in den Tages-/Produkt-Ordner aus Schritt 7 schreiben (`Google_Drive.create_file`,
-   `contentMimeType: text/markdown`, `textContent` — klein genug, keine Truncation).
+5. **Keine Textdatei in den Lieferordner.** Der Tages-/Produkt-/Set-Ordner enthält
+   ausschließlich Bilddateien. Vorgabe von Jeannine am 2026-09-04: die frühere
+   `ad_copy.md` wird dort nicht gebraucht und ist inhaltlich nicht die richtige Ad-Copy.
+   Der LOCKED-STRING- und FREIGABE-Nachweis bleibt trotzdem verpflichtend (CLAUDE.md
+   Regel 1.5) — er wird als `<product>_<market>_locked_strings.md` nach
+   `<Projektordner>/<market_code>/State/` geschrieben, nicht in den Lieferordner
+   (`Google_Drive.create_file`, `contentMimeType: text/markdown`,
+   `disableConversionToGoogleType: true`, `textContent`).
 
 ## Schritt 6 — Foundation-Phase (optional, aktuell inaktiv)
 
@@ -311,8 +315,19 @@ Die eigentliche Higgsfield-Generierung passiert bereits in Schritt 5 (ein Call p
    Speicher dem User → funktioniert (Ergebnis: `owner=User`, `lastModifyingUser=Service-Account`,
    volle Qualität). Der Drive-MCP-Base64-Kanal schneidet lange Werte ab (~15 000 base64-Zeichen
    ≈ 11 KB) → für echte Bilder (100–260 KB) unbrauchbar, deshalb nur für den Platzhalter.
-   Dateibenennung: `<product_name>_<market_code>_ad<N>.jpg`, Produktbild
-   `<product_name>_<market_code>_produktbild.jpg`.
+   **Dateibenennung — verbindlich seit 2026-09-04, von Jeannine vorgegeben:**
+
+       <laufende Nummer>_<Productname>_<countrycode>
+
+   Beispiel: `1_Pawox_FI`, `2_Pawox_FI`, … bzw. `1_Lumifirm_FI` … `7_Lumifirm_FI`.
+   - Laufende Nummer **ohne** führende Null, beginnend bei 1.
+   - Produktname mit **großem** Anfangsbuchstaben, auch wenn Spalte C ihn klein schreibt.
+   - Ländercode wie im Sheet: `FI`, `FRCA`, `NLBE`, `SE`, `UK`.
+   - **Keine Dateiendung im Namen** — Drive leitet sie aus dem MIME-Type ab. Die
+     bestehenden Dateien `1_Lumifirm_FRCA` … `10_Lumifirm_FRCA` heißen genau so.
+   - Das alte Schema `<product>_<market>_ad<N>.jpg` ist **ungültig** und darf nicht
+     mehr verwendet werden.
+   - Ausnahme Produktbild: bleibt `<product_name>_<market_code>_produktbild.jpg`.
 
 4. **Verifizieren:** Nach jedem Upload prüfen, dass die zurückgegebene `size` der
    Quell-Dateigröße entspricht UND das Bild vollständig dekodiert (`PIL im.load()`). Bei
@@ -359,9 +374,10 @@ Die eigentliche Higgsfield-Generierung passiert bereits in Schritt 5 (ein Call p
 
 ## Schritt 8 — Ablage & Abschluss
 
-1. Alle Text-/Bild-Outputs liegen bereits als **echte Dateien** im Tages-/Produkt-Ordner
-   `Translated-Ads/<market_code>/<Lauf-Datum> - <product_name>/` (Schritte 5/7): die
-   `<product_name>_<market_code>_ad<N>.jpg`, das `_produktbild.jpg` und die `_ad_copy.md`.
+1. Alle Bild-Outputs liegen bereits als **echte Dateien** im Tages-/Produkt-/Set-Ordner
+   (Schritte 5/7), benannt `<N>_<Productname>_<countrycode>` (plus ggf.
+   `_produktbild.jpg`). **Keine Textdatei im Lieferordner** — der LOCKED-STRING-Nachweis
+   liegt in `State/<product>_<market>_locked_strings.md`.
    Es darf **kein** Markdown-Links-Ersatz statt echter Bilddateien stehen bleiben.
 2. **Sheet-Rückschreiben — verpflichtend, nicht optional.** Vollständige Anleitung:
    **[`docs/sheet-writeback-SOP.md`](sheet-writeback-SOP.md)**. Pro verarbeiteter Zeile

@@ -13,7 +13,7 @@ Vollständige Spezifikation: **`docs/language-rules.md`** — vor Schritt 5 lese
 Die drei Kernsätze:
 
 1. **Der finale On-Image-Text steht VOR dem Bildprompt fest.** Er wird als
-   LOCKED STRING in der Zielsprache geschrieben, in `<product>_<market>_ad_copy.md`
+   LOCKED STRING in der Zielsprache geschrieben, in `State/<product>_<market>_locked_strings.md`
    festgehalten und wörtlich in den Higgsfield-Prompt eingesetzt. Das Bildmodell
    übersetzt **nie** selbst.
 2. **Kein Wort aus der Quell-Anzeige wandert in den Prompt.** Die Quell-Ad ist
@@ -37,8 +37,8 @@ Zielvarianten:
   zusammengesetzten Komposita, keine erfundenen Wörter.
 
 5. **FREIGABE VOR DEM RENDERN — blockierend.** Vor dem ersten `generate_image`-Call
-   jeder Ad muss `python3 scripts/check_locked_string.py <MARKET_CODE> <ad_copy.md>`
-   mit Exit-Code 0 durchlaufen sein, und in der `ad_copy.md` muss pro Textelement eine
+   jeder Ad muss `python3 scripts/check_locked_string.py <MARKET_CODE> <locked_strings.md>`
+   mit Exit-Code 0 durchlaufen sein, und in der `locked_strings.md` muss pro Textelement eine
    `FREIGABE 4.1(A):`-Zeile stehen. Exit 1 oder fehlender Block = **nicht rendern**.
    Vollständige Regel: `docs/language-rules.md` Abschnitt 4a.
    Der Grund: die QA in Abschnitt 5 vergleicht das Bild mit dem LOCKED STRING und kann

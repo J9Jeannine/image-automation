@@ -73,10 +73,15 @@ we combine them. Neither alone is sufficient.
     - `Translated-Ads` = `1JWHztpl2Z6mE9WtcRTObRgwBRp1OsHCb`
     - `Translated-Ads/FI` = `1Ey4aVRrpzrzolETnzKVxVCZQGZjm0P5K`
     - `Translated-Ads/FRCA` = `1ZeW7nKHrCMNOBH6jIKZrzNYjJWXPvQDW`
-- **File names inside that folder:**
-  - Ads: `<product_name>_<market_code>_ad<N>.jpg` (e.g. `itzora_FI_ad1.jpg`)
-  - Product image: `<product_name>_<market_code>_produktbild.jpg`
-  - Ad copy: `<product_name>_<market_code>_ad_copy.md`
+- **File names inside that folder — MANDATORY, set by Jeannine on 2026-09-04:**
+  - Ads: `<running number>_<Productname>_<countrycode>` — e.g. `1_Pawox_FI`,
+    `2_Pawox_FI`, `1_Lumifirm_FRCA`. No leading zero, product name capitalised,
+    country code as in the sheet (FI, FRCA, NLBE, SE, UK), and **no file extension in
+    the name** — Drive derives it from the MIME type.
+  - The old scheme `<product>_<market>_ad<N>.jpg` is **obsolete** and must not be used.
+  - Product image (exception): `<product_name>_<market_code>_produktbild.jpg`
+  - **No text file goes into the delivery folder.** The LOCKED STRING / FREIGABE record
+    lives in `State/<product>_<market>_locked_strings.md`, not here.
 
 ---
 

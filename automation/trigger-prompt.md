@@ -38,8 +38,8 @@ Führe den image-automation Workflow aus dem Repo `j9jeannine/image-automation`,
 5. Für jede Ad aus dem M-Kommentar-Thread (Schritt 4/5): **zuerst den LOCKED STRING
    nach `docs/language-rules.md` schreiben** (fertiger Zieltext, max. 6 Wörter pro
    Textelement), **dann die Freigabe nach Abschnitt 4a durchlaufen — blockierend:**
-   `python3 scripts/check_locked_string.py <MARKET_CODE> <ad_copy.md>` muss Exit 0
-   liefern, und in der `ad_copy.md` muss pro Textelement eine `FREIGABE 4.1(A):`-Zeile
+   `python3 scripts/check_locked_string.py <MARKET_CODE> <locked_strings.md>` muss Exit 0
+   liefern, und in der `locked_strings.md` muss pro Textelement eine `FREIGABE 4.1(A):`-Zeile
    stehen. Exit 1 oder fehlender Block = nicht rendern, LOCKED STRING korrigieren.
    Erst danach rendern. Ad erst versuchen zu öffnen. Ist
    `facebook.com` blockiert (bekannte Einschränkung dieser Sandbox, siehe
@@ -68,7 +68,7 @@ Führe den image-automation Workflow aus dem Repo `j9jeannine/image-automation`,
 7. **Bild-Upload nach Drive ist verpflichtend (Schritt 7):** die gerenderten Higgsfield-Bilder
    per curl auf die Disk laden und als **echte JPG-Dateien** in Drive ablegen — Ordner
    `Translated-Ads/<market_code>/<Lauf-Datum YYYY-MM-DD> - <product_name>/` (Produktname MUSS
-   im Ordnernamen stehen), Dateien `<product_name>_<market_code>_ad<N>.jpg`. Upload-Methode
+   im Ordnernamen stehen), Dateien `<N>_<Productname>_<countrycode>` (z. B. `1_Pawox_FI`). Upload-Methode
    ZWINGEND wie in `config/automation.config.json` → `upload_method`: Platzhalter per
    Drive-`create_file` anlegen (User-owned), dann per Service-Account (`GOOGLE_SERVICE_ACCOUNT_JSON`)
    `files.update` mit den vollen Bytes überschreiben. Niemals auf den alten

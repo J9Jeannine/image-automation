@@ -74,8 +74,9 @@ and small text files.
 
 3. **Create each image file as a user-owned placeholder** via `Google_Drive.create_file`
    (`contentMimeType: image/jpeg`, `disableConversionToGoogleType: true`, `base64Content` =
-   the 1×1 JPEG in `docs/drive-upload-method.md`). Keep each returned file **id**. Name files
-   `<product>_<market>_ad<N>.jpg` and `<product>_<market>_produktbild.jpg`.
+   the 1×1 JPEG in `docs/drive-upload-method.md`). Keep each returned file **id**. Name ad
+   files `<running number>_<Productname>_<countrycode>` (e.g. `1_Pawox_FI`) — no file
+   extension in the name — and the product image `<product>_<market>_produktbild.jpg`.
 
 4. **Mint a service-account token** from `GOOGLE_SERVICE_ACCOUNT_JSON` (JWT RS256, scope
    `https://www.googleapis.com/auth/drive`, sign with `openssl` — the Python `cryptography`
@@ -99,8 +100,11 @@ and small text files.
    (`PIL im.load()`, not just `open`). On mismatch, re-run step 5 for that file. Never accept
    a truncated file or a links-only substitute as the result.
 
-7. **Small text files** (`<product>_<market>_ad_copy.md`, `State/processed_comments.json`)
-   go directly via `Google_Drive.create_file` (`textContent`) — small enough, no SA needed.
+7. **Small text files** (`State/processed_comments.json`,
+   `State/<product>_<market>_locked_strings.md`) go directly via
+   `Google_Drive.create_file` (`textContent`, `disableConversionToGoogleType: true`) —
+   small enough, no SA needed. **They never go into the delivery folder**, which holds
+   image files only.
 
 ---
 

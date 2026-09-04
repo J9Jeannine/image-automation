@@ -74,8 +74,10 @@
     },
     "day_folder_name_pattern": "<Lauf-Datum YYYY-MM-DD> - <product_name aus Spalte G>",
     "day_folder_parent_pattern": "Translated-Ads/<market_code>/",
-    "file_name_pattern": "<product_name>_<market_code>_ad<N>.jpg | <product_name>_<market_code>_produktbild.jpg | <product_name>_<market_code>_ad_copy.md",
-    "day_folder_example": "Translated-Ads/FI/2026-07-25 - itzora/ enthaelt itzora_FI_ad1.jpg .. ad8.jpg, itzora_FI_produktbild.jpg, itzora_FI_ad_copy.md",
+    "file_name_pattern": "<laufende Nummer>_<Productname>_<countrycode> -- z.B. 1_Pawox_FI, 2_Pawox_FI ... Produktname mit grossem Anfangsbuchstaben, Laendercode wie im Sheet (FI, FRCA, NLBE, SE, UK). KEINE Dateiendung im Namen: Drive leitet sie aus dem MIME-Type ab, die bestehenden Dateien (1_Lumifirm_FRCA ... 10_Lumifirm_FRCA) heissen genau so. Produktbild bleibt <product_name>_<market_code>_produktbild.jpg.",
+    "file_name_pattern_verbindlich_seit": "2026-09-04 -- von Jeannine vorgegeben. Das alte Schema <product>_<market>_ad<N>.jpg ist damit ungueltig und darf nicht mehr verwendet werden.",
+    "ad_copy_nicht_in_den_ordner": "Die ad_copy.md gehoert NICHT mehr in den Tages-/Produkt-/Set-Ordner -- Jeannine am 2026-09-04: der Inhalt ist nicht die richtige Ad-Copy und wird dort nicht gebraucht. Der LOCKED-STRING-/FREIGABE-Nachweis bleibt trotzdem Pflicht (CLAUDE.md Regel 1.5), wandert aber nach <Projektordner>/<market_code>/State/<product>_<market>_locked_strings.md. Im Lieferordner liegen nur Bilddateien.",
+    "day_folder_example": "Translated-Ads/FI/2026-09-02 - lumifirm/lumifirm Set 2/ enthaelt 1_Lumifirm_FI .. 7_Lumifirm_FI und sonst nichts. Keine ad_copy.md im Ordner.",
     "note": "Bestehende Unterordner State/, Funnel-PDFs/, QA-Reports/ gehoeren zu einer anderen Automatisierung (FI/FRCA Funnel-QA-Monitor) und werden nicht veraendert. Uebersetzte Ads pro Lauf kommen in einen Tages-/Produkt-Ordner unter Translated-Ads/<market_code>/ (Name: '<YYYY-MM-DD> - <product_name>'). Der Upload der Bild-Binaerdateien laeuft ZWINGEND ueber upload_method (siehe unten) -- niemals der Markdown-Links-Workaround."
   },
   "upload_method": {
@@ -88,7 +90,7 @@
       "2. Service-Account-Access-Token minten: JWT (RS256) aus GOOGLE_SERVICE_ACCOUNT_JSON signieren (scope https://www.googleapis.com/auth/drive), gegen token_uri tauschen. Achtung: Token laeuft nach 1h ab -- bei 401 ACCESS_TOKEN_EXPIRED neu minten. Signatur per openssl (das cryptography-Python-Modul ist in der Sandbox defekt): printf '%s' \"$jwt_signing_input\" | openssl dgst -sha256 -sign sa_key.pem | openssl base64 -A | tr '+/' '-_' | tr -d '='.",
       "3. Pro Datei die vollen Bytes von der Disk hochladen: curl -X PATCH 'https://www.googleapis.com/upload/drive/v3/files/{FILE_ID}?uploadType=media&supportsAllDrives=true' -H 'Authorization: Bearer <SA_TOKEN>' -H 'Content-Type: image/jpeg' --data-binary @<lokale_datei.jpg>. Ergebnis: owner bleibt User, lastModifyingUser=Service-Account, volle Qualitaet, keine Truncation.",
       "4. Verifizieren: die zurueckgegebene size muss der Quell-Dateigroesse entsprechen UND das Bild muss vollstaendig dekodieren (PIL im.load()). Bei Abweichung erneut hochladen.",
-      "5. Kleine Textdateien (ad_copy.md, processed_comments.json) koennen direkt per Google_Drive.create_file (textContent) angelegt werden -- klein genug, keine Truncation."
+      "5. Kleine Textdateien (State/processed_comments.json, State/<product>_<market>_locked_strings.md) koennen direkt per Google_Drive.create_file (textContent, disableConversionToGoogleType=true) angelegt werden -- klein genug, keine Truncation. In den Lieferordner kommen KEINE Textdateien."
     ],
     "service_account_env": "GOOGLE_SERVICE_ACCOUNT_JSON",
     "service_account_email": "image-automation-uploader@image-automation-502115.iam.gserviceaccount.com",
@@ -105,7 +107,7 @@
   "language_rules": {
     "mandatory": true,
     "spec_file": "docs/language-rules.md",
-    "principle": "LOCKED STRING: der komplette sichtbare Bildtext wird VOR dem Bildprompt in der Zielsprache ausformuliert, in <product>_<market>_ad_copy.md festgehalten und woertlich in den Higgsfield-Prompt gesetzt. Das Bildmodell uebersetzt nie selbst, ergaenzt nie Woerter und korrigiert nie. Kein Wort aus der Quell-Ad geht in den Prompt. Jedes Wort im Render, das nicht im LOCKED STRING steht, bedeutet: nicht hochladen, neu generieren.",
+    "principle": "LOCKED STRING: der komplette sichtbare Bildtext wird VOR dem Bildprompt in der Zielsprache ausformuliert, in <Projektordner>/<market_code>/State/<product>_<market>_locked_strings.md festgehalten und woertlich in den Higgsfield-Prompt gesetzt. Das Bildmodell uebersetzt nie selbst, ergaenzt nie Woerter und korrigiert nie. Kein Wort aus der Quell-Ad geht in den Prompt. Jedes Wort im Render, das nicht im LOCKED STRING steht, bedeutet: nicht hochladen, neu generieren.",
     "max_words_per_text_element": 6,
     "prompt_suffix": "Render this text EXACTLY as written, character for character, including every accent and special character. Do NOT translate it. Do NOT rephrase it. Do NOT correct it. Do NOT add any other words, labels, packaging text, price tags, or background signage. The image must contain no text other than the strings quoted above. Ignore all text visible in the reference image.",
     "FRCA": {
@@ -302,7 +304,7 @@
     "mandatory": true,
     "why": "Bricht ein Lauf mitten in einer Zeile ab (Credits alle, Session-Absturz, Fehler), soll der naechste Lauf NICHT die komplette Zeile neu generieren - das verbrennt Credits fuer bereits fertige, korrekte Bilder ein zweites Mal. Nur das Fehlende oder als falsch markierte wird nachgeholt.",
     "flag_file_path": "<Projektordner>/<market_code>/State/flagged_for_regeneration.json",
-    "flag_key_format": "<market_code>!<Zeilennummer>!ad<N>, z.B. FRCA!56!ad8",
-    "rule": "Vor jeder Ad-Generierung (Schritt 5) und vor der Produktbild-Generierung (Schritt 3): Zielordner in Drive auflisten. Existiert <product_name>_<market_code>_ad<N>.jpg (bzw. _produktbild.jpg) bereits UND steht der zugehoerige Key nicht in flagged_for_regeneration.json -> NICHT neu generieren, vorhandene Datei stehen lassen und fuer Schritt 8 als bereits erledigt zaehlen. Fehlt die Datei ODER steht der Key in flagged_for_regeneration.json -> generieren (bzw. neu generieren), danach den Key aus flagged_for_regeneration.json entfernen. Faellt die Sprach-QA (Schritt 7.5) bei einem Bild durch -> Key in flagged_for_regeneration.json EINTRAGEN statt nur im Bericht zu vermerken, damit ein spaeterer Lauf genau dieses eine Bild nachholt. Siehe docs/workflow.md Schritt 2b."
+    "flag_key_format": "<market_code>!<Zeilennummer>!ad<N>, z.B. FRCA!56!ad8. Der Schluessel bleibt bei ad<N> -- er bezeichnet die laufende Nummer der Ad, nicht den Dateinamen. Die Datei dazu heisst <N>_<Productname>_<countrycode>.",
+    "rule": "Vor jeder Ad-Generierung (Schritt 5) und vor der Produktbild-Generierung (Schritt 3): Zielordner in Drive auflisten. Existiert <N>_<Productname>_<countrycode> (bzw. _produktbild.jpg) bereits UND steht der zugehoerige Key nicht in flagged_for_regeneration.json -> NICHT neu generieren, vorhandene Datei stehen lassen und fuer Schritt 8 als bereits erledigt zaehlen. Fehlt die Datei ODER steht der Key in flagged_for_regeneration.json -> generieren (bzw. neu generieren), danach den Key aus flagged_for_regeneration.json entfernen. Faellt die Sprach-QA (Schritt 7.5) bei einem Bild durch -> Key in flagged_for_regeneration.json EINTRAGEN statt nur im Bericht zu vermerken, damit ein spaeterer Lauf genau dieses eine Bild nachholt. Siehe docs/workflow.md Schritt 2b."
   }
 }
