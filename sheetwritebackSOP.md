@@ -114,7 +114,8 @@ deren Dateien im Drive-Ordner verifiziert liegen.
 
 Teil-Lieferungen (z. B. 3 von 6 Ads gerendert, Rest als Original übernommen oder bewusst
 ausgelassen) **werden** geschrieben — genau dafür ist `in progress` da. Was gefehlt hat
-und warum, gehört in die `ad_copy.md` im Ordner und in den Abschlussbericht.
+und warum, gehört in die `State/<product>_<market>_locked_strings.md` und in den
+Abschlussbericht — **nicht** in den Lieferordner (dort liegen nur Bilddateien).
 
 ---
 

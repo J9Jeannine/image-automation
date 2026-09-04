@@ -218,7 +218,7 @@ Für **jede einzelne Ad** aus Schritt 4 (nicht gebündelt):
    bei Exit 0 weiter. Kein Higgsfield-Call, solange das Skript blockiert — das spart
    auch Credits, weil ein sprachlich falsches Bild gar nicht erst entsteht.
 
-   Zusätzlich in die `ad_copy.md`, eine Zeile **pro Textelement**:
+   Zusätzlich in die `State/<product>_<market>_locked_strings.md`, eine Zeile **pro Textelement**:
    `FREIGABE 4.1(A): "<Text>" — eigenständig im Québec-Französisch? JA, weil <Grund>`
    Fehlt der Block, ist die Ad nicht freigegeben. „Alles geprüft" zählt nicht.
 

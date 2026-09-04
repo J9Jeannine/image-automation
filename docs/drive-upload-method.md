@@ -184,9 +184,10 @@ links-only result as the deliverable.
 
 ### Step 5 — Small text files
 
-The ad copy (`<product>_<market>_ad_copy.md`) and `State/processed_comments.json` are small
-enough to write directly with `Google_Drive.create_file` (`textContent`) — no truncation and
-no service account needed for those.
+`State/processed_comments.json` and `State/<product>_<market>_locked_strings.md` are small
+enough to write directly with `Google_Drive.create_file` (`textContent`,
+`disableConversionToGoogleType: true`) — no truncation and no service account needed for
+those. They belong in the `State/` folder; the delivery folder holds image files only.
 
 ---
 
