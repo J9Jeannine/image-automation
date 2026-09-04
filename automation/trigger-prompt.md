@@ -18,10 +18,17 @@ Führe den image-automation Workflow aus dem Repo `j9jeannine/image-automation`,
    (Sheet/Spalten/Tabs/Zielsprachen sind fest konfiguriert). Nur die optionale
    Foundation-Phase (Schritt 6) überspringen, falls `foundation_phase.mode` das
    verlangt, aber die zugehörigen Foundation-Dokumente fehlen.
-3. Führe Schritte 1-8 aus `docs/workflow.md` der Reihe nach aus: Sheet-Tabs `FI`
-   (ab Zeile 52) und `FRCA` (ab Zeile 33) auf neue/geänderte Kommentar-Threads in
-   Spalte M prüfen (siehe Schritt 2 für den Abgleich gegen
-   `State/processed_comments.json`). **Vor jeder Generierung pro Zeile zwingend Schritt
+3. Führe Schritte 1-8 aus `docs/workflow.md` der Reihe nach aus. **In JEDEM Lauf
+   ZWEI Quellen prüfen — sie haben verschiedene Spaltenbuchstaben:**
+   - **(a) Markt-Tabs** `FI` (ab Zeile 52) und `FRCA` (ab Zeile 33): neue/geänderte
+     Kommentar-Threads auf **Spalte M**. Ablauf: `docs/workflow.md` Schritt 2-8.
+     State-Schlüssel ohne Präfix (`52`, `87`, …).
+   - **(b) Tab `Winning Products`** (ab Zeile 3): neue/geänderte Kommentar-Threads auf
+     **Spalte D**. Produktname aus **Spalte C**, Markt aus **Spalte A**, Rückschreiben
+     nach **G/H/I**. Ablauf: `docs/workflow.md` **Anhang A**. State-Schlüssel mit
+     Präfix **`WP-`** (`WP-87`, `WP-FI!87`).
+   Die Buchstaben der einen Quelle nie auf die andere anwenden. Abgleich gegen
+   `State/processed_comments.json` wie in Schritt 2 beschrieben. **Vor jeder Generierung pro Zeile zwingend Schritt
    2a beachten (Zeilen-Sperre über `State/row_locks.json`)** — verhindert, dass zwei
    gleichzeitig laufende Sessions (z. B. dieser Trigger und ein manueller Lauf)
    dieselbe Zeile doppelt bearbeiten und Credits verbrennen. **Zusätzlich zwingend
@@ -30,12 +37,20 @@ Führe den image-automation Workflow aus dem Repo `j9jeannine/image-automation`,
    `State/flagged_for_regeneration.json` als falsch markiert ist — falls ja, NICHT neu
    generieren, sondern überspringen. Nach einem Abbruch (z. B. Credits alle) generiert
    der nächste Lauf so automatisch nur das Fehlende, nie die ganze Zeile neu.
-4. **Pro Zeile genau EIN Produktbild erzeugen** (Schritt 3): Competitor-Foto aus Spalte D
-   per curl holen, per Higgsfield einmalig auf den Produktnamen aus Spalte G umbenennen,
+4. **Pro Zeile genau EIN Produktbild erzeugen** (Schritt 3) — **nur für Quelle (a),
+   die Markt-Tabs:** Competitor-Foto aus deren Spalte D (`Competitor URL / Content`)
+   per curl holen, per Higgsfield einmalig auf den Produktnamen aus deren Spalte G
+   umbenennen,
    Modell-Parameter dabei immer direkt `nano_banana_pro` (nie erst ein anderes Modell
    versuchen). Dieses eine Bild für ALLE Ads dieser Zeile wiederverwenden — nie pro Ad
    neu erzeugen.
-5. Für jede Ad aus dem M-Kommentar-Thread (Schritt 4/5): **zuerst den LOCKED STRING
+4a. **Für Quelle (b), `Winning Products`, gilt Spalte D NICHT als Competitor-URL** —
+   dort hängen an D die Ad-Bild-Links als Kommentar. Produktbild dort nach
+   `docs/workflow.md` Anhang A.4: vorhandenes `<product>_<market>_produktbild.jpg`
+   wiederverwenden statt neu erzeugen; zeigt keine Quell-Ad ein Produkt, wird gar keins
+   gebraucht.
+5. Für jede Ad aus dem Kommentar-Thread (Spalte M bei Quelle (a), Spalte D bei
+   Quelle (b)) (Schritt 4/5): **zuerst den LOCKED STRING
    nach `docs/language-rules.md` schreiben** (fertiger Zieltext, max. 6 Wörter pro
    Textelement), **dann die Freigabe nach Abschnitt 4a durchlaufen — blockierend:**
    `python3 scripts/check_locked_string.py <MARKET_CODE> <locked_strings.md>` muss Exit 0

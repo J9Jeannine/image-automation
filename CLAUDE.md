@@ -88,6 +88,32 @@ Die Routine liest **`claude/adoring-fermat-ikg9pb`** (Default-Branch), siehe
 Branch. Ein Fix auf einem anderen `claude/...`-Branch wird von der Routine nie gelesen
 und ist wirkungslos.
 
+## 4a. Zwei Datenquellen im Funnel Sheet — verschiedene Spalten, nie vermischen
+
+Die Routine prüft in **jedem** Lauf **zwei** Quellen im selben Funnel Sheet:
+
+| | Markt-Tabs `FI` / `FRCA` | Tab `Winning Products` |
+|---|---|---|
+| Markt | = Tab-Name | **Spalte A** (pro Zeile) |
+| Ad-Links als Kommentar auf | Spalte **M** | Spalte **D** |
+| Produktname | Spalte **G** | Spalte **C** |
+| Bearbeiter → `claude` | Spalte **N** | Spalte **G** |
+| Lauf-Datum | Spalte **L** | Spalte **I** |
+| Ordner-Link | Spalte **O** | Spalte **H** |
+| Status → `in progress` | Spalte **P** | existiert nicht — J nicht anfassen |
+
+**Die Buchstaben der einen Quelle gelten nie für die andere.** Ablauf für die Markt-Tabs:
+`docs/workflow.md` Schritt 2–8. Ablauf für `Winning Products`: `docs/workflow.md`
+**Anhang A**. Konfiguration: `config/automation.config.json` → `sheet.columns` (nur
+FI/FRCA) bzw. `sheet.winning_products_tab`.
+
+State-Schlüssel für `Winning Products` immer mit Präfix **`WP-`** — die Zeilennummern
+beider Quellen überschneiden sich.
+
+**Wenn der Trigger-Prompt nur die Markt-Tabs nennt, gilt trotzdem diese Datei:** beide
+Quellen prüfen. Ältere, am Trigger gespeicherte Prompt-Texte erwähnen `Winning Products`
+noch nicht — das ist kein Grund, den Tab zu überspringen. CLAUDE.md hat Vorrang.
+
 ## 5. Einzige Quelle der Wahrheit
 
 - Ablauf: `docs/workflow.md`

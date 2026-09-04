@@ -23,7 +23,8 @@
         "in correction "
       ],
       "writeback_note": "Nach jedem erfolgreichen Lauf ZWINGEND vier Zellen zurueckschreiben (Details: docs/sheet-writeback-SOP.md, Kurzfassung: docs/workflow.md Schritt 8.2): L = Lauf-Datum (echtes Datum, Format d-m-yyyy, z.B. '4-8-2026' -- nach dem Schreiben pruefen dass der Rohwert eine ZAHL ist, sonst wurde es als Text gespeichert), N = 'claude' (klein), O = =HYPERLINK(\"<Drive-Ordner-URL>\";\"<product_name aus G>\") -- SEMIKOLON als Trenner, nicht Komma --, P = 'in progress' (klein). NIEMALS P auf 'Ready' setzen: ein Lauf liefert fast nie alle Ads einer Zeile, 'Ready' setzt der Mensch, der die fehlenden ergaenzt. Der Drive-MCP kann keine Zellen schreiben; dafuer die Sheets API mit demselben Service-Account nutzen (GOOGLE_SERVICE_ACCOUNT_JSON, zusaetzlicher Scope https://www.googleapis.com/auth/spreadsheets, values:batchUpdate mit valueInputOption=USER_ENTERED). Nur Zeilen schreiben, die im aktuellen Lauf wirklich Bilder produziert haben; blockierte Zeilen und Zeilen mit einer anderen Person in Spalte N nicht anfassen.",
-      "note": "Spaltenbelegung verifiziert an BEIDEN Tabs (FRCA per Drive-Kommentar-API, FI per XLSX-Export/openpyxl, da das Drive-Tool nur den FRCA-Tab zurueckgab): D = 'Competitor URL / Content', G = 'new PR NAME' = unser Produktname, J = 'Bundle/deal offer' = Preisstufen (EUR fuer FI, CAD fuer FRCA), M = 'Competitor Ad Link/Drive Link' -- die eigentlichen Meta-Ad-Library-Links haengen als Kommentar-Thread an der M-Zelle, inkl. Antworten anderer Teammitglieder. FI-Tab bestaetigt strukturell identisch zu FRCA (getestet an Zeile 52: variclex -> vanix)."
+      "note": "Spaltenbelegung verifiziert an BEIDEN Tabs (FRCA per Drive-Kommentar-API, FI per XLSX-Export/openpyxl, da das Drive-Tool nur den FRCA-Tab zurueckgab): D = 'Competitor URL / Content', G = 'new PR NAME' = unser Produktname, J = 'Bundle/deal offer' = Preisstufen (EUR fuer FI, CAD fuer FRCA), M = 'Competitor Ad Link/Drive Link' -- die eigentlichen Meta-Ad-Library-Links haengen als Kommentar-Thread an der M-Zelle, inkl. Antworten anderer Teammitglieder. FI-Tab bestaetigt strukturell identisch zu FRCA (getestet an Zeile 52: variclex -> vanix).",
+      "gilt_nur_fuer": "ACHTUNG: Diese Spaltenbelegung gilt AUSSCHLIESSLICH fuer die Markt-Tabs FI und FRCA (siehe sheet.tabs). Der Tab 'Winning Products' hat voellig andere Spaltenbuchstaben -- siehe sheet.winning_products_tab. Die beiden NIEMALS vermischen."
     },
     "tabs": {
       "FI": {
@@ -38,6 +39,43 @@
         "language_name": "Quebec-Franzoesisch (fr-CA), NICHT Frankreich-Franzoesisch",
         "market_code": "FRCA"
       }
+    },
+    "winning_products_tab": {
+      "enabled": true,
+      "tab_name": "Winning Products",
+      "_warnung_spalten": "DIESER TAB HAT ANDERE SPALTEN ALS FI/FRCA. Nichts aus sheet.columns gilt hier. Kommentare mit den Ad-Bild-Links haengen auf Spalte D (nicht M). Der Produktname steht in Spalte C (nicht G). Die Person kommt nach G (nicht N). Das Lauf-Datum nach I (nicht L). Es gibt hier KEINE Status-Spalte P und KEINE Ergebnis-Link-Spalte O -- der Ordner-Link kommt nach H. Wer hier die FI/FRCA-Buchstaben verwendet, schreibt in die falschen Zellen.",
+      "start_row": 3,
+      "market_column": "A",
+      "market_column_note": "Der Markt steht PRO ZEILE in Spalte A (FI, NLBE, FRCA, SE, UK ...), nicht im Tab-Namen. Er bestimmt Zielsprache, Sprachregeln, Drive-Zielbaum und den Laendercode im Dateinamen.",
+      "columns": {
+        "code": "B",
+        "product_name": "C",
+        "ad_links_comment_column": "D",
+        "instructions": "E",
+        "person_column": "G",
+        "set_folder_link_column": "H",
+        "date_completed_column": "I",
+        "status_comment_column": "J",
+        "ad_copy_column": "K",
+        "ad_account_column": "L",
+        "launch_date_column": "M",
+        "launching_comment_column": "N"
+      },
+      "ad_links_source": "Die Bild-/Video-URLs der zu uebersetzenden Ads haengen als KOMMENTAR-THREAD an der D-Zelle der Zeile (Head-Post + alle Replies), genau wie bei FI/FRCA an der M-Zelle. Der Zellwert von D selbst ist nur ein Ordner-/Textlabel und wird ignoriert. Anker aufloesen: Drive-Kommentar-API liefert nur eine opake workbook-range-ID; die Zuordnung Kommentar-ID -> 'Winning Products!D<Zeile>' steht in der Mapping-Liste am Ende von Google_Drive.read_file_content(fileId=<Sheet>, includeComments=true).",
+      "preis_quelle": "Dieser Tab hat KEINE Preisspalte. Den Preis im Markt-Tab aus Spalte A nachschlagen: im Tab FI bzw. FRCA die Zeile finden, deren Spalte G (new PR NAME) dem Produktnamen aus Spalte C entspricht (alternativ ueber den Code in Spalte B), und deren Spalte J nehmen. Niemals einen Preis aus der Quell-Ad oder aus dieser Config uebernehmen.",
+      "set_ordner": {
+        "name_pattern": "<Productname> Set <N>",
+        "beispiel": "lumifirm Set 2, Nervora Set 2, Pawox Set 2",
+        "parent": "Der bestehende Tages-/Produktordner Translated-Ads/<market_code>/<YYYY-MM-DD> - <product_name>. Existiert keiner, ihn nach drive.day_folder_name_pattern anlegen und den Set-Ordner darin.",
+        "set_nummer": "Hoechste bereits in Spalte H dieses Produkts vergebene Set-Nummer + 1. Steht dort noch nichts, ist es Set 2 (Set 1 = die urspruengliche Uebersetzung im Markt-Tab).",
+        "inhalt": "NUR Bilddateien, benannt nach drive.file_name_pattern (<N>_<Productname>_<countrycode>). Keine ad_copy.md, keine Textdatei -- siehe drive.ad_copy_nicht_in_den_ordner."
+      },
+      "writeback": "Nach jeder erfolgreich verarbeiteten Zeile GENAU DREI Zellen schreiben, per Sheets API values:batchUpdate mit valueInputOption=USER_ENTERED: G = 'claude' (klein). H = =HYPERLINK(\"<Set-Ordner-URL>\";\"<Productname> Set <N>\") -- SEMIKOLON als Trenner, nicht Komma. I = Lauf-Datum im Format d-m-yyyy (z. B. '4-9-2026'); danach mit valueRenderOption=UNFORMATTED_VALUE nachlesen und pruefen, dass der Rohwert eine ZAHL ist (sonst wurde es als Text gespeichert). NICHT anfassen: A, B, C, D, E, F, J, K, L, M, N. Insbesondere J (Status/'launched') setzt der Mensch, nicht die Routine. Zeilen mit einer anderen Person als 'claude' in Spalte G, die schon ein Datum in I haben, nicht ueberschreiben.",
+      "state_keys": "Die Zeilennummern dieses Tabs ueberschneiden sich mit denen von FI/FRCA. Deshalb in State/processed_comments.json und State/row_locks.json IMMER mit Praefix arbeiten: 'WP-<Zeile>' fuer processed_comments, 'WP-<market_code>!<Zeile>' fuer row_locks (z. B. WP-87, WP-FI!87). Ohne Praefix wird die gleichnamige FI-Zeile ueberschrieben.",
+      "state_ordner": "State-Dateien liegen im Baum des Marktes aus Spalte A: Translated-Ads/<market_code>/State/. Fuer FI = 1NSKjesH5A5r5lvWyb-mPvt390NLuhSSj, fuer FRCA = 13na2DEsCTitRK1kdh0OpSxSYRz-PDc1S.",
+      "sprachregeln": "Es gelten dieselben blockierenden Sprachregeln wie sonst (CLAUDE.md Regel 1, docs/language-rules.md) -- mit dem Markt aus Spalte A. Hat dieser Markt in docs/language-rules.md KEINEN eigenen Abschnitt 4.x (aktuell existieren nur 4.1 FRCA und 4.2 FI), wird fuer die Zeile NICHT generiert: Zeile ueberspringen und im Bericht vermerken, dass der Markt-Abschnitt fehlt. Das betrifft insbesondere die vielen NLBE-Zeilen dieses Tabs sowie SE und UK.",
+      "textlose_ads": "Zeigt eine Quell-Ad weder Text noch Produkt (reine Illustration, Foto, MRT, Selfie), gibt es nichts zu uebersetzen: die Datei unveraendert uebernehmen und NICHT neu rendern. Ein Neurender erzeugt ein anderes Motiv und waere eine Variante statt einer Uebersetzung -- unzulaessig und verbrannte Credits. Im Bericht als 'unveraendert uebernommen' ausweisen.",
+      "ablauf": "Vollstaendiger Ablauf: docs/workflow.md Anhang A."
     }
   },
   "product_image_source": {
@@ -50,9 +88,9 @@
     "note": "In der Sandbox dieser Session ist www.facebook.com/ads/library/... (die Permalink-Seite selbst) durch die Netzwerk-Policy blockiert (403 vom Proxy, bestaetigt und nicht erneut zu versuchen). Das eigentliche Bild-/Video-CDN scontent.*.fbcdn.net ist dagegen normal per curl erreichbar -- getestet und bestaetigt (600x600 JPEG erfolgreich geladen). Der einzige fehlende Baustein ist also NICHT der Bilddownload selbst, sondern das Aufloesen des facebook.com/ads/library/?id=... Permalinks zur dahinterliegenden fbcdn.net-URL, da genau diese Aufloesung ein Laden der blockierten Permalink-Seite erfordern wuerde. Sobald eine direkte fbcdn.net-Bild-/Video-URL vorliegt (vom Nutzer zugeschickt, z.B. per Rechtsklick->Bildadresse kopieren im Browser), funktioniert der Rest der Pipeline normal per curl-Download. Competitor-Funnel-Domains (Spalte D) sind ebenfalls per curl erreichbar. Playwright/Chromium schlaegt in dieser Sandbox unabhaengig davon bei JEDER HTTPS-Seite mit ERR_CONNECTION_RESET fehl (Proxy-Inkompatibilitaet mit dem Browser-Prozess) -- Produktbilder und Ads werden daher ausschliesslich per curl geholt, nie per Screenshot. Falls ein Lauf einen Permalink nicht aufloesen kann, muss er den Nutzer um die direkte fbcdn.net-Bild-/Video-URL bitten, statt es stumm zu ueberspringen oder zu wiederholen."
   },
   "cadence": {
-    "mode": "daily_check_new_comments_only",
+    "mode": "daily_check_new_comments_only_two_sources",
     "cron": "0 5 * * *",
-    "note": "Taeglich um 6:00 Uhr Lisbon-Zeit pruefen (Cron laeuft in UTC; 6:00 Lisbon = 05:00 UTC waehrend Sommerzeit/DST -- im Winter waere es 06:00 UTC, Cron passt sich NICHT automatisch an DST an, ggf. im Oktober/Maerz per update_trigger nachjustieren). Prueft, ob in Spalte M neue/unverarbeitete Kommentar-Threads existieren (FI ab Zeile 52, FRCA ab Zeile 33). Nur Zeilen mit neuem Kommentar-Inhalt (siehe State-Datei) werden verarbeitet -- kein Spam, wenn nichts Neues da ist."
+    "note": "Taeglich um 6:00 Uhr Lisbon-Zeit pruefen (Cron laeuft in UTC; 6:00 Lisbon = 05:00 UTC waehrend Sommerzeit/DST -- im Winter waere es 06:00 UTC, Cron passt sich NICHT automatisch an DST an, ggf. im Oktober/Maerz per update_trigger nachjustieren). ZWEI Quellen pruefen, beide in JEDEM Lauf: (1) Markt-Tabs FI (ab Zeile 52) und FRCA (ab Zeile 33) -- neue/geaenderte Kommentar-Threads auf Spalte M; (2) Tab 'Winning Products' (ab Zeile 3) -- neue/geaenderte Kommentar-Threads auf Spalte D, siehe sheet.winning_products_tab. Die Spaltenbuchstaben der beiden Quellen sind verschieden und duerfen nicht vermischt werden. Nur Zeilen mit neuem Kommentar-Fingerprint (siehe State-Datei) werden verarbeitet -- kein Spam, wenn in beiden Quellen nichts Neues ist."
   },
   "foundation_phase": {
     "mode": "translation_only",

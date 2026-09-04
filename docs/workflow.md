@@ -44,6 +44,15 @@ laut `config/automation.config.json` → `cadence` (Default: täglich).
 
 ## Schritt 2 — Sheet lesen & neue Ad-Links finden
 
+> **ZWEI QUELLEN, VERSCHIEDENE SPALTEN — nicht vermischen.**
+> Dieser Schritt 2 beschreibt die **Markt-Tabs `FI` und `FRCA`**: Kommentare auf
+> Spalte **M**, Produktname aus **G**, Rückschreiben nach **L/N/O/P**.
+> Der Tab **`Winning Products`** hat **andere Spaltenbuchstaben**: Kommentare auf
+> Spalte **D**, Produktname aus **C**, Rückschreiben nach **G/H/I**. Für ihn gilt
+> **Anhang A** am Ende dieser Datei — nichts aus Schritt 2 bis 8 mit den hier
+> genannten Spaltenbuchstaben darf auf ihn angewendet werden.
+> **Jeder Lauf prüft beide Quellen.**
+
 Datenquelle ist **kein** freies Ad-Library-Suchergebnis, sondern das bestehende
 `config/automation.config.json` → `sheet.id` ("Funnel Sheet").
 
@@ -414,3 +423,128 @@ Die eigentliche Higgsfield-Generierung passiert bereits in Schritt 5 (ein Call p
    viele Ads pro Zeile, Drive-Links zu den neuen Dateien, ob gerendert wurde oder nur
    Prompt-Texte erzeugt wurden, und welche Sheet-Zellen (N/O) gesetzt wurden. Bei
    "nichts Neues" keine Nachricht (siehe Schritt 2.2).
+
+---
+
+# Anhang A — Tab `Winning Products` (eigener Ablauf, eigene Spalten)
+
+**Warum ein eigener Anhang:** Dieser Tab liegt im selben Funnel Sheet, hat aber eine
+völlig andere Spaltenbelegung als `FI` und `FRCA`. Wer die Buchstaben aus Schritt 2–8
+hier anwendet, liest die Ad-Links aus der falschen Zelle und schreibt das Ergebnis in
+die falsche Spalte. Config: `sheet.winning_products_tab`.
+
+## A.0 Spaltenvergleich — auswendig falsch, deshalb hier zum Nachschlagen
+
+| Bedeutung | Tabs `FI` / `FRCA` | Tab `Winning Products` |
+|---|---|---|
+| Markt | = Tab-Name | **Spalte A** (pro Zeile: FI, NLBE, FRCA, SE, UK …) |
+| Produktname für Dateinamen | Spalte **G** (`new PR NAME`) | Spalte **C** (`Product`) |
+| Kommentar-Thread mit den Ad-Bild-Links | Spalte **M** | Spalte **D** |
+| Preis | Spalte **J** | **gibt es nicht** — im Markt-Tab nachschlagen (A.3) |
+| Bearbeiter → `claude` | Spalte **N** | Spalte **G** |
+| Lauf-Datum | Spalte **L** | Spalte **I** |
+| Link auf den Ergebnis-Ordner | Spalte **O** | Spalte **H** |
+| Status → `in progress` | Spalte **P** | **gibt es nicht** — J bleibt unangetastet |
+
+Erste Datenzeile: **3**. Kopfzeile ist Zeile 1.
+
+## A.1 Neue Zeilen finden
+
+1. `Google_Drive.read_file_content(fileId=<Funnel Sheet>, includeComments=true)`. Die
+   Kommentar-Anker sind opake `workbook-range`-IDs; die Zuordnung
+   `Kommentar-ID -> Winning Products!D<Zeile>` steht in der Mapping-Liste am **Ende**
+   des zurückgegebenen `fileContent`.
+2. Für jeden Thread auf einer `D`-Zelle: Head-Post **und alle Replies** sammeln. Das
+   sind die direkten Bild-/Video-URLs (`scontent…fbcdn.net`). Der **Zellwert** von `D`
+   ist nur ein Textlabel und wird ignoriert.
+3. Fingerprint des ganzen Threads gegen
+   `Translated-Ads/<market_code>/State/processed_comments.json` prüfen — Schlüssel
+   **`WP-<Zeile>`** (z. B. `WP-87`). Nur neue/geänderte Threads verarbeiten.
+4. Zeilen-Sperre wie Schritt 2a, aber Schlüssel **`WP-<market_code>!<Zeile>`**
+   (z. B. `WP-FI!87`), TTL 30 Minuten, nach der Zeile wieder freigeben.
+
+> **Warum die Präfixe `WP-` Pflicht sind:** Die Zeilennummern dieses Tabs überschneiden
+> sich mit denen von `FI`/`FRCA`. `Winning Products!87` (lumifirm) und `FI!87` (Cervi)
+> sind verschiedene Zeilen. Ohne Präfix überschreibt der eine State-Eintrag den anderen.
+
+## A.2 Markt und Sprache
+
+Der Markt steht in **Spalte A** der Zeile, nicht im Tab-Namen. Er bestimmt Zielsprache,
+Sprachregeln, Drive-Zielbaum und den Ländercode im Dateinamen.
+
+**Blockierend:** Hat dieser Markt in `docs/language-rules.md` keinen eigenen
+Abschnitt 4.x, wird für die Zeile **nicht generiert** (Regel aus Abschnitt 6 dort).
+Aktuell existieren nur **4.1 FRCA** und **4.2 FI**. Zeilen mit `NLBE`, `SE` oder `UK` in
+Spalte A werden deshalb übersprungen und im Abschlussbericht mit dem Grund „Markt-
+Abschnitt in language-rules.md fehlt" ausgewiesen.
+
+## A.3 Preis nachschlagen
+
+Dieser Tab hat keine Preisspalte. Im Markt-Tab aus Spalte A die Zeile suchen, deren
+Spalte **G** (`new PR NAME`) dem Produktnamen aus **C** entspricht — alternativ über den
+Code in **B** — und deren Spalte **J** nehmen. Niemals einen Preis aus der Quell-Ad oder
+aus der Config übernehmen. Preisformat nach `docs/language-rules.md`.
+
+## A.4 Produktbild
+
+Wie Schritt 3, mit einer Ergänzung: Existiert im Drive-Baum des Marktes bereits ein
+`<product>_<market>_produktbild.jpg` aus einem früheren Lauf, wird es **wiederverwendet
+und nicht neu erzeugt** (Resume-Regel, Schritt 2b). Vor der Wiederverwendung das Bild mit
+dem `Read`-Tool ansehen und prüfen, dass der Verpackungstext in der Zielsprache steht —
+ein Produktbild mit englischem oder fremdsprachigem Etikett ist nach CLAUDE.md Regel 1
+ein Regenerierungsfall und darf nicht in neue Ads übernommen werden.
+
+Zeigt **keine** Quell-Ad der Zeile ein Produkt, wird gar kein Produktbild gebraucht.
+
+## A.5 Ads erzeugen
+
+Wie Schritt 5, unverändert: LOCKED STRING vor dem Prompt, `check_locked_string.py` mit
+Exit 0, `FREIGABE`-Zeile pro Textelement, ein eigener Prompt pro Ad, Modell
+`nano_banana_pro`, Seitenverhältnis exakt wie die Quell-Ad.
+
+**Textlose Ads:** Zeigt eine Quell-Ad weder Text noch Produkt (reine Illustration, Foto,
+MRT-Aufnahme, Selfie), gibt es nichts zu übersetzen. Die Datei wird **unverändert
+übernommen und nicht neu gerendert** — ein Neurender erzeugt ein anderes Motiv und wäre
+eine Variante statt einer Übersetzung. Im Bericht als „unverändert übernommen" ausweisen.
+
+## A.6 Ablage in Drive
+
+- Ziel: `Translated-Ads/<market_code>/<YYYY-MM-DD> - <product_name>/<Productname> Set <N>/`
+  Der Set-Ordner liegt **im bestehenden Tages-/Produktordner**. Gibt es den noch nicht,
+  zuerst nach `drive.day_folder_name_pattern` anlegen.
+- **Set-Nummer `N`:** höchste für dieses Produkt bereits in Spalte **H** vergebene
+  Set-Nummer + 1. Steht dort noch nichts, ist es **Set 2** (Set 1 = die ursprüngliche
+  Übersetzung aus dem Markt-Tab).
+- **Dateinamen:** `<N>_<Productname>_<countrycode>` (Schritt 7.3), also `1_Lumifirm_FI`,
+  `2_Lumifirm_FI` … Ländercode = Spalte A.
+- **Nur Bilddateien im Ordner.** Keine `ad_copy.md`, keine Textdatei (Schritt 5.5). Der
+  LOCKED-STRING-Nachweis geht nach
+  `Translated-Ads/<market_code>/State/<product>_<market>_locked_strings.md`.
+- Upload-Methode unverändert: Platzhalter über die Drive-Verbindung, echte Bytes per
+  Service-Account `files.update` (`docs/drive-upload-method.md`).
+
+## A.7 Rückschreiben ins Sheet — genau drei Zellen
+
+Sheets API, `values:batchUpdate`, `valueInputOption=USER_ENTERED`:
+
+| Zelle | Wert |
+|---|---|
+| `G<Zeile>` | `claude` (klein) |
+| `H<Zeile>` | `=HYPERLINK("<Set-Ordner-URL>";"<Productname> Set <N>")` — **Semikolon**, nicht Komma |
+| `I<Zeile>` | Lauf-Datum `d-m-yyyy`, z. B. `4-9-2026` |
+
+Danach `I<Zeile>` mit `valueRenderOption=UNFORMATTED_VALUE` nachlesen: der Rohwert muss
+eine **Zahl** sein (z. B. `46269`). Kommt ein String zurück, wurde es als Text
+gespeichert — dann erneut schreiben.
+
+**Nicht anfassen:** A, B, C, D, E, F, J, K, L, M, N. Insbesondere **J** (`launched`,
+`Fixed`, …) setzt der Mensch, nicht die Routine. Zeilen, die in Spalte G bereits eine
+andere Person tragen **und** ein Datum in I haben, werden nicht überschrieben.
+
+## A.8 Bericht
+
+Pro verarbeiteter Zeile: Zeilennummer, Markt aus Spalte A, Produktname aus Spalte C,
+Anzahl Ads (gerendert vs. unverändert übernommen), Link auf den Set-Ordner, Ergebnis der
+Sprach-QA je Bild. Übersprungene Zeilen mit Grund (gesperrt, fehlender Markt-Abschnitt,
+Quell-URL nicht ladbar). Ist in **beiden** Quellen nichts Neues, endet der Lauf ohne
+Chat-Nachricht.
