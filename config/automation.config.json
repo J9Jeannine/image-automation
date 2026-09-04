@@ -290,10 +290,33 @@
     "read_by_routine": "claude/adoring-fermat-ikg9pb",
     "note": "Die Routine liest den Default-Branch. Korrekturen an Workflow/Regeln gehoeren auf DIESEN Branch. Ein Fix auf einem anderen claude/...-Branch wird nie gelesen und ist wirkungslos."
   },
+  "state_files": {
+    "mandatory": true,
+    "canonical_folder_ids": {
+      "FI": "1NSKjesH5A5r5lvWyb-mPvt390NLuhSSj",
+      "FRCA": "13na2DEsCTitRK1kdh0OpSxSYRz-PDc1S"
+    },
+    "canonical_path": "Translated-Ads/<market_code>/State/",
+    "files": [
+      "processed_comments.json",
+      "row_locks.json",
+      "flagged_for_regeneration.json"
+    ],
+    "row_key_format": "Bare Zeilennummer als String, z.B. \"84\" - NICHT \"row_84\". Der Live-Bestand benutzt die bare Nummer; beide Formate gemischt fuehren dazu, dass eine bereits verarbeitete Zeile als neu gilt.",
+    "deprecated_locations": {
+      "paths": [
+        "image creation/FI/State/  (Ordner-ID 1RTnBufmjQoZ-6sGC6njAXOUQet5UewNN)",
+        "image creation/FRCA/State/  (Ordner-ID 16EZQapSYhZm7DLZERzM2foLPa0HT1TGx)"
+      ],
+      "rule": "NICHT LESEN, NICHT SCHREIBEN. Dort liegen veraltete processed_comments.json (Stand 2026-09-02, Schluesselformat 'row_NN'), die die Zeilen FI!84/85/87 und FRCA!59/60 nicht kennen."
+    },
+    "why": "Der Ausdruck '<Projektordner>' in docs/workflow.md war mehrdeutig: er laesst sich sowohl als drive.base_folder_id ('image creation') als auch als drive.translated_ads_folder_id ('Translated-Ads') lesen. Beide Baeume enthalten tatsaechlich eine State/-Ablage dieser Automatisierung, mit unterschiedlichem Stand und unterschiedlichem Schluesselformat. Am 2026-09-04 hat der Lauf zuerst die veraltete Kopie unter 'image creation' gelesen und daraufhin fuenf bereits fertige Zeilen (Circuva FI+FRCA, lumifirm FI+FRCA, Cervi FI) als neu eingestuft - eine vollstaendige Neugenerierung von rund 25 Bildern waere die Folge gewesen. Deshalb ist der Pfad hier mit expliziten Ordner-IDs festgenagelt.",
+    "update_rule": "Eine State-Datei wird IMMER per files.update auf der bestehenden file id ueberschrieben, NIE per create_file neu angelegt. Google Drive erlaubt mehrere Dateien gleichen Namens im selben Ordner: am 2026-09-03 sind so drei byte-identische processed_comments.json in Translated-Ads/FI/State/ entstanden. Vor dem Schreiben den Ordner auflisten; liegen mehrere Dateien gleichen Namens vor, die zuletzt geaenderte als Wahrheit nehmen und die uebrigen loeschen."
+  },
   "concurrency_lock": {
     "mandatory": true,
     "why": "Am 2026-08-28 liefen zwei Sessions parallel auf derselben Zeile (Dermaflex FI) - Ordner 'Dermaflex' und 'dernaflex2' gleichzeitig angelegt, 12 Bilder komplett doppelt generiert und wieder verworfen. Reine Credit-Verschwendung (~24+ Credits fuer nichts).",
-    "lock_file_path": "<Projektordner>/<market_code>/State/row_locks.json",
+    "lock_file_path": "Translated-Ads/<market_code>/State/row_locks.json (siehe state_files.canonical_folder_ids)",
     "lock_key_format": "<market_code>!<Zeilennummer>, z.B. FRCA!56",
     "ttl_minutes": 30,
     "rule": "Vor jeder Generierung fuer eine Zeile: Lock lesen. Juenger als ttl_minutes vorhanden -> Zeile in diesem Lauf ueberspringen, im Bericht vermerken. Sonst Lock mit aktuellem Zeitstempel schreiben, nach Abschluss der Zeile wieder entfernen. Siehe docs/workflow.md Schritt 2a."
@@ -301,7 +324,7 @@
   "resume_missing_only": {
     "mandatory": true,
     "why": "Bricht ein Lauf mitten in einer Zeile ab (Credits alle, Session-Absturz, Fehler), soll der naechste Lauf NICHT die komplette Zeile neu generieren - das verbrennt Credits fuer bereits fertige, korrekte Bilder ein zweites Mal. Nur das Fehlende oder als falsch markierte wird nachgeholt.",
-    "flag_file_path": "<Projektordner>/<market_code>/State/flagged_for_regeneration.json",
+    "flag_file_path": "Translated-Ads/<market_code>/State/flagged_for_regeneration.json (siehe state_files.canonical_folder_ids)",
     "flag_key_format": "<market_code>!<Zeilennummer>!ad<N>, z.B. FRCA!56!ad8",
     "rule": "Vor jeder Ad-Generierung (Schritt 5) und vor der Produktbild-Generierung (Schritt 3): Zielordner in Drive auflisten. Existiert <product_name>_<market_code>_ad<N>.jpg (bzw. _produktbild.jpg) bereits UND steht der zugehoerige Key nicht in flagged_for_regeneration.json -> NICHT neu generieren, vorhandene Datei stehen lassen und fuer Schritt 8 als bereits erledigt zaehlen. Fehlt die Datei ODER steht der Key in flagged_for_regeneration.json -> generieren (bzw. neu generieren), danach den Key aus flagged_for_regeneration.json entfernen. Faellt die Sprach-QA (Schritt 7.5) bei einem Bild durch -> Key in flagged_for_regeneration.json EINTRAGEN statt nur im Bericht zu vermerken, damit ein spaeterer Lauf genau dieses eine Bild nachholt. Siehe docs/workflow.md Schritt 2b."
   }

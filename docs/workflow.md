@@ -55,8 +55,20 @@ Datenquelle ist **kein** freies Ad-Library-Suchergebnis, sondern das bestehende
       (M) ein Kommentar-Thread? Falls ja: **Head-Post-Inhalt UND alle Replies** als
       Ad-Library-Permalinks sammeln (mehrere Team-Mitglieder posten oft in derselben
       Zelle nacheinander — nichts davon verwerfen).
-2. Gegen `<Projektordner>/<market_code>/State/processed_comments.json` in Drive
-   abgleichen: pro Zeile einen Hash/Fingerprint des kompletten Kommentar-Threads
+2. Gegen `Translated-Ads/<market_code>/State/processed_comments.json` in Drive
+   abgleichen (**exakte Ordner-IDs**: `config/automation.config.json` →
+   `state_files.canonical_folder_ids`; FI = `1NSKjesH5A5r5lvWyb-mPvt390NLuhSSj`,
+   FRCA = `13na2DEsCTitRK1kdh0OpSxSYRz-PDc1S`). Schlüssel sind **bare Zeilennummern**
+   (`"84"`), nicht `"row_84"`.
+
+   > **Nicht verwechseln — veraltete Zweitablage.** Unter
+   > `image creation/<market_code>/State/` liegt eine ältere `processed_comments.json`
+   > (Stand 2026-09-02, Schlüsselformat `row_NN`). Sie ist **nicht** die Wahrheit und
+   > wird weder gelesen noch geschrieben. Am 2026-09-04 hat ein Lauf zuerst diese Kopie
+   > gelesen und daraufhin fünf bereits fertige Zeilen (Circuva FI+FRCA, lumifirm FI+FRCA,
+   > Cervi FI) als neu eingestuft — rund 25 Bilder wären umsonst neu generiert worden.
+
+   Pro Zeile einen Hash/Fingerprint des kompletten Kommentar-Threads
    (Head-Post + alle Reply-Inhalte) speichern. Nur Zeilen mit einem **neuen oder
    geänderten** Fingerprint gegenüber dem letzten Lauf weiterverarbeiten. Ist nichts neu:
    Lauf beenden, keine weiteren Schritte, keine Chat-Nachricht nötig (kein Spam).
@@ -66,7 +78,7 @@ Datenquelle ist **kein** freies Ad-Library-Suchergebnis, sondern das bestehende
    bearbeitet — Ergebnis: ein kompletter doppelter Bildersatz (12 Bilder), der danach
    wieder überschrieben/gelöscht wurde. Reine Higgsfield-Credits verbrannt, für nichts.
    Dagegen:
-   - `<Projektordner>/<market_code>/State/row_locks.json` lesen (existiert die Datei
+   - `Translated-Ads/<market_code>/State/row_locks.json` lesen (existiert die Datei
      nicht, als `{}` behandeln). Schlüssel: `<market_code>!<Zeilennummer>`
      (z. B. `FRCA!56`).
    - Existiert für diese Zeile ein Eintrag **und** ist dessen `locked_at` jünger als
@@ -88,7 +100,7 @@ Datenquelle ist **kein** freies Ad-Library-Suchergebnis, sondern das bestehende
    (Schritt 3 Produktbild UND jede einzelne Ad in Schritt 5):
    - Zielordner `Translated-Ads/<market_code>/<Lauf-Datum> - <product_name>/` in Drive
      auflisten (existiert er noch nicht, gilt als leer).
-   - `<Projektordner>/<market_code>/State/flagged_for_regeneration.json` lesen
+   - `Translated-Ads/<market_code>/State/flagged_for_regeneration.json` lesen
      (existiert die Datei nicht, als `{}` behandeln). Schlüssel:
      `<market_code>!<Zeilennummer>!ad<N>` (Produktbild: `...!produktbild`).
    - Existiert `<product_name>_<market_code>_ad<N>.jpg` (bzw. `_produktbild.jpg`)
@@ -391,9 +403,14 @@ Die eigentliche Higgsfield-Generierung passiert bereits in Schritt 5 (ein Call p
    Blockierte Zeilen (keine ladbaren Ad-Bilder) bleiben unangetastet — ein Link auf einen
    nicht existierenden Ordner ist schlimmer als eine leere Zelle. Ebenso Zeilen, in denen
    bereits eine andere Person in Spalte N steht, nicht überschreiben.
-3. `State/processed_comments.json` mit den neuen Fingerprints aus Schritt 2 aktualisieren
-   (kleine Textdatei → direkt per `Google_Drive.create_file`/`files.update`). Die
-   geschriebene Sheet-Zelle dort als `sheet_link_written` vermerken.
+3. `Translated-Ads/<market_code>/State/processed_comments.json` mit den neuen
+   Fingerprints aus Schritt 2 aktualisieren. **Immer per `files.update` auf die
+   bestehende file id**, nie per `create_file` neu anlegen: Drive erlaubt mehrere
+   Dateien gleichen Namens im selben Ordner, so sind am 2026-09-03 drei byte-identische
+   `processed_comments.json` in `Translated-Ads/FI/State/` entstanden. Vor dem Schreiben
+   den Ordner auflisten; liegen mehrere gleichnamige Dateien vor, die zuletzt geänderte
+   als Wahrheit nehmen und die übrigen löschen. Die geschriebene Sheet-Zelle dort als
+   `sheet_link_written` vermerken.
 4. Kurze Zusammenfassung an den Nutzer: welche Zeilen/Produkte verarbeitet wurden, wie
    viele Ads pro Zeile, Drive-Links zu den neuen Dateien, ob gerendert wurde oder nur
    Prompt-Texte erzeugt wurden, und welche Sheet-Zellen (N/O) gesetzt wurden. Bei
