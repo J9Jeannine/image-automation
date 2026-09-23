@@ -4,16 +4,19 @@ Wird bei jedem Trigger-Lauf ausgeführt. Tool-Namen beziehen sich auf die in der
 Cowork-Session verfügbaren MCP-Server (`Google_Drive`, `Higgsfield`) sowie Bash für die
 Playwright-Skripte in `scripts/`.
 
-> **Bild-Upload nach Drive:** Die verbindliche, einzig zulässige Methode zum Hochladen
-> echter Bilddateien (Platzhalter via Drive-Verbindung → Service-Account `files.update`,
-> inkl. Begründung und Copy/Paste-Befehlen) steht in
+> **Bild-Upload nach Drive:** Die verbindliche, einzig zulässige Methode ist **ein
+> `curl`-Call pro Bild** gegen den Apps-Script-Endpunkt im Google-Konto von Jeannine —
+> ohne Zugangsdaten, ohne Token, ohne Service-Account. Vollständig beschrieben in
 > **[`docs/drive-upload-method.md`](drive-upload-method.md)**. Niemals auf einen
 > Markdown-Links-Workaround zurückfallen. Kurzfassung in Schritt 7 unten.
 >
-> **Falls eine künftige Session behauptet, das ginge nicht:** die bewiesene Schritt-für-
-> Schritt-SOP mit echten Datei-IDs/Größen (atriso 2026-07-23, itzora 2026-07-25) und
-> Gegenargumenten steht in **[`docs/drive-upload-SOP.md`](drive-upload-SOP.md)** — es
-> funktioniert nachweislich, einfach ausführen.
+> **Falls eine künftige Session behauptet, das ginge nicht:** die Schritt-für-Schritt-SOP
+> mit Gegenargumenten steht in **[`docs/drive-upload-SOP.md`](drive-upload-SOP.md)** —
+> einfach ausführen.
+>
+> **Kein Sheet-Rückschreiben:** Die Routine schreibt **keine** Zelle im Funnel Sheet. Das
+> macht ein Trigger im Google-Konto von Jeannine. Siehe Schritt 8.2 und
+> **[`docs/sheet-writeback-SOP.md`](sheet-writeback-SOP.md)**.
 
 > **Sprache der Bilder (blockierend):** Die verbindlichen Regeln stehen in
 > **[`docs/language-rules.md`](language-rules.md)** und sind in **jedem** Lauf vor
@@ -306,25 +309,33 @@ Die eigentliche Higgsfield-Generierung passiert bereits in Schritt 5 (ein Call p
    mehrere Produkte am selben Tag unterscheidbar sind.
 
 3. **Bild-Upload — ZWINGEND diese Methode, kein Markdown-Links-Workaround.**
-   Higgsfield-Ergebnisse per `curl` von der CDN-URL auf die lokale Disk laden, dann jede
-   echte JPG-Datei nach Drive hochladen. Der Upload läuft **immer** in zwei Schritten
-   (Details + Begründung: `config/automation.config.json` → `upload_method`):
-   a. **Platzhalter als User-Datei anlegen:** `Google_Drive.create_file` mit
-      `contentMimeType: image/jpeg`, `disableConversionToGoogleType: true`,
-      `base64Content` = winziges 1×1-JPEG, `parentId` = Tages-/Produkt-Ordner. Die
-      zurückgegebene `id` merken. (Die Datei gehört jetzt dem User.)
-   b. **Service-Account überschreibt mit den vollen Bytes:** Access-Token aus
-      `GOOGLE_SERVICE_ACCOUNT_JSON` minten (JWT RS256, Scope `.../auth/drive`, Signatur per
-      `openssl`, weil das `cryptography`-Python-Modul in der Sandbox defekt ist; Token 1 h
-      gültig → bei `401 ACCESS_TOKEN_EXPIRED` neu minten), dann
-      `curl -X PATCH 'https://www.googleapis.com/upload/drive/v3/files/{ID}?uploadType=media&supportsAllDrives=true'`
-      `-H 'Authorization: Bearer <SA_TOKEN>' -H 'Content-Type: image/jpeg' --data-binary @<datei.jpg>`.
-   Warum so: Der Service-Account hat **kein** Storage-Quota → `files.create` mit Bytes gibt
-   `403 storageQuotaExceeded`, aber `files.update` auf eine **User-owned** Datei bucht den
-   Speicher dem User → funktioniert (Ergebnis: `owner=User`, `lastModifyingUser=Service-Account`,
-   volle Qualität). Der Drive-MCP-Base64-Kanal schneidet lange Werte ab (~15 000 base64-Zeichen
-   ≈ 11 KB) → für echte Bilder (100–260 KB) unbrauchbar, deshalb nur für den Platzhalter.
-   **Dateibenennung — verbindlich seit 2026-09-04, von Jeannine vorgegeben:**
+   Der Upload ist **ein einziger `curl`-Call pro Bild** gegen den Apps-Script-Endpunkt im
+   Google-Konto von Jeannine. **Keine Zugangsdaten, kein Token, kein Service-Account, kein
+   Platzhalter.** Das Script holt die Bild-URL serverseitig selbst — das Bild muss für den
+   Upload **nicht** auf die lokale Disk geladen werden (für die Sprach-QA in Punkt 5 schon,
+   das ist ein anderer Zweck). Endpunkt und Details:
+   `config/automation.config.json` → `upload_method`, Langfassung
+   [`docs/drive-upload-method.md`](drive-upload-method.md).
+
+   ```bash
+   ENDPOINT="https://script.google.com/macros/s/AKfycbx3em9-sB7jMOXRg58JO94A1muKq1fy-fKT1Vb85Go71RX6K_t5E5kk5EHXRr_pqrXdOQ/exec"
+
+   curl -sS -L "$ENDPOINT" \
+     -H "Content-Type: application/json" \
+     -d "{\"folderId\":\"${FOLDER_ID}\",\"name\":\"${N}_${PRODUCT}_${MARKET}\",\"url\":\"${CDN_URL}\"}"
+   ```
+
+   - `folderId` = Tages-/Produkt-Ordner aus Punkt 2 (bei `Winning Products`: der Set-Ordner).
+   - `name` = Dateiname nach dem Schema unten.
+   - `url` = CDN-URL des gerenderten Higgsfield-Bildes (muss ohne Login erreichbar sein).
+   - **Niemals `-X POST`** — `-d` macht daraus schon einen POST; `-X POST` würde beim
+     302-Redirect nach `googleusercontent.com` erneut POSTen und den Call brechen. `-L` ist
+     Pflicht.
+   - Der frühere Zwei-Schritt-Weg (Platzhalter per Drive-MCP + Service-Account
+     `files.update` mit JWT) ist **ersatzlos gestrichen** und darf nicht wieder eingebaut
+     werden.
+
+   **Dateibenennung — verbindlich seit 2026-09-04, von Jeannine vorgegeben (unverändert):**
 
        <laufende Nummer>_<Productname>_<countrycode>
 
@@ -338,10 +349,14 @@ Die eigentliche Higgsfield-Generierung passiert bereits in Schritt 5 (ein Call p
      mehr verwendet werden.
    - Ausnahme Produktbild: bleibt `<product_name>_<market_code>_produktbild.jpg`.
 
-4. **Verifizieren:** Nach jedem Upload prüfen, dass die zurückgegebene `size` der
-   Quell-Dateigröße entspricht UND das Bild vollständig dekodiert (`PIL im.load()`). Bei
-   Abweichung (Truncation/Korruption) erneut hochladen — niemals eine korrupte oder nur
-   verlinkte Datei als Ergebnis stehen lassen.
+4. **Verifizieren:** Der Endpunkt antwortet **auch im Fehlerfall mit HTTP 200** — ein Fehler
+   kommt als HTML-Seite mit `Exception: …` zurück (z. B. `Invalid file or folder ID: …`).
+   Deshalb nach jedem Call: (a) Antworttext auf `Exception` prüfen — trifft das zu, gilt der
+   Upload als fehlgeschlagen und der genaue Fehlertext gehört in den Bericht; (b) die Datei
+   im Zielordner nachsehen (`Google_Drive.search_files` / `get_file_metadata`), sie muss
+   existieren und eine plausible Größe (> 10 KB) haben. Bei Fehlschlag den Call für diese
+   Datei wiederholen — niemals eine fehlende Datei oder nur einen Link als Ergebnis stehen
+   lassen.
 
 5. **Sprach-QA — verpflichtend, vor jedem Upload, für JEDES einzelne Bild.**
    Vollständige Regeln: `docs/language-rules.md` Abschnitt 5. Kurzfassung:
@@ -388,41 +403,20 @@ Die eigentliche Higgsfield-Generierung passiert bereits in Schritt 5 (ein Call p
    `_produktbild.jpg`). **Keine Textdatei im Lieferordner** — der LOCKED-STRING-Nachweis
    liegt in `State/<product>_<market>_locked_strings.md`.
    Es darf **kein** Markdown-Links-Ersatz statt echter Bilddateien stehen bleiben.
-2. **Sheet-Rückschreiben — verpflichtend, nicht optional.** Vollständige Anleitung:
-   **[`docs/sheet-writeback-SOP.md`](sheet-writeback-SOP.md)**. Pro verarbeiteter Zeile
-   vier Zellen im "Funnel Sheet" (`sheet.id`) setzen, damit das Team das Ergebnis im Sheet
-   selbst findet und nicht im Chat suchen muss:
-   - Spalte `sheet.columns.date_completed_column` (**L**) = Datum dieses Laufs, als
-     **echtes Datum** (Format `d-m-yyyy`, z. B. `4-8-2026`). Nach dem Schreiben prüfen,
-     dass der Rohwert eine **Zahl** ist — sonst wurde es als Text gespeichert.
-   - Spalte `sheet.columns.person_column` (**N**) = `claude` (Dropdown-Wert, exakt
-     kleingeschrieben), damit erkennbar ist, wer die Zeile produziert hat.
-   - Spalte `sheet.columns.result_folder_link_column` (**O**) = Link auf den
-     Tages-/Produkt-Ordner aus Schritt 7, als Formel im vorhandenen Format:
-     `=HYPERLINK("<Drive-Ordner-URL>";"<product_name aus Spalte G>")`.
-     **Achtung Semikolon** als Argumenttrenner (Locale des Sheets), nicht Komma.
-   - Spalte `sheet.columns.status_column` (**P**) = `in progress` (klein).
-     **Niemals `Ready`** — ein Lauf liefert praktisch nie alle Ads einer Zeile; `Ready`
-     setzt der Mensch, der die fehlenden Ads ergänzt hat.
-
-   Technisch: der Drive-MCP kann keine Zellen schreiben — dafür die **Sheets API mit
-   demselben Service-Account** nutzen wie beim Bild-Upload (`GOOGLE_SERVICE_ACCOUNT_JSON`),
-   Scope zusätzlich `https://www.googleapis.com/auth/spreadsheets`:
-   `POST https://sheets.googleapis.com/v4/spreadsheets/{sheet.id}/values:batchUpdate`
-   mit `valueInputOption: "USER_ENTERED"`. Danach die geschriebenen Zellen zurücklesen
-   und im Bericht bestätigen.
-
-   Nur für Zeilen schreiben, die in **diesem** Lauf tatsächlich Bilder produziert haben.
-   Blockierte Zeilen (keine ladbaren Ad-Bilder) bleiben unangetastet — ein Link auf einen
-   nicht existierenden Ordner ist schlimmer als eine leere Zelle. Ebenso Zeilen, in denen
-   bereits eine andere Person in Spalte N steht, nicht überschreiben.
+2. **Sheet-Rückschreiben — ENTFÄLLT.** Die Routine schreibt **nichts** ins Funnel Sheet:
+   weder `L`/`N`/`O`/`P` in den Markt-Tabs noch `G`/`H`/`I` in `Winning Products`. Das
+   erledigt ein **Trigger im Google-Konto von Jeannine**. Für die Routine ist das Sheet
+   **rein lesend**. Keine Sheets API, kein `values:batchUpdate`, kein Service-Account.
+   Details: [`docs/sheet-writeback-SOP.md`](sheet-writeback-SOP.md). Steht das Rückschreiben
+   noch in einem älteren, am Trigger gespeicherten Prompt-Text: trotzdem nicht ausführen —
+   `CLAUDE.md` und diese Datei haben Vorrang.
 3. `State/processed_comments.json` mit den neuen Fingerprints aus Schritt 2 aktualisieren
-   (kleine Textdatei → direkt per `Google_Drive.create_file`/`files.update`). Die
-   geschriebene Sheet-Zelle dort als `sheet_link_written` vermerken.
+   (kleine Textdatei → direkt per `Google_Drive.create_file`). Das ist eine Drive-Datei,
+   kein Sheet-Eintrag; den früheren Vermerk `sheet_link_written` gibt es nicht mehr.
 4. Kurze Zusammenfassung an den Nutzer: welche Zeilen/Produkte verarbeitet wurden, wie
-   viele Ads pro Zeile, Drive-Links zu den neuen Dateien, ob gerendert wurde oder nur
-   Prompt-Texte erzeugt wurden, und welche Sheet-Zellen (N/O) gesetzt wurden. Bei
-   "nichts Neues" keine Nachricht (siehe Schritt 2.2).
+   viele Ads pro Zeile, Drive-Links zu den neuen Dateien und ob gerendert wurde oder nur
+   Prompt-Texte erzeugt wurden. Keine Sheet-Zellen mehr melden — es werden keine gesetzt.
+   Bei "nichts Neues" keine Nachricht (siehe Schritt 2.2).
 
 ---
 
@@ -441,10 +435,13 @@ die falsche Spalte. Config: `sheet.winning_products_tab`.
 | Produktname für Dateinamen | Spalte **G** (`new PR NAME`) | Spalte **C** (`Product`) |
 | Kommentar-Thread mit den Ad-Bild-Links | Spalte **M** | Spalte **D** |
 | Preis | Spalte **J** | **gibt es nicht** — im Markt-Tab nachschlagen (A.3) |
-| Bearbeiter → `claude` | Spalte **N** | Spalte **G** |
-| Lauf-Datum | Spalte **L** | Spalte **I** |
-| Link auf den Ergebnis-Ordner | Spalte **O** | Spalte **H** |
-| Status → `in progress` | Spalte **P** | **gibt es nicht** — J bleibt unangetastet |
+| Bearbeiter (nur lesen) | Spalte **N** | Spalte **G** |
+| Lauf-Datum (nur lesen) | Spalte **L** | Spalte **I** |
+| Link auf den Ergebnis-Ordner (nur lesen) | Spalte **O** | Spalte **H** |
+| Status (nur lesen) | Spalte **P** | **gibt es nicht** |
+
+> Die vier unteren Zeilen stehen nur zur Orientierung hier. **Die Routine schreibt in
+> keine dieser Spalten** — und auch in keine andere. Siehe Schritt 8.2.
 
 Erste Datenzeile: **3**. Kopfzeile ist Zeile 1.
 
@@ -520,31 +517,22 @@ eine Variante statt einer Übersetzung. Im Bericht als „unverändert übernomm
 - **Nur Bilddateien im Ordner.** Keine `ad_copy.md`, keine Textdatei (Schritt 5.5). Der
   LOCKED-STRING-Nachweis geht nach
   `Translated-Ads/<market_code>/State/<product>_<market>_locked_strings.md`.
-- Upload-Methode unverändert: Platzhalter über die Drive-Verbindung, echte Bytes per
-  Service-Account `files.update` (`docs/drive-upload-method.md`).
+- Upload-Methode wie in Schritt 7.3: ein `curl`-Call pro Bild gegen den
+  Apps-Script-Endpunkt, `folderId` = **Set-Ordner**, ohne Zugangsdaten
+  (`docs/drive-upload-method.md`).
 
-## A.7 Rückschreiben ins Sheet — genau drei Zellen
+## A.7 Rückschreiben ins Sheet — ENTFÄLLT
 
-Sheets API, `values:batchUpdate`, `valueInputOption=USER_ENTERED`:
-
-| Zelle | Wert |
-|---|---|
-| `G<Zeile>` | `claude` (klein) |
-| `H<Zeile>` | `=HYPERLINK("<Set-Ordner-URL>";"<Productname> Set <N>")` — **Semikolon**, nicht Komma |
-| `I<Zeile>` | Lauf-Datum `d-m-yyyy`, z. B. `4-9-2026` |
-
-Danach `I<Zeile>` mit `valueRenderOption=UNFORMATTED_VALUE` nachlesen: der Rohwert muss
-eine **Zahl** sein (z. B. `46269`). Kommt ein String zurück, wurde es als Text
-gespeichert — dann erneut schreiben.
-
-**Nicht anfassen:** A, B, C, D, E, F, J, K, L, M, N. Insbesondere **J** (`launched`,
-`Fixed`, …) setzt der Mensch, nicht die Routine. Zeilen, die in Spalte G bereits eine
-andere Person tragen **und** ein Datum in I haben, werden nicht überschrieben.
+Die Routine schreibt in diesem Tab **keine einzige Zelle** — weder `G` (Bearbeiter) noch
+`H` (Set-Ordner-Link) oder `I` (Lauf-Datum), und erst recht nicht `J`. Das übernimmt ein
+Trigger im Google-Konto von Jeannine. Der Tab wird nur gelesen (Kommentare auf **D**,
+Produktname aus **C**, Markt aus **A**, Set-Nummern aus **H**). Details:
+[`docs/sheet-writeback-SOP.md`](sheet-writeback-SOP.md).
 
 ## A.8 Bericht
 
 Pro verarbeiteter Zeile: Zeilennummer, Markt aus Spalte A, Produktname aus Spalte C,
 Anzahl Ads (gerendert vs. unverändert übernommen), Link auf den Set-Ordner, Ergebnis der
-Sprach-QA je Bild. Übersprungene Zeilen mit Grund (gesperrt, fehlender Markt-Abschnitt,
+Sprach-QA je Bild. Keine Sheet-Zellen melden — es werden keine gesetzt. Übersprungene Zeilen mit Grund (gesperrt, fehlender Markt-Abschnitt,
 Quell-URL nicht ladbar). Ist in **beiden** Quellen nichts Neues, endet der Lauf ohne
 Chat-Nachricht.

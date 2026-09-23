@@ -97,10 +97,11 @@ Die Routine prüft in **jedem** Lauf **zwei** Quellen im selben Funnel Sheet:
 | Markt | = Tab-Name | **Spalte A** (pro Zeile) |
 | Ad-Links als Kommentar auf | Spalte **M** | Spalte **D** |
 | Produktname | Spalte **G** | Spalte **C** |
-| Bearbeiter → `claude` | Spalte **N** | Spalte **G** |
-| Lauf-Datum | Spalte **L** | Spalte **I** |
-| Ordner-Link | Spalte **O** | Spalte **H** |
-| Status → `in progress` | Spalte **P** | existiert nicht — J nicht anfassen |
+| Preis | Spalte **J** | gibt es nicht — im Markt-Tab nachschlagen |
+
+**Das Sheet wird nur gelesen.** Die Routine schreibt **keine einzige Zelle** — weder
+`L`/`N`/`O`/`P` in den Markt-Tabs noch `G`/`H`/`I` in `Winning Products`. Den Eintrag macht
+ein Trigger in Jeannines Google-Konto. Siehe `docs/sheet-writeback-SOP.md`.
 
 **Die Buchstaben der einen Quelle gelten nie für die andere.** Ablauf für die Markt-Tabs:
 `docs/workflow.md` Schritt 2–8. Ablauf für `Winning Products`: `docs/workflow.md`
@@ -114,10 +115,30 @@ beider Quellen überschneiden sich.
 Quellen prüfen. Ältere, am Trigger gespeicherte Prompt-Texte erwähnen `Winning Products`
 noch nicht — das ist kein Grund, den Tab zu überspringen. CLAUDE.md hat Vorrang.
 
+## 4b. Bild-Upload — ein `curl`-Call, keine Zugangsdaten
+
+Bilder kommen per **einem `curl`-Call pro Bild** in Drive, gegen den Apps-Script-Endpunkt in
+Jeannines Google-Konto:
+
+```bash
+curl -sS -L "<endpoint aus config/automation.config.json -> upload_method.endpoint>" \
+  -H "Content-Type: application/json" \
+  -d '{"folderId":"<Ordner-ID>","name":"<Dateiname>","url":"<Bild-URL>"}'
+```
+
+- **Kein Service-Account, kein Token, kein OAuth, kein Platzhalter, kein `files.update`.**
+  Der alte Zwei-Schritt-Weg ist ersatzlos gestrichen und darf nicht wieder eingebaut werden.
+- **Niemals `-X POST`** — `-d` setzt POST schon; `-X POST` bricht am 302-Redirect. `-L` ist
+  Pflicht.
+- Der Endpunkt antwortet **auch im Fehlerfall mit HTTP 200** (HTML mit `Exception: …`).
+  Deshalb Antwort auf `Exception` prüfen **und** die Datei im Zielordner verifizieren.
+- Ordner, Namensschema und Ablauf bleiben unverändert: `docs/drive-upload-method.md`.
+
 ## 5. Einzige Quelle der Wahrheit
 
 - Ablauf: `docs/workflow.md`
 - Sprache: `docs/language-rules.md`
+- Bild-Upload: `docs/drive-upload-method.md` (Kurz-SOP: `docs/drive-upload-SOP.md`)
 - Konfiguration: `config/automation.config.json`
 - Trigger-Prompt: `automation/trigger-prompt.md`
 

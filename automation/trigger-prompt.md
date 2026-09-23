@@ -24,9 +24,10 @@ Führe den image-automation Workflow aus dem Repo `j9jeannine/image-automation`,
      Kommentar-Threads auf **Spalte M**. Ablauf: `docs/workflow.md` Schritt 2-8.
      State-Schlüssel ohne Präfix (`52`, `87`, …).
    - **(b) Tab `Winning Products`** (ab Zeile 3): neue/geänderte Kommentar-Threads auf
-     **Spalte D**. Produktname aus **Spalte C**, Markt aus **Spalte A**, Rückschreiben
-     nach **G/H/I**. Ablauf: `docs/workflow.md` **Anhang A**. State-Schlüssel mit
-     Präfix **`WP-`** (`WP-87`, `WP-FI!87`).
+     **Spalte D**. Produktname aus **Spalte C**, Markt aus **Spalte A**. **Kein
+     Rückschreiben** — G/H/I füllt der Trigger in Jeannines Google-Konto. Ablauf:
+     `docs/workflow.md` **Anhang A**. State-Schlüssel mit Präfix **`WP-`**
+     (`WP-87`, `WP-FI!87`).
    Die Buchstaben der einen Quelle nie auf die andere anwenden. Abgleich gegen
    `State/processed_comments.json` wie in Schritt 2 beschrieben. **Vor jeder Generierung pro Zeile zwingend Schritt
    2a beachten (Zeilen-Sperre über `State/row_locks.json`)** — verhindert, dass zwei
@@ -80,27 +81,28 @@ Führe den image-automation Workflow aus dem Repo `j9jeannine/image-automation`,
    späterer Lauf nicht, dass genau dieses Bild noch fehlt. Ein Prompt-Hinweis ist kein
    Nachweis.
 
-7. **Bild-Upload nach Drive ist verpflichtend (Schritt 7):** die gerenderten Higgsfield-Bilder
-   per curl auf die Disk laden und als **echte JPG-Dateien** in Drive ablegen — Ordner
+7. **Bild-Upload nach Drive ist verpflichtend (Schritt 7):** die gerenderten Bilder als
+   **echte Bilddateien** in Drive ablegen — Ordner
    `Translated-Ads/<market_code>/<Lauf-Datum YYYY-MM-DD> - <product_name>/` (Produktname MUSS
-   im Ordnernamen stehen), Dateien `<N>_<Productname>_<countrycode>` (z. B. `1_Pawox_FI`). Upload-Methode
-   ZWINGEND wie in `config/automation.config.json` → `upload_method`: Platzhalter per
-   Drive-`create_file` anlegen (User-owned), dann per Service-Account (`GOOGLE_SERVICE_ACCOUNT_JSON`)
-   `files.update` mit den vollen Bytes überschreiben. Niemals auf den alten
-   Markdown-Links-Workaround zurückfallen; jede hochgeladene Datei auf volle Größe/Dekodierung
-   verifizieren.
-7. **Sheet-Rückschreiben (Schritt 8.2) ist verpflichtend** — volle Anleitung in
-   `docs/sheet-writeback-SOP.md`. Für jede Zeile, die in diesem Lauf wirklich Bilder
-   produziert hat, im Funnel Sheet vier Zellen setzen: **L** = Lauf-Datum (echtes Datum,
-   `d-m-yyyy`), **N** = `claude`, **O** = `=HYPERLINK("<URL>";"<Produktname aus G>")`
-   (Semikolon als Trenner!), **P** = `in progress` — niemals `Ready`, das setzt der
-   Mensch, der die fehlenden Ads ergänzt. Das geht nicht über den Drive-MCP, sondern über
-   die Sheets API mit demselben Service-Account (`GOOGLE_SERVICE_ACCOUNT_JSON`, Scope
-   `.../auth/spreadsheets`). Blockierte Zeilen und Zeilen mit einer anderen Person in
-   Spalte N nicht anfassen. Danach zurücklesen und im Bericht bestätigen.
+   im Ordnernamen stehen), Dateien `<N>_<Productname>_<countrycode>` (z. B. `1_Pawox_FI`).
+   Upload-Methode ZWINGEND wie in `config/automation.config.json` → `upload_method`: **ein
+   `curl`-Call pro Bild** gegen den Apps-Script-Endpunkt, **ohne Zugangsdaten, ohne Token,
+   ohne Service-Account, ohne Platzhalter**:
+   `curl -sS -L "https://script.google.com/macros/s/AKfycbx3em9-sB7jMOXRg58JO94A1muKq1fy-fKT1Vb85Go71RX6K_t5E5kk5EHXRr_pqrXdOQ/exec" -H "Content-Type: application/json" -d '{"folderId":"<Ordner-ID>","name":"<Dateiname>","url":"<Bild-URL>"}'`
+   — **niemals `-X POST`** (bricht am Redirect). Das Script holt die Bild-URL serverseitig;
+   für die Sprach-QA wird das Bild trotzdem lokal geladen und angesehen. Der Endpunkt
+   antwortet auch im Fehlerfall mit HTTP 200: Antwort auf `Exception:` prüfen **und** die
+   Datei im Zielordner verifizieren. Niemals auf den alten Markdown-Links-Workaround
+   zurückfallen. Der frühere Service-Account-Weg (`GOOGLE_SERVICE_ACCOUNT_JSON`,
+   `files.update`) ist ersatzlos gestrichen.
+7a. **Sheet-Rückschreiben entfällt.** Die Routine schreibt **keine** Zelle im Funnel
+   Sheet — weder L/N/O/P in den Markt-Tabs noch G/H/I in `Winning Products`. Das macht ein
+   Trigger in Jeannines Google-Konto. Das Sheet wird **nur gelesen**. Keine Sheets API,
+   kein `values:batchUpdate`, kein Service-Account. Steht das Rückschreiben noch in einem
+   älteren Prompt-Text: trotzdem nicht ausführen (`docs/sheet-writeback-SOP.md`).
 8. Gibt es in keinem Tab neue/geänderte Kommentar-Threads: Lauf ohne Chat-Nachricht
    beenden (kein Spam).
 9. Wurde mindestens eine Zeile verarbeitet: melde kurz welche Zeilen/Produkte (Tab +
    Produktname aus Spalte G), wie viele Ads pro Zeile, Drive-Links zu den neu erzeugten
-   Dateien, welche Sheet-Zellen (N/O) gesetzt wurden, und ob gerendert wurde oder nur
-   Prompt-Texte erzeugt wurden.
+   Dateien, und ob gerendert wurde oder nur Prompt-Texte erzeugt wurden. Keine
+   Sheet-Zellen melden — es werden keine gesetzt.

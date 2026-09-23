@@ -61,19 +61,31 @@ fbcdn.net-URL im Thread und der Permalink lässt sich nicht auflösen: aktiv dan
 nicht stumm überspringen oder wiederholt versuchen. Details:
 `config/automation.config.json` → `network_access`.
 
-**Bild-Upload nach Drive (gelöst — verbindliche Methode):** Der Drive-MCP-`create_file`
-schleust Base64 durch den Modell-Kontext und schneidet lange Werte ab (~15 000 Zeichen ≈
-11 KB) → für echte Bilder unbrauchbar. Der Service-Account hat kein Storage-Quota, kann
-also keine Inhalts-Dateien **anlegen** (`403 storageQuotaExceeded`). Lösung (kanonisch,
-kein Markdown-Links-Workaround mehr): **(1)** die Zieldatei als winzigen Platzhalter über
-die Drive-Verbindung anlegen (User-owned), **(2)** der Service-Account
-(`GOOGLE_SERVICE_ACCOUNT_JSON`) überschreibt sie mit den vollen Bytes von der Disk via
-`files.update` (`PATCH …/upload/drive/v3/files/{id}?uploadType=media`). Da der Speicher dem
-**Owner** (User) berechnet wird, funktioniert das in voller Qualität — Ergebnis:
-`owner=User`, `lastModifyingUser=Service-Account`. Vollständige Schritte + Begründung:
-`config/automation.config.json` → `upload_method` und `docs/workflow.md` Schritt 7. Echte
+**Bild-Upload nach Drive (verbindliche Methode):** **Ein `curl`-Call pro Bild** gegen einen
+Apps-Script-Endpunkt in Jeannines Google-Konto — **ohne Zugangsdaten, ohne Token, ohne
+Service-Account, ohne Platzhalter**:
+
+```bash
+curl -sS -L "<endpoint>" -H "Content-Type: application/json" \
+  -d '{"folderId":"<Ordner-ID>","name":"<Dateiname>","url":"<Bild-URL>"}'
+```
+
+Das Script läuft im Konto des Nutzers und holt die Bild-URL (in der Regel die
+Higgsfield-CDN-URL) **serverseitig** — die Bytes laufen nicht durch den Modell-Kontext, das
+alte Base64-Truncation-Problem entfällt also komplett. **Niemals `-X POST`** (bricht am
+302-Redirect), `-L` ist Pflicht. Der Endpunkt antwortet auch im Fehlerfall mit HTTP 200
+(HTML mit `Exception: …`), deshalb immer Antwort prüfen **und** die Datei im Zielordner
+verifizieren. Der frühere Zwei-Schritt-Weg (Platzhalter + Service-Account `files.update`)
+ist ersatzlos gestrichen; `GOOGLE_SERVICE_ACCOUNT_JSON` wird nirgends mehr gebraucht.
+Vollständige Schritte: `config/automation.config.json` → `upload_method`,
+`docs/drive-upload-method.md` und `docs/workflow.md` Schritt 7. Echte
 Bilddateien landen als `<N>_<Productname>_<countrycode>` (z. B. `1_Pawox_FI`) im Tages-/Produkt-Ordner
 `Translated-Ads/<market>/<YYYY-MM-DD> - <product>/`.
+
+**Kein Sheet-Rückschreiben:** Die Routine schreibt **keine** Zelle im Funnel Sheet. Den
+Eintrag (Datum, Bearbeiter, Ordner-Link, Status) macht ein Trigger in Jeannines
+Google-Konto. Für die Routine ist das Sheet rein lesend — siehe
+`docs/sheet-writeback-SOP.md`.
 
 **Beobachtete Instabilität bei automatischen (Trigger-)Läufen:** Im zweiten,
 Trigger-ausgelösten Lauf (2026-07-10) sind MCP-Tool-Verbindungen wiederholt
@@ -162,7 +174,9 @@ für Produktbild-Rename und Ad-Übersetzung, Referenzbilder über `media_upload`
    fbcdn.net-Links wie gehabt direkt als Reply auf den M-Kommentar posten.
 2. Bei Bedarf Cadence prüfen/anpassen (aktuell angenommen: Lisbon-Zeit, Sommerzeit).
 3. Ersten automatischen Lauf (morgen 05:00 UTC) beobachten.
-4. Bild-Upload nach Drive ist gelöst: echte JPG-Dateien werden über `upload_method`
-   (Platzhalter via Drive-Verbindung + Service-Account `files.update`) in voller Qualität
-   abgelegt — kein Markdown-Links-Workaround mehr. Details: `config/automation.config.json`
-   → `upload_method`, `docs/workflow.md` Schritt 7.
+4. Bild-Upload nach Drive ist gelöst: echte Bilddateien werden über `upload_method`
+   (ein `curl`-Call pro Bild an den Apps-Script-Endpunkt, ohne Zugangsdaten) in voller
+   Qualität abgelegt — kein Markdown-Links-Workaround mehr. Details:
+   `config/automation.config.json` → `upload_method`, `docs/drive-upload-method.md`,
+   `docs/workflow.md` Schritt 7.
+5. Sheet-Einträge macht ein Trigger in Jeannines Google-Konto, nicht mehr die Routine.

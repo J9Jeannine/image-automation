@@ -1,5 +1,14 @@
 # Status & offene Punkte (Stand: 2026-07-10)
 
+> **VERALTET — nur noch Historie.** Die Abschnitte 2, 3 und 5.1 beschreiben das
+> Upload-Problem und das Service-Account-Setup. Beides ist erledigt und überholt: der
+> Upload läuft heute über **einen `curl`-Call pro Bild** an einen Apps-Script-Endpunkt in
+> Jeannines Google-Konto, **ohne Zugangsdaten und ohne Service-Account**
+> (`docs/drive-upload-method.md`, `config/automation.config.json` → `upload_method`).
+> `GOOGLE_SERVICE_ACCOUNT_JSON` wird nirgends mehr gebraucht. Ebenso entfällt das
+> Sheet-Rückschreiben — das macht ein Trigger in Jeannines Google-Konto
+> (`docs/sheet-writeback-SOP.md`). Nichts aus dieser Datei neu umsetzen.
+
 Diese Datei fasst zusammen, was funktioniert, was blockiert ist, und was der Nutzer
 konkret tun muss, damit die Pipeline vollständig automatisch läuft. Ziel: alles an
 einem Ort nachlesbar, statt über den Chat-Verlauf verstreut.

@@ -8,23 +8,10 @@
       "product_name": "G",
       "ad_library_links_comment_column": "M",
       "price_column": "J",
-      "date_completed_column": "L",
-      "person_column": "N",
-      "result_folder_link_column": "O",
-      "status_column": "P",
-      "status_value_after_run": "in progress",
-      "status_allowed_values": [
-        "Comment Added",
-        "Fixed",
-        "Ready",
-        "For proofreading",
-        "in progress",
-        "For checking",
-        "in correction "
-      ],
-      "writeback_note": "Nach jedem erfolgreichen Lauf ZWINGEND vier Zellen zurueckschreiben (Details: docs/sheet-writeback-SOP.md, Kurzfassung: docs/workflow.md Schritt 8.2): L = Lauf-Datum (echtes Datum, Format d-m-yyyy, z.B. '4-8-2026' -- nach dem Schreiben pruefen dass der Rohwert eine ZAHL ist, sonst wurde es als Text gespeichert), N = 'claude' (klein), O = =HYPERLINK(\"<Drive-Ordner-URL>\";\"<product_name aus G>\") -- SEMIKOLON als Trenner, nicht Komma --, P = 'in progress' (klein). NIEMALS P auf 'Ready' setzen: ein Lauf liefert fast nie alle Ads einer Zeile, 'Ready' setzt der Mensch, der die fehlenden ergaenzt. Der Drive-MCP kann keine Zellen schreiben; dafuer die Sheets API mit demselben Service-Account nutzen (GOOGLE_SERVICE_ACCOUNT_JSON, zusaetzlicher Scope https://www.googleapis.com/auth/spreadsheets, values:batchUpdate mit valueInputOption=USER_ENTERED). Nur Zeilen schreiben, die im aktuellen Lauf wirklich Bilder produziert haben; blockierte Zeilen und Zeilen mit einer anderen Person in Spalte N nicht anfassen.",
       "note": "Spaltenbelegung verifiziert an BEIDEN Tabs (FRCA per Drive-Kommentar-API, FI per XLSX-Export/openpyxl, da das Drive-Tool nur den FRCA-Tab zurueckgab): D = 'Competitor URL / Content', G = 'new PR NAME' = unser Produktname, J = 'Bundle/deal offer' = Preisstufen (EUR fuer FI, CAD fuer FRCA), M = 'Competitor Ad Link/Drive Link' -- die eigentlichen Meta-Ad-Library-Links haengen als Kommentar-Thread an der M-Zelle, inkl. Antworten anderer Teammitglieder. FI-Tab bestaetigt strukturell identisch zu FRCA (getestet an Zeile 52: variclex -> vanix).",
-      "gilt_nur_fuer": "ACHTUNG: Diese Spaltenbelegung gilt AUSSCHLIESSLICH fuer die Markt-Tabs FI und FRCA (siehe sheet.tabs). Der Tab 'Winning Products' hat voellig andere Spaltenbuchstaben -- siehe sheet.winning_products_tab. Die beiden NIEMALS vermischen."
+      "gilt_nur_fuer": "ACHTUNG: Diese Spaltenbelegung gilt AUSSCHLIESSLICH fuer die Markt-Tabs FI und FRCA (siehe sheet.tabs). Der Tab 'Winning Products' hat voellig andere Spaltenbuchstaben -- siehe sheet.winning_products_tab. Die beiden NIEMALS vermischen.",
+      "kein_rueckschreiben": "Die Routine schreibt NICHTS in das Funnel Sheet -- weder Datum noch Bearbeiter, Ordner-Link oder Status. Das uebernimmt ein Trigger im Google-Konto des Nutzers. Fuer die Routine ist das Sheet REIN LESEND (Kommentar-Threads auf M, Produktname aus G, Preis aus J, Competitor-URL aus D). Frueher wurden L/N/O/P per Sheets API geschrieben -- das ist ersatzlos gestrichen, samt dem dafuer benutzten Service-Account und dem Scope .../auth/spreadsheets.",
+      "vom_nutzer_trigger_gefuellt": "Nur zur Orientierung, NICHT von der Routine zu beschreiben: L = Lauf-Datum, N = Bearbeiter, O = Ordner-Link, P = Status."
     },
     "tabs": {
       "FI": {
@@ -43,7 +30,7 @@
     "winning_products_tab": {
       "enabled": true,
       "tab_name": "Winning Products",
-      "_warnung_spalten": "DIESER TAB HAT ANDERE SPALTEN ALS FI/FRCA. Nichts aus sheet.columns gilt hier. Kommentare mit den Ad-Bild-Links haengen auf Spalte D (nicht M). Der Produktname steht in Spalte C (nicht G). Die Person kommt nach G (nicht N). Das Lauf-Datum nach I (nicht L). Es gibt hier KEINE Status-Spalte P und KEINE Ergebnis-Link-Spalte O -- der Ordner-Link kommt nach H. Wer hier die FI/FRCA-Buchstaben verwendet, schreibt in die falschen Zellen.",
+      "_warnung_spalten": "DIESER TAB HAT ANDERE SPALTEN ALS FI/FRCA. Nichts aus sheet.columns gilt hier. Kommentare mit den Ad-Bild-Links haengen auf Spalte D (nicht M). Der Produktname steht in Spalte C (nicht G). Der Markt steht in Spalte A. Wer hier die FI/FRCA-Buchstaben verwendet, liest aus den falschen Zellen. Geschrieben wird in diesem Tab gar nichts mehr (siehe kein_rueckschreiben).",
       "start_row": 3,
       "market_column": "A",
       "market_column_note": "Der Markt steht PRO ZEILE in Spalte A (FI, NLBE, FRCA, SE, UK ...), nicht im Tab-Namen. Er bestimmt Zielsprache, Sprachregeln, Drive-Zielbaum und den Laendercode im Dateinamen.",
@@ -52,9 +39,6 @@
         "product_name": "C",
         "ad_links_comment_column": "D",
         "instructions": "E",
-        "person_column": "G",
-        "set_folder_link_column": "H",
-        "date_completed_column": "I",
         "status_comment_column": "J",
         "ad_copy_column": "K",
         "ad_account_column": "L",
@@ -70,7 +54,7 @@
         "set_nummer": "Hoechste bereits in Spalte H dieses Produkts vergebene Set-Nummer + 1. Steht dort noch nichts, ist es Set 2 (Set 1 = die urspruengliche Uebersetzung im Markt-Tab).",
         "inhalt": "NUR Bilddateien, benannt nach drive.file_name_pattern (<N>_<Productname>_<countrycode>). Keine ad_copy.md, keine Textdatei -- siehe drive.ad_copy_nicht_in_den_ordner."
       },
-      "writeback": "Nach jeder erfolgreich verarbeiteten Zeile GENAU DREI Zellen schreiben, per Sheets API values:batchUpdate mit valueInputOption=USER_ENTERED: G = 'claude' (klein). H = =HYPERLINK(\"<Set-Ordner-URL>\";\"<Productname> Set <N>\") -- SEMIKOLON als Trenner, nicht Komma. I = Lauf-Datum im Format d-m-yyyy (z. B. '4-9-2026'); danach mit valueRenderOption=UNFORMATTED_VALUE nachlesen und pruefen, dass der Rohwert eine ZAHL ist (sonst wurde es als Text gespeichert). NICHT anfassen: A, B, C, D, E, F, J, K, L, M, N. Insbesondere J (Status/'launched') setzt der Mensch, nicht die Routine. Zeilen mit einer anderen Person als 'claude' in Spalte G, die schon ein Datum in I haben, nicht ueberschreiben.",
+      "kein_rueckschreiben": "Auch hier schreibt die Routine NICHTS ins Sheet. Die frueher von der Routine gesetzten Zellen G (Bearbeiter), H (Set-Ordner-Link) und I (Lauf-Datum) fuellt jetzt der Trigger im Google-Konto des Nutzers. Dieser Tab wird nur gelesen (Kommentare auf D, Produktname aus C, Markt aus A). Nichts anfassen -- keine Spalte, auch nicht J.",
       "state_keys": "Die Zeilennummern dieses Tabs ueberschneiden sich mit denen von FI/FRCA. Deshalb in State/processed_comments.json und State/row_locks.json IMMER mit Praefix arbeiten: 'WP-<Zeile>' fuer processed_comments, 'WP-<market_code>!<Zeile>' fuer row_locks (z. B. WP-87, WP-FI!87). Ohne Praefix wird die gleichnamige FI-Zeile ueberschrieben.",
       "state_ordner": "State-Dateien liegen im Baum des Marktes aus Spalte A: Translated-Ads/<market_code>/State/. Fuer FI = 1NSKjesH5A5r5lvWyb-mPvt390NLuhSSj, fuer FRCA = 13na2DEsCTitRK1kdh0OpSxSYRz-PDc1S.",
       "sprachregeln": "Es gelten dieselben blockierenden Sprachregeln wie sonst (CLAUDE.md Regel 1, docs/language-rules.md) -- mit dem Markt aus Spalte A. Hat dieser Markt in docs/language-rules.md KEINEN eigenen Abschnitt 4.x (aktuell existieren nur 4.1 FRCA und 4.2 FI), wird fuer die Zeile NICHT generiert: Zeile ueberspringen und im Bericht vermerken, dass der Markt-Abschnitt fehlt. Das betrifft insbesondere die vielen NLBE-Zeilen dieses Tabs sowie SE und UK.",
@@ -104,7 +88,7 @@
     "base_folder_id": "176EIFPlxj5hvsVJ8O_AaQSlIoL25IzJD",
     "base_folder_url": "https://drive.google.com/drive/folders/176EIFPlxj5hvsVJ8O_AaQSlIoL25IzJD",
     "base_folder_name": "image creation",
-    "base_folder_id_typo_warning": "ACHTUNG: Die 6. Stelle ist ein GROSSES I (176E-I-FPl...), kein kleines l. Eine fruehere Version hatte hier faelschlich '176ElFPl...' (kleines l) -- damit gibt sowohl das User-Konto als auch der Service-Account '404 File not found' zurueck. Bei Copy/Paste-Fehlern immer den echten Ordner 'image creation' per Name/Suche verifizieren.",
+    "base_folder_id_typo_warning": "ACHTUNG: Die 6. Stelle ist ein GROSSES I (176E-I-FPl...), kein kleines l. Eine fruehere Version hatte hier faelschlich '176ElFPl...' (kleines l) -- damit gibt Drive '404 File not found' zurueck. Bei Copy/Paste-Fehlern immer den echten Ordner 'image creation' per Name/Suche verifizieren.",
     "translated_ads_folder_id": "1JWHztpl2Z6mE9WtcRTObRgwBRp1OsHCb",
     "translated_ads_subfolders": {
       "FI": "1Ey4aVRrpzrzolETnzKVxVCZQGZjm0P5K",
@@ -119,20 +103,28 @@
     "note": "Bestehende Unterordner State/, Funnel-PDFs/, QA-Reports/ gehoeren zu einer anderen Automatisierung (FI/FRCA Funnel-QA-Monitor) und werden nicht veraendert. Uebersetzte Ads pro Lauf kommen in einen Tages-/Produkt-Ordner unter Translated-Ads/<market_code>/ (Name: '<YYYY-MM-DD> - <product_name>'). Der Upload der Bild-Binaerdateien laeuft ZWINGEND ueber upload_method (siehe unten) -- niemals der Markdown-Links-Workaround."
   },
   "upload_method": {
-    "mode": "placeholder_via_drive_mcp_then_service_account_files_update",
+    "mode": "apps_script_endpoint",
     "mandatory": true,
     "no_markdown_links_fallback": true,
-    "why": "Der Service-Account (GOOGLE_SERVICE_ACCOUNT_JSON, image-automation-uploader@image-automation-502115.iam.gserviceaccount.com) hat KEIN Storage-Quota (storageQuota.limit=0) und kann daher keine Inhalts-Dateien ANLEGEN -> files.create mit Bytes gibt '403 storageQuotaExceeded'. Er kann aber eine bereits vom User (jeannine.thiry1@gmail.com) besessene Datei UEBERSCHREIBEN (files.update media) -- dabei wird der Speicher dem OWNER (dem User) berechnet, nicht dem Service-Account. Das ist exakt das Muster der bestehenden Dateien (owner=User, lastModifyingUser=Service-Account). Der Drive-MCP-create_file-Kanal schleust base64 durch den Modell-Kontext und schneidet lange Werte ab (~15000 base64-Zeichen ~ 11 KB) -> fuer echte Bilder (100-260 KB) unbrauchbar (liefert abgeschnittene, korrupte JPEGs). Deshalb NUR fuer den winzigen Platzhalter + kleine Textdateien nutzen, echte Bild-Bytes immer per Service-Account files.update.",
+    "endpoint": "https://script.google.com/macros/s/AKfycbx3em9-sB7jMOXRg58JO94A1muKq1fy-fKT1Vb85Go71RX6K_t5E5kk5EHXRr_pqrXdOQ/exec",
+    "auth": "KEINE. Kein Token, keine Zugangsdaten, kein Service-Account, kein OAuth. Das Apps Script laeuft im Google-Konto des Nutzers (jeannine.thiry1@gmail.com) und holt die Bild-URL serverseitig selbst ab. Der Aufruf ist ein einfacher POST ohne Header ausser Content-Type.",
+    "request": "curl -sS -L \"<endpoint>\" -H \"Content-Type: application/json\" -d '{\"folderId\":\"<Ordner-ID>\",\"name\":\"<Dateiname>\",\"url\":\"<Bild-URL>\"}' -- genau ein Call pro Bild.",
+    "body_fields": {
+      "folderId": "Drive-ID des Zielordners (Tages-/Produkt-Ordner bzw. Set-Ordner). Unveraendert wie bisher, siehe drive.*.",
+      "name": "Dateiname nach drive.file_name_pattern, also '<laufende Nummer>_<Productname>_<countrycode>' (z. B. '1_Pawox_FI'), Produktbild '<product>_<market>_produktbild.jpg'. Namensschema unveraendert.",
+      "url": "Direkte Bild-URL, aus der das Script die Bytes zieht -- in der Regel die Higgsfield-CDN-URL des gerenderten Bildes. Muss ohne Login erreichbar sein."
+    },
+    "no_x_post": "NIEMALS '-X POST' verwenden. 'curl -d' setzt POST bereits selbst; '-X POST' wuerde beim 302-Redirect von script.google.com nach googleusercontent.com erneut als POST folgen und den Aufruf brechen. '-L' ist Pflicht, weil dieser Redirect immer kommt.",
     "steps": [
-      "1. Ziel-Datei als PLATZHALTER im Tages-/Produkt-Ordner anlegen -- Google_Drive.create_file mit contentMimeType='image/jpeg', disableConversionToGoogleType=true, base64Content=<winziges 1x1-JPEG> (bleibt User-owned). Die zurueckgegebene file id merken.",
-      "2. Service-Account-Access-Token minten: JWT (RS256) aus GOOGLE_SERVICE_ACCOUNT_JSON signieren (scope https://www.googleapis.com/auth/drive), gegen token_uri tauschen. Achtung: Token laeuft nach 1h ab -- bei 401 ACCESS_TOKEN_EXPIRED neu minten. Signatur per openssl (das cryptography-Python-Modul ist in der Sandbox defekt): printf '%s' \"$jwt_signing_input\" | openssl dgst -sha256 -sign sa_key.pem | openssl base64 -A | tr '+/' '-_' | tr -d '='.",
-      "3. Pro Datei die vollen Bytes von der Disk hochladen: curl -X PATCH 'https://www.googleapis.com/upload/drive/v3/files/{FILE_ID}?uploadType=media&supportsAllDrives=true' -H 'Authorization: Bearer <SA_TOKEN>' -H 'Content-Type: image/jpeg' --data-binary @<lokale_datei.jpg>. Ergebnis: owner bleibt User, lastModifyingUser=Service-Account, volle Qualitaet, keine Truncation.",
-      "4. Verifizieren: die zurueckgegebene size muss der Quell-Dateigroesse entsprechen UND das Bild muss vollstaendig dekodieren (PIL im.load()). Bei Abweichung erneut hochladen.",
-      "5. Kleine Textdateien (State/processed_comments.json, State/<product>_<market>_locked_strings.md) koennen direkt per Google_Drive.create_file (textContent, disableConversionToGoogleType=true) angelegt werden -- klein genug, keine Truncation. In den Lieferordner kommen KEINE Textdateien."
+      "1. Tages-/Produkt-Ordner (bzw. Set-Ordner) wie bisher ueber die Drive-Verbindung anlegen, falls noch nicht vorhanden (Google_Drive.create_file, mimeType=application/vnd.google-apps.folder). Ordnerstruktur und Benennung unveraendert -- siehe drive.*.",
+      "2. Pro Bild EIN curl-Call an den Endpoint mit folderId/name/url wie oben. Kein Platzhalter, kein Token, kein Download auf die Disk noetig -- das Script laedt die URL serverseitig.",
+      "3. Antwort pruefen: Fehler kommen als HTML-Seite mit 'Exception: ...' und trotzdem HTTP 200 (z. B. 'Invalid file or folder ID: ...'). Enthaelt die Antwort 'Exception', gilt der Upload als fehlgeschlagen -> Fehlertext melden, nicht ignorieren.",
+      "4. Verifizieren: die Datei muss anschliessend im Zielordner liegen (Google_Drive.search_files/get_file_metadata) und eine plausible Groesse (> 10 KB) haben. Bei Fehlschlag den Call wiederholen; niemals einen Markdown-Links-Ersatz abliefern.",
+      "5. Kleine Textdateien (State/processed_comments.json, State/<product>_<market>_locked_strings.md) weiterhin direkt per Google_Drive.create_file (textContent, disableConversionToGoogleType=true). In den Lieferordner kommen KEINE Textdateien."
     ],
-    "service_account_env": "GOOGLE_SERVICE_ACCOUNT_JSON",
-    "service_account_email": "image-automation-uploader@image-automation-502115.iam.gserviceaccount.com",
-    "note": "Der Service-Account hat Editor-Zugriff auf den Translated-Ads-Baum (dort funktioniert files.update). Die separaten GOOGLE_OAUTH_*-User-Credentials sind fuer diesen Bild-Upload NICHT noetig; sie liefen zuletzt in 'invalid_grant' (Refresh-Token abgelaufen, weil der OAuth-Consent-Screen auf 'Testing' steht -> 7-Tage-Ablauf). Wer die OAuth-basierten Teile reparieren will: Consent-Screen auf 'In production' setzen und Token neu minten. Fuer den Bild-Upload aber irrelevant -- der Service-Account-Weg oben ist der kanonische."
+    "qa_download": "Fuer die Sprach-QA (workflow.md Schritt 7.5) wird das Bild weiterhin per curl lokal geladen und mit dem Read-Tool angesehen. Das ist unabhaengig vom Upload -- der Upload selbst braucht die lokale Datei nicht mehr.",
+    "service_account_entfaellt": "Der fruehere Zwei-Schritt-Weg (Platzhalter per Drive-MCP anlegen, dann Service-Account-JWT minten und per files.update ueberschreiben) ist ERSATZLOS GESTRICHEN. GOOGLE_SERVICE_ACCOUNT_JSON, JWT/openssl-Signatur, files.update und das 1x1-Platzhalter-JPEG werden nirgends mehr gebraucht. Wer sie wieder einbaut, macht den Ablauf kaputt.",
+    "note": "Der Endpoint ist eine Apps-Script-Web-App im Konto des Nutzers. Er ist ohne Zugangsdaten aufrufbar -- die URL selbst ist das Geheimnis, also nicht ausserhalb dieses Repos/Kontos streuen."
   },
   "foundation_documents": {
     "research_doc_id": null,
