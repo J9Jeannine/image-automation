@@ -31,6 +31,23 @@ Playwright-Skripte in `scripts/`.
 > Erfundene Wörter und Frankreich-Französisch sind Ablehnungsgründe, keine Schönheits-
 > fehler.
 
+## Schritt −1 — Upload-Guard (BLOCKING, vor allem anderen)
+
+Bevor irgendein Bild generiert wird (Credits!), prüfen:
+
+1. `git branch --show-current` muss der Default-Branch des Repos sein (`git remote show origin` → HEAD branch).
+2. `docs/drive-upload-SOP.md` muss den Apps-Script-Endpunkt (`script.google.com/macros/s/`) enthalten.
+3. Der Upload läuft **ausschließlich** über diesen Endpunkt. `GOOGLE_SERVICE_ACCOUNT_JSON`,
+   JWT/Token-Minting, Platzhalter-Dateien und `files.update` sind verboten — wer sie versucht,
+   läuft in die Sandbox-Sperre „Credential Materialization“ (Ursache der Fehlläufe bis 01.10.2026).
+
+Schlägt 1 oder 2 fehl: **nichts generieren**, Lauf abbrechen und melden
+„Upload-Guard: Fix nicht im Default-Branch“.
+
+**Regel für jede Fix-Session:** Änderungen an Workflow/SOP immer in den Default-Branch
+(`claude/adoring-fermat-ikg9pb`) mergen. Ein Fix, der nur auf einem Nebenbranch liegt, ist für die
+Routine nicht vorhanden.
+
 ## Schritt 0 — Config-Guard
 
 1. `config/automation.config.json` aus diesem Repo lesen.

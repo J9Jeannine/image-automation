@@ -57,6 +57,14 @@ truncates) simply don't exist here.
    an HTML page containing `Exception: …` (e.g. `Invalid file or folder ID: …`). If the body
    contains `Exception`, the upload did **not** happen — report that exact message.
 
+   **Fallback for `Exception: Request failed for <url> returned code 403`** (proven
+   2026-10-02, Aurevia FI!110): some source hosts (e.g. `peach.pics`) block Google's
+   server-side fetcher, although the sandbox can download the same URL. Then: download the
+   file locally, upload it via Higgsfield `media_upload` → PUT bytes → `media_confirm`
+   (upload only, **no generation, no credits**), and send the returned Higgsfield/CloudFront
+   URL to the endpoint instead. Do this automatically, once per failed file — do not stop
+   and ask, and never fall back to the service account.
+
 5. **Verify every file** in Drive: it must exist in the target folder
    (`Google_Drive.search_files` / `get_file_metadata`) with a plausible size (> 10 KB).
    On failure, repeat step 3 for that file. Never accept a missing file or a links-only
