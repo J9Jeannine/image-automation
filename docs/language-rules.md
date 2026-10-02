@@ -81,6 +81,42 @@ Diese Regel ist unabhängig von Abschnitt 4 (Marktspezifikation). Ein neuer Mark
 ab dem ersten Lauf, auch bevor jemand die marktspezifische Verbotsliste in Abschnitt 6
 ergänzt hat.
 
+## 1b. Reine Textbilder: die Quell-Ad NICHT als Referenzbild mitgeben
+
+Beobachtet am 2026-10-02 (Aurevia FI, Ad 5): Bei einer Quell-Ad, die nur aus einem
+Farbverlauf und einem Textblock besteht (Testimonial-Kachel, Zitatkarte, Statement-Bild),
+traegt das Referenzbild **keine** Bildinformation bei — den Farbverlauf und das Satzbild
+kann der Prompt in zwei Saetzen beschreiben. Es liefert aber den kompletten Quelltext mit,
+und genau der rutscht dann in den Render: im beobachteten Fall erschienen zwei Zeilen
+Frankreich-Franzoesisch aus der Quell-Ad im fertigen finnischen Bild, zusaetzlich zu einem
+fehlenden `ä`.
+
+**Regel:** Zeigt eine Quell-Ad weder ein Produkt noch ein Foto noch eine Illustration —
+also nur Hintergrund plus Text —, wird sie **nicht** als Referenzbild an das Bildmodell
+uebergeben. Hintergrund, Typografie und Satzbild rein verbal beschreiben und ausschliesslich
+den LOCKED STRING mitgeben. Damit gibt es keinen Kanal mehr, ueber den Quelltext
+durchrutschen kann.
+
+Fuer alle anderen Ads (Produkt, Foto, Illustration, Layoutgrafik) bleibt das Referenzbild
+Pflicht — dort traegt es die Bildinformation, die die Uebersetzung erhalten muss.
+
+## 1c. Kleingedrucktes auf Verpackungen: lieber leer als klein
+
+Ebenfalls am 2026-10-02 beobachtet: Bulletzeilen auf Schachtel und Flasche wurden im
+Render zu erfundenen Woertern (`kuoloa` statt `kuuloa`, `Halpottaa`, `nopaasti`,
+`Luonnoiiset ainesexat`). Je kleiner die Schrift, desto zuverlaessiger erfindet das Modell.
+
+**Regel:** Steht Verpackungs-Kleingedrucktes in einer Ad so klein, dass es nach der ersten
+QA fehlerhaft ist, wird es im LOCKED STRING dieser Ad **ersatzlos gestrichen** (gruene
+Flaeche/Etikettenband leer), nicht ein zweites Mal versucht. Marke und Hauptzeile reichen.
+Das ist die in Abschnitt 5 Punkt 4 vorgesehene Kuerzung und keine inhaltliche Aenderung
+der Anzeige.
+
+Dasselbe gilt fuer Fliesstext-Attrappen (Dokumente, Formulare, Zeitungsausschnitte): den
+Fliesstext ausdruecklich als **graue Balken ohne Buchstabenformen** (Greeking/Wireframe)
+anfordern. Wird er als Pseudotext gerendert, entstehen lesbare englische Wortfragmente —
+und jedes davon ist ein Wort im Bild, das nicht im LOCKED STRING steht.
+
 ## 2. Quelltext wird nie durchgereicht
 
 Die Quell-Anzeige ist **ausschließlich** Referenz für Layout, Bildaufbau, Farbe,
