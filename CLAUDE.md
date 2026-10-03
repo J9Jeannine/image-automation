@@ -88,6 +88,21 @@ Die Routine liest **`claude/adoring-fermat-ikg9pb`** (Default-Branch), siehe
 Branch. Ein Fix auf einem anderen `claude/...`-Branch wird von der Routine nie gelesen
 und ist wirkungslos.
 
+## 3b. Quell-Links verfallen nach ca. 8 Minuten — SOFORT sichern
+
+Die fbcdn-Bild-Links in den Kommentaren sind nur ca. 8 Minuten gültig. Jeannine postet sie
+und startet die Routine direkt danach von Hand. Deshalb ist der **erste Arbeitsschritt jedes
+Laufs**, noch vor Lesen der Sprachregeln, Locks oder Prompts:
+
+1. Alle neuen/geänderten Kommentar-Threads ermitteln.
+2. **Jede** Quell-URL sofort per `curl -sS -L -o` auf die Disk laden und per MD5 deduplizieren.
+3. Erst danach alles andere.
+
+Spätere Schritte arbeiten nur noch mit den lokalen Dateien, nie mehr mit der fbcdn-URL.
+Müssen Quellbilder unverändert hochgeladen werden: lokal → Higgsfield `media_upload` →
+dessen URL an den Endpunkt (siehe `docs/drive-upload-SOP.md`), nie die abgelaufene fbcdn-URL.
+Ist ein Link beim Laden schon tot: im Bericht die Post-Nummer nennen, nicht still überspringen.
+
 ## 4a. Zwei Datenquellen im Funnel Sheet — verschiedene Spalten, nie vermischen
 
 Die Routine prüft in **jedem** Lauf **zwei** Quellen im selben Funnel Sheet:
