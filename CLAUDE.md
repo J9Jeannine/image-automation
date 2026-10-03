@@ -99,9 +99,15 @@ Die Routine prüft in **jedem** Lauf **zwei** Quellen im selben Funnel Sheet:
 | Produktname | Spalte **G** | Spalte **C** |
 | Preis | Spalte **J** | gibt es nicht — im Markt-Tab nachschlagen |
 
-**Das Sheet wird nur gelesen.** Die Routine schreibt **keine einzige Zelle** — weder
-`L`/`N`/`O`/`P` in den Markt-Tabs noch `G`/`H`/`I` in `Winning Products`. Den Eintrag macht
-ein Trigger in Jeannines Google-Konto. Siehe `docs/sheet-writeback-SOP.md`.
+**Das Sheet wird von der Routine nur gelesen.** Den Eintrag `L`/`N`/`O`/`P` (Datum, claude,
+Ordner-Link, Status) macht die Apps-Script-Web-App selbst: nach **jedem** Bild-Upload ruft
+`doPost` die Funktion `fillFunnelSheet()` auf (Code: `apps-script/Code.gs`), zusätzlich
+stündlicher Zeit-Trigger. Die Upload-Antwort enthält dafür das Feld `"sheet"`.
+**Pflicht am Ende jedes Laufs mit Uploads:** einmal `{"action":"fill"}` an den Endpunkt
+schicken und die Antwort (`sheet: ok: …` bzw. `ERROR: …`) wörtlich in den Abschlussbericht
+übernehmen. Steht dort `ERROR` oder fehlt das Feld `sheet`, ist der Sheet-Eintrag
+**nicht** passiert — das muss im Bericht stehen, nie „erledigt“ behaupten.
+Siehe `docs/sheet-writeback-SOP.md`.
 
 **Die Buchstaben der einen Quelle gelten nie für die andere.** Ablauf für die Markt-Tabs:
 `docs/workflow.md` Schritt 2–8. Ablauf für `Winning Products`: `docs/workflow.md`
