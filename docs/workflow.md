@@ -89,6 +89,36 @@ Datenquelle ist **kein** freies Ad-Library-Suchergebnis, sondern das bestehende
    (Head-Post + alle Reply-Inhalte) speichern. Nur Zeilen mit einem **neuen oder
    geänderten** Fingerprint gegenüber dem letzten Lauf weiterverarbeiten. Ist nichts neu:
    Lauf beenden, keine weiteren Schritte, keine Chat-Nachricht nötig (kein Spam).
+
+   **Die Formel ist festgelegt — nicht jeden Lauf neu erfinden:**
+
+   ```python
+   fingerprint = hashlib.sha256(
+       "\n".join([thread["headPost"]["content"]]
+                 + [r["content"] for r in thread.get("replies", [])]).encode("utf-8")
+   ).hexdigest()          # voller 64-Zeichen-Hex, NIE gekürzt speichern
+   ```
+
+   - Reihenfolge wie von `Google_Drive.read_file_content(includeComments=true)` geliefert,
+     Head-Post zuerst. Nur `content`, kein Autorname, kein Zeitstempel, keine Sortierung,
+     Query-Strings der fbcdn-URLs **nicht** abschneiden.
+   - **Immer alle 64 Zeichen speichern.** Der Lauf 2026-10-03 hat für `FI!111` und `FI!112`
+     nur 16 Zeichen abgelegt, und diese 16 Zeichen passen zu keiner reproduzierbaren
+     Variante — der Lauf 2026-10-05 musste beide Zeilen deshalb als „geändert" aufgreifen
+     und per Hand nachweisen, dass das Quell-Set unverändert war (Beleg:
+     `State/processed_comments_fingerprint_fix_2026-10-05.json` im FI-State-Ordner).
+   - **Schlüsselname einheitlich `comment_thread_fingerprint`.** Im Bestand stehen
+     daneben noch `fingerprint` (Zeilen 107/108), `comment_fingerprint` (`WP-*`) und
+     `comment_thread_fingerprint_pending` (absichtlich ungesetzt, z. B. `FI!77`). Beim
+     Lesen **alle vier** Namen prüfen, sonst gilt eine längst gelieferte Zeile als neu.
+   - **Mehrere Threads an derselben Zelle:** `FI!M105` trägt zwei Kommentar-Threads
+     (`AAACHf2cz7A` und `AAACHf2cz7s`). Dort ist der Fingerprint der Hash über die Posts
+     **beider** Threads, aneinandergehängt in dieser Reihenfolge. Pro Zelle genau ein
+     Fingerprint — nicht pro Thread.
+   - Weicht ein Fingerprint ab, heißt das **nicht** automatisch „neu generieren": zuerst
+     Schritt 2b (Resume) anwenden und das Quell-Set prüfen (MD5, Dateigröße, Pixelmaße
+     gegen die im State dokumentierten Werte). Nur was im Zielordner wirklich fehlt, wird
+     erzeugt.
 2a. **Zeilen-Sperre — verpflichtend, bevor irgendetwas für eine Zeile generiert wird.**
    Grund: zwei gleichzeitig laufende Sessions (z. B. der tägliche 6-Uhr-Trigger und ein
    manueller "Jetzt ausführen"-Lauf) haben bereits einmal dieselbe Zeile parallel
