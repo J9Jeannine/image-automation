@@ -65,6 +65,26 @@ Nicht verwechseln, beide sind Pflicht:
   für verworfene Zwischenversuche verbrannt. Siehe `config/automation.config.json` →
   `image_model`.
 
+## 2a. Bildgröße — Mindestmaß 600 × 600 px, blockierend
+
+Vorgabe von Jeannine am 2026-10-07. Gilt für **jede** Bilddatei, die im Lieferordner
+landet — gerenderte Ad, Produktbild und unverändert übernommene (textlose) Ad.
+
+- **Jede Seite** (Breite UND Höhe) mindestens **600 px**. `300 × 400`, `480 × 600` oder
+  `335 × 600` sind abgelehnt — auch wenn das Seitenverhältnis stimmt und auch wenn die
+  Quell-Anzeige selbst so klein war.
+- **Das Seitenverhältnis bleibt exakt das der Quell-Anzeige.** Die Mindestgröße wird nie
+  durch Beschneiden oder Strecken erreicht, sondern nur durch größeres Rendern bzw.
+  `Higgsfield.upscale_image`. Richtwert beim Rendern: lange Seite ~2048 px.
+- **Nachweis vor dem Upload, pro Datei:**
+  `python3 scripts/check_image_size.py <datei> …` muss mit Exit-Code 0 durchlaufen.
+  Exit 1 = **nicht hochladen**, größer neu rendern. Geschätzte Maße oder der
+  `aspect_ratio`-Parameter sind kein Nachweis — es zählt die gemessene Pixelgröße.
+- Gemessene Maße jeder hochgeladenen Datei in die State-Datei und in den Abschlussbericht.
+
+Vollständige Regel: `docs/workflow.md` Schritt 7.1a (Pass-through-Sonderfall dort in
+Anhang A.5).
+
 ## 3. Nebenläufigkeit
 
 Zwei gleichzeitig laufende Sessions dürfen nie dieselbe Sheet-Zeile bearbeiten — das hat

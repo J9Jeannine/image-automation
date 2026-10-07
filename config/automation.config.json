@@ -318,6 +318,24 @@
     "rule": "JEDER Higgsfield.generate_image-Call (Produktbild UND jede einzelne Ad) uebergibt den Parameter model direkt und ausschliesslich als nano_banana_pro. KEIN Ausprobieren mit einem anderen/Default-Modell zuerst und Wechsel erst bei Fehlschlag oder schlechtem Ergebnis - das verbrennt Credits fuer verworfene Zwischenversuche. Schlaegt die Generierung mit nano_banana_pro fehl (z.B. Content-Policy, Timeout), im Abschlussbericht vermerken statt stillschweigend ein anderes Modell zu probieren.",
     "why": "Mehrfache Versuche mit wechselnden Modellen (erst Standard, dann bei Misserfolg 'Banana Pro') haben in der Vergangenheit Credits fuer verworfene Zwischenergebnisse verbrannt, obwohl das Zielmodell von Anfang an feststand."
   },
+  "image_output": {
+    "min_edge_px": 600,
+    "mandatory": true,
+    "applies_to": "JEDE Bilddatei im Lieferordner: gerenderte Ad, Produktbild und unveraendert uebernommene (textlose) Ad.",
+    "rule": "Breite UND Hoehe des fertigen Bildes muessen mindestens 600 px betragen. 300x400, 480x600 oder 335x600 sind abgelehnt - auch wenn das Seitenverhaeltnis stimmt und auch wenn die Quell-Anzeige selbst so klein war.",
+    "aspect_ratio_rule": "Das Seitenverhaeltnis bleibt exakt das der Quell-Anzeige (docs/workflow.md Schritt 7.1). Mindestgroesse und Seitenverhaeltnis gelten ZUSAMMEN: die Mindestgroesse wird NIE durch Beschneiden, Strecken oder ein anderes Format erreicht, sondern nur durch groesseres Rendern bzw. Higgsfield.upscale_image.",
+    "render_long_edge_target_px": 2048,
+    "typical_targets": {
+      "1:1": "2048 x 2048",
+      "4:5": "1856 x 2304",
+      "3:4": "1792 x 2400",
+      "9:16": "1536 x 2752"
+    },
+    "check_script": "python3 scripts/check_image_size.py <datei> [<datei> ...] -- Exit 0 = Upload erlaubt, Exit 1 = NICHT hochladen. Verbindlich vor jedem Upload, pro Datei. Geschaetzte Maße oder der aspect_ratio-Parameter sind kein Nachweis.",
+    "passthrough": "Textlose Ads werden weiterhin NICHT neu gerendert (Motiv unveraendert ist die staerkere Regel). Liegt eine solche Quelldatei unter 600 px auf einer Seite, wird sie per Higgsfield.upscale_image hochskaliert (kein Neurender, Motiv identisch) und im Bericht als 'hochskaliert, Motiv unveraendert' ausgewiesen.",
+    "vorgegeben_von": "Jeannine am 2026-10-07",
+    "spec": "docs/workflow.md Schritt 7.1a, CLAUDE.md Regel 2a"
+  },
   "branch": {
     "read_by_routine": "claude/adoring-fermat-ikg9pb",
     "note": "Die Routine liest den Default-Branch. Korrekturen an Workflow/Regeln gehoeren auf DIESEN Branch. Ein Fix auf einem anderen claude/...-Branch wird nie gelesen und ist wirkungslos."

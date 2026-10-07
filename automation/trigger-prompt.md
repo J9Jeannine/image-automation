@@ -63,7 +63,10 @@ Führe den image-automation Workflow aus dem Repo `j9jeannine/image-automation`,
    Bild-/Video-URLs fragen**, nicht stumm überspringen oder mehrfach versuchen. Dann:
    den `Skill`-Tool mit `skill: "image-ad-prompt-generator"` aufrufen (echter, im Account
    aktivierter Skill — nicht die lokale Doku-Kopie), pro Ad genau ein Ergebnisbild im
-   exakten Seitenverhältnis der Quell-Anzeige, Produktbild nur einsetzen wenn die
+   exakten Seitenverhältnis der Quell-Anzeige **und mindestens 600 × 600 px groß**
+   (Breite UND Höhe ≥ 600 px, Richtwert lange Seite ~2048 px; vor dem Upload
+   `python3 scripts/check_image_size.py <datei>` mit Exit 0 — siehe CLAUDE.md Regel 2a),
+   Produktbild nur einsetzen wenn die
    Quell-Ad ein Produkt zeigt, korrekten Preis aus Spalte J in der Ad-Copy nutzen, Modell
    immer direkt `nano_banana_pro`. Dieser
    Skill ist ausschließlich für Übersetzungen zu nutzen, niemals für

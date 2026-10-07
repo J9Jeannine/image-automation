@@ -318,6 +318,46 @@ Die eigentliche Higgsfield-Generierung passiert bereits in Schritt 5 (ein Call p
    Ad in der Ad Library aussieht), nicht ein Standard-Format. Vor dem Higgsfield-Call die
    Maße der Quell-Anzeige bestimmen und als `aspect_ratio` übergeben.
 
+1a. **Mindestgröße 600 × 600 px — blockierend, gilt für JEDE Bilddatei im Lieferordner.**
+   Vorgabe von Jeannine am 2026-10-07. Seitenverhältnis und Mindestgröße gelten
+   **zusammen**, nicht alternativ:
+   - **Jede Seite** (Breite UND Höhe) des fertigen Bildes muss **mindestens 600 px**
+     betragen. `300 × 400`, `480 × 600`, `335 × 600` sind damit **ungültig** — auch dann,
+     wenn das Seitenverhältnis stimmt und auch dann, wenn die Quell-Anzeige selbst so
+     klein war.
+   - Das Seitenverhältnis bleibt trotzdem exakt das der Quell-Anzeige. Die Mindestgröße
+     wird **nie** durch Beschneiden, Strecken oder ein anderes Format erreicht, sondern
+     ausschließlich dadurch, dass größer gerendert/hochskaliert wird.
+   - **Richtwert beim Rendern:** lange Seite ~2048 px. Daraus ergeben sich die üblichen
+     Zielmaße, alle deutlich über der Grenze:
+
+     | Quell-Format | Zielmaße Render | kurze Seite |
+     |---|---|---|
+     | `1:1`  | 2048 × 2048 | 2048 ✓ |
+     | `4:5`  | 1856 × 2304 | 1856 ✓ |
+     | `3:4`  | 1792 × 2400 | 1792 ✓ |
+     | `9:16` | 1536 × 2752 | 1536 ✓ |
+
+   - **Nachweis vor dem Upload, pro Datei:** die tatsächlichen Pixelmaße messen, nicht
+     schätzen und nicht aus dem `aspect_ratio`-Parameter ableiten:
+
+     ```
+     python3 scripts/check_image_size.py <datei> [<datei> ...]
+     ```
+
+     **Exit-Code 1 = nicht hochladen.** Das Skript prüft jede Datei einzeln und nennt die
+     gemessenen Maße. Erst bei Exit 0 weiter zu Punkt 3 (Upload).
+   - **Ist ein Render zu klein:** mit größerem Zielmaß im selben Seitenverhältnis neu
+     rendern. Hilfsweise `Higgsfield.upscale_image` — das ändert das Motiv nicht.
+   - **Pass-through-Dateien (textlose Ads, Anhang A.5 / Schritt 5.1):** das Motiv bleibt
+     unverändert, das ist die stärkere Regel — ein Neurender ist hier weiterhin verboten.
+     Liegt eine solche Quelldatei unter 600 px auf einer Seite, wird sie per
+     `Higgsfield.upscale_image` auf die Mindestgröße gebracht (kein Neurender, Motiv
+     identisch) und das im Abschlussbericht als „hochskaliert, Motiv unverändert"
+     ausgewiesen.
+   - Die gemessenen Maße jeder hochgeladenen Datei kommen in die State-Datei (wie die
+     QA-Transkription in Punkt 5) und in den Abschlussbericht.
+
 2. **Tages-/Produkt-Ordner anlegen:** Pro Lauf einen Ordner
    `<Lauf-Datum YYYY-MM-DD> - <product_name>` (z. B. `2026-07-25 - itzora`) unter
    `Translated-Ads/<market_code>/` erstellen (`Google_Drive.create_file`,
@@ -514,12 +554,16 @@ Zeigt **keine** Quell-Ad der Zeile ein Produkt, wird gar kein Produktbild gebrau
 
 Wie Schritt 5, unverändert: LOCKED STRING vor dem Prompt, `check_locked_string.py` mit
 Exit 0, `FREIGABE`-Zeile pro Textelement, ein eigener Prompt pro Ad, Modell
-`nano_banana_pro`, Seitenverhältnis exakt wie die Quell-Ad.
+`nano_banana_pro`, Seitenverhältnis exakt wie die Quell-Ad **und Mindestgröße 600 × 600 px
+pro Datei** (Schritt 7.1a, `scripts/check_image_size.py` mit Exit 0 vor dem Upload).
 
 **Textlose Ads:** Zeigt eine Quell-Ad weder Text noch Produkt (reine Illustration, Foto,
 MRT-Aufnahme, Selfie), gibt es nichts zu übersetzen. Die Datei wird **unverändert
 übernommen und nicht neu gerendert** — ein Neurender erzeugt ein anderes Motiv und wäre
 eine Variante statt einer Übersetzung. Im Bericht als „unverändert übernommen" ausweisen.
+Liegt eine solche Datei unter der Mindestgröße aus Schritt 7.1a (eine Seite < 600 px),
+wird sie per `Higgsfield.upscale_image` hochskaliert — Motiv und Seitenverhältnis bleiben
+identisch — und im Bericht als „hochskaliert, Motiv unverändert" ausgewiesen.
 
 ## A.6 Ablage in Drive
 
