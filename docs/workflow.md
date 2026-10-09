@@ -120,6 +120,13 @@ Datenquelle ist **kein** freies Ad-Library-Suchergebnis, sondern das bestehende
    - `<Projektordner>/<market_code>/State/flagged_for_regeneration.json` lesen
      (existiert die Datei nicht, als `{}` behandeln). Schlüssel:
      `<market_code>!<Zeilennummer>!ad<N>` (Produktbild: `...!produktbild`).
+   - **Liegen MEHRERE Dateien dieses Namens im State-Ordner, erst zusammenführen,
+     bevor irgendetwas daraus gelesen wird** (Regel aus Schritt 8.3a). Beobachteter
+     Fehler, gefunden am 2026-10-09: im FI-State-Ordner lagen zwei
+     `flagged_for_regeneration.json` — die neuere (2026-10-06) enthielt nur
+     `_comment`/`_last_clear`, die ältere (2026-09-29) alle sechs offenen Blocker.
+     Wer nur die neueste liest, hält die offenen Einträge für erledigt und verliert
+     sie still. Dasselbe gilt für `processed_comments.json` und `row_locks.json`.
    - Existiert `<N>_<Productname>_<countrycode>` (bzw. `_produktbild.jpg`)
      bereits im Zielordner **und** ihr Schlüssel steht **nicht** in
      `flagged_for_regeneration.json`: **nicht neu generieren.** Datei unangetastet
@@ -470,6 +477,26 @@ Die eigentliche Higgsfield-Generierung passiert bereits in Schritt 5 (ein Call p
 3. `State/processed_comments.json` mit den neuen Fingerprints aus Schritt 2 aktualisieren
    (kleine Textdatei → direkt per `Google_Drive.create_file`). Das ist eine Drive-Datei,
    kein Sheet-Eintrag; den früheren Vermerk `sheet_link_written` gibt es nicht mehr.
+
+3a. **State-Datei schreiben heißt immer: vorher zusammenführen, nachher entdoppeln.**
+   `Google_Drive.create_file` **überschreibt nicht** — es legt eine zweite Datei mit
+   demselben Titel im selben Ordner an. `Google_Drive.update_file` kann nur Titel und
+   Ordner ändern, nicht den Inhalt. Daraus folgt für jede State-Datei
+   (`processed_comments.json`, `flagged_for_regeneration.json`, `row_locks.json`):
+   - **Vor dem Schreiben** alle Dateien dieses Namens im State-Ordner auflisten und den
+     **vollständigen** Inhalt aus allen zusammenführen — nie nur die neueste nehmen.
+     Einträge werden nur dann entfernt, wenn sie nachweislich erledigt sind.
+   - **Nach dem Schreiben** die Vorgänger per `Google_Drive.update_file` auf
+     `<name>_superseded_<YYYY-MM-DD>.json` umbenennen (nicht löschen), damit im Ordner
+     genau **eine** Datei den kanonischen Namen trägt.
+   - **Fingerprint-Algorithmus ist festgelegt und darf nicht variieren:**
+     `sha256` über `"\n".join(<Post-Texte in Thread-Reihenfolge>)`, hex. Ein Lauf, der
+     einen anderen Algorithmus benutzt (beobachtet: 32-stellige Hashes am 2026-10-08),
+     macht seine Einträge für jeden Folgelauf unprüfbar — der muss dann über
+     Zielordner-Inhalt und Post-Anzahl rekonstruieren, ob die Zeile fertig ist.
+   - **Große State-Dateien nicht blind neu schreiben:** `processed_comments.json` ist
+     inzwischen >140 KB. Steht nichts Neues drin, wird sie **nicht** angefasst — ein
+     abgeschnittener Schreibvorgang würde den gesamten Zustand zerstören.
 4. Kurze Zusammenfassung an den Nutzer: welche Zeilen/Produkte verarbeitet wurden, wie
    viele Ads pro Zeile, Drive-Links zu den neuen Dateien und ob gerendert wurde oder nur
    Prompt-Texte erzeugt wurden. Keine Sheet-Zellen mehr melden — es werden keine gesetzt.
