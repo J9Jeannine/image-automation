@@ -1,0 +1,3 @@
+# Python-Bytecode, entsteht beim Ausfuehren/Importieren der Skripte in scripts/
+__pycache__/
+*.py[cod]
