@@ -93,3 +93,24 @@ Daraus folgt:
 
    Der Call traegt die Zeile in die Registry ein und ruft danach `fillFunnelSheet()` auf,
    schreibt also direkt L/N/O/P.
+
+## Sofortmassnahme 2026-10-14, bis das neue Script deployed ist
+
+Der stuendliche Trigger hat `FI!123` (smokola) nach jedem Leeren wieder gefuellt. Weil der
+alte Stand die Zeile ueber den Produktnamen findet, war der einzige Hebel ohne
+Deployment, dem ausloesenden Ordner das Namensmuster zu nehmen:
+
+`Translated-Ads/FI/2026-08-04 - Smokola` wurde umbenannt in **`Smokola (2026-08-04)`**
+(Ordner-ID `1Pac4D_WhugWZsrWEVDRmEWiuNPdVMiE5`, unveraendert).
+
+Die Regex in `fillFunnelSheet()` verlangt `YYYY-MM-DD - <Name>`; der neue Name passt nicht
+mehr, also wird `FI!123` nicht mehr getroffen. Der bestehende Link in der alten,
+berechtigten smokola-Zeile funktioniert weiter, weil Drive-Links die Datei-ID nutzen und
+nicht den Namen.
+
+**Nach dem Deployment des neuen Stands ist diese Massnahme nicht mehr noetig** — dann raet
+das Script ohnehin nicht mehr ueber den Namen. Der Ordner kann dann wieder
+`2026-08-04 - Smokola` heissen.
+
+**NIEMALS `{"action":"fill"}` aufrufen, solange der alte Stand deployed ist.** Genau das
+hat am 2026-10-14 die von Jeannine geleerten Zellen sofort wieder gefuellt.
