@@ -340,6 +340,8 @@ Kategorie-Vokabular, das in beiden Ländern passt: `apotheek` · `voedingssupple
 
 - **Preis:** Der Betrag kommt **immer aus Spalte J** — nur das Format steht hier.
   Eurozeichen **vor** dem Betrag, Leerzeichen, Dezimal**komma**: `€ 29,95` · `€ 49,00`.
+  Spalte J im Tab `NL/BE new` steht mit Punkt (`39.95`) — Punkt durch Komma ersetzen:
+  `39.95` → `€ 39,95`.
   Falsch: `29,95 €` · `€29,95` · `€ 29.95` · `€ 24,-`.
   Ganze Beträge immer mit `,00` — `€ 24,-` ist nur in NL üblich, in Belgien unüblich
   (Taaladvies), `,00` ist in beiden korrekt.

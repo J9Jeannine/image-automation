@@ -7,7 +7,9 @@
 const SHEET_ID = '1SkD7jrC-othtbwTYyz1VCK1HPIkEKHxc_hSAvRp2iL8';
 const MARKETS = {
   FI:   '1Ey4aVRrpzrzolETnzKVxVCZQGZjm0P5K', // Translated-Ads/FI
-  FRCA: '1ZeW7nKHrCMNOBH6jIKZrzNYjJWXPvQDW'  // Translated-Ads/FRCA
+  FRCA: '1ZeW7nKHrCMNOBH6jIKZrzNYjJWXPvQDW', // Translated-Ads/FRCA
+  ZA:   '1XyBfLC5DwBBROzwwfiO25WmsyuJxRJ6f', // Translated-Ads/ZA
+  'NL/BE new': '1GO1rGgSkUDMlsVhu06ACxkr4WJzrg-Mp' // Translated-Ads/NLBE
 };
 
 function json_(obj) {

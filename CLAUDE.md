@@ -133,9 +133,9 @@ Ist ein Link beim Laden schon tot: im Bericht die Post-Nummer nennen, nicht stil
 
 Die Routine prüft in **jedem** Lauf **zwei** Quellen im selben Funnel Sheet:
 
-| | Markt-Tabs `FI` / `FRCA` | Tab `Winning Products` |
+| | Markt-Tabs `FI` / `FRCA` / `ZA` / `NL/BE new` | Tab `Winning Products` |
 |---|---|---|
-| Markt | = Tab-Name | **Spalte A** (pro Zeile) |
+| Markt | = Tab-Name (Ausnahme: Tab `NL/BE new` = Markt `NLBE`) | **Spalte A** (pro Zeile) |
 | Ad-Links als Kommentar auf | Spalte **M** | Spalte **D** |
 | Produktname | Spalte **G** | Spalte **C** |
 | Preis | Spalte **J** | gibt es nicht — im Markt-Tab nachschlagen |
