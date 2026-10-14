@@ -55,3 +55,41 @@ beschreibt, kommt die Eintragung danach nicht zurueck.
 
 **Damit der Fix wirkt, muss `apps-script/Code.gs` in den Script-Editor uebernommen und
 die Web-App neu deployed werden.** Bis dahin gilt der alte Stand im Google-Konto.
+
+
+---
+
+## WICHTIG: solange das alte Script deployed ist, kommt die falsche Zeile zurueck
+
+Am 2026-10-14 nachgewiesen: ein Aufruf von `{"action":"fill"}` gegen den **damals
+deployten** (alten) Stand antwortete mit `ok: FI!123 smokola` — das Script hat die zuvor
+von Hand geleerten Zellen sofort wieder gefuellt.
+
+Daraus folgt:
+
+- **Die Zellen von Hand zu leeren reicht nicht.** Der stuendliche Zeit-Trigger ruft
+  `fillFunnelSheet()` ohnehin weiter auf und schreibt sie erneut.
+- **Erst das Deployment des neuen Stands stoppt das.** Danach raet das Script nicht mehr
+  ueber den Produktnamen, sondern schreibt nur Zeilen, die ueber `row` gemeldet wurden.
+- **`{"action":"fill"}` darf nicht aufgerufen werden, solange der alte Stand laeuft.**
+
+## Reihenfolge nach dem Deployment
+
+1. `apps-script/Code.gs` aus diesem Repo in den Script-Editor kopieren und die Web-App
+   neu deployen.
+2. Falsche Eintragung entfernen:
+
+   ```bash
+   curl -sS -L "$ENDPOINT" -H "Content-Type: application/json" \
+     -d '{"action":"clear","rows":["FI!123"]}'
+   ```
+
+3. Zeilen nachtragen, die hochgeladen wurden, bevor das neue Script lief:
+
+   ```bash
+   curl -sS -L "$ENDPOINT" -H "Content-Type: application/json" \
+     -d '{"action":"register","row":"NL/BE new!3","folderId":"<Ordner-ID>"}'
+   ```
+
+   Der Call traegt die Zeile in die Registry ein und ruft danach `fillFunnelSheet()` auf,
+   schreibt also direkt L/N/O/P.

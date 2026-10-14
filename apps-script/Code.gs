@@ -47,6 +47,19 @@ function doPost(e) {
   if (req.action === 'fill') {
     return json_({ sheet: fillFunnelSheet() });
   }
+  // Nachtragen einer Zeile, die schon hochgeladen wurde, bevor dieses Script deployed war.
+  // {"action":"register","row":"NL/BE new!3","folderId":"<Ordner-ID>"}
+  if (req.action === 'register') {
+    registryPut_(String(req.row), String(req.folderId));
+    return json_({ registered: req.row, sheet: fillFunnelSheet() });
+  }
+  // Falsche Eintragung entfernen: {"action":"clear","rows":["FI!123"]}
+  // Loescht L/N/O/P und nimmt die Zeile aus der Registry, damit sie nicht wiederkommt.
+  if (req.action === 'clear') {
+    const rows = req.rows || (req.row ? [req.row] : []);
+    clearRows_(rows);
+    return json_({ cleared: rows });
+  }
   const folder = DriveApp.getFolderById(req.folderId);
   const blob = UrlFetchApp.fetch(req.url).getBlob().setName(req.name);
   const file = folder.createFile(blob);
@@ -106,7 +119,7 @@ function fillFunnelSheet() {
   }
 }
 
-// EINMAL im Editor ausfuehren, wenn eine falsche Eintragung entfernt werden soll.
+// Per Endpoint ({"action":"clear","rows":[...]}) oder einmal im Editor ausfuehrbar.
 // Loescht L/N/O/P in genau den angegebenen Zeilen und nimmt sie aus der Registry.
 // Beispiel: clearRows_(['FI!123']);
 function clearRows_(rowRefs) {
