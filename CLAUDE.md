@@ -175,7 +175,20 @@ Bei (b): Bilder wie Quell-Ads behandeln und nur das aendern, was die Zeile vorgi
 erzeugen; Dateien ohne Produktnamen unveraendert uebernehmen. Zielordner ist ein neuer
 Ordner mit dem Namen aus Spalte G. Vollstaendig: `docs/workflow.md` Schritt 3a.
 
-## 4d. Eine Zeile ohne Quelle in M wird NIE als fertig eingetragen
+## 4d. Keine Quelle in Spalte M = keine Ads und kein Eintrag — HARTE REGEL
+
+Vorgabe von Jeannine am 2026-10-14, ausdruecklich: *"du sollst nur die Ads erstellen,
+die Inhalte haben in Spalte M"*.
+
+**Hat eine Zeile in Spalte M weder einen Kommentar-Thread noch einen Ordner-Link, dann
+gilt beides:**
+
+1. Die Routine erzeugt fuer diese Zeile **nichts** — kein Produktbild, keine Ad.
+2. Im Sheet darf fuer diese Zeile **nichts** in `L`/`N`/`O`/`P` stehen. Eine Zeile ohne
+   Quelle kann keine fertigen Ads haben.
+
+Eine Zeile wartet damit einfach, bis Jeannine die Links nachtraegt. Das ist der
+Normalfall, kein Fehler, und wird im Abschlussbericht nicht als Problem gemeldet.
 
 Gemeldet von Jeannine am 2026-10-14 an `FI!123` (smokola): die Zeile hatte **keine**
 Ad-Links und **keinen** Ordner-Link in M, trotzdem standen dort `L`/`N`/`O`/`P` mit
