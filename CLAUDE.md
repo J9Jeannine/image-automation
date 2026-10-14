@@ -232,3 +232,19 @@ curl -sS -L "<endpoint aus config/automation.config.json -> upload_method.endpoi
 - Trigger-Prompt: `automation/trigger-prompt.md`
 
 Keine zweiten Kopien dieser Dateien anlegen.
+
+## 4e. Welche Tabs die Web-App ueberhaupt beschreiben kann
+
+Nachgemessen am 2026-10-14 ueber alle Tabs: `claude` in Spalte N steht **nur** in `FI`
+und `FRCA`. In `NLBE`, `SE` und `UK` steht es in **keiner einzigen** Zeile.
+
+Grund: `fillFunnelSheet()` laeuft ueber `MARKETS` und das enthaelt genau zwei Eintraege,
+`FI` und `FRCA`. Ein neuer Tab wie `NL/BE new` wird nie angefasst, egal wie korrekt der
+Ordner angelegt und benannt ist.
+
+**Daraus folgt fuer jeden neuen Markt-Tab:** bevor Ordner-Links dort automatisch landen
+koennen, muss der Tab in `apps-script/Code.gs` bekannt sein **und** die Web-App neu
+deployed werden. Ohne dieses Deployment bleibt Spalte `O` dieses Tabs leer — das ist
+kein Fehler der Routine, sondern ein noch nicht angeschlossener Tab. Im Abschlussbericht
+sagen und die Ordner-Links im Klartext mitgeben, damit sie von Hand eingesetzt werden
+koennen.

@@ -210,8 +210,13 @@ Ordner-Link und eine Zeile mit Kommentar-Links koennen im selben Tab nebeneinand
    Uebersetzung**, sondern nur ein Namenstausch. Dann wird kein Wort neu formuliert; der
    LOCKED STRING ist der Originaltext mit ausgetauschtem Namen (siehe
    `docs/language-rules.md` Abschnitt 1 und die Ersatzpruefung dort).
-5. Zielordner: ein neuer Ordner mit dem **Namen aus Spalte G** unter
-   `Translated-Ads/<market_code>/`. Vorgabe von Jeannine am 2026-10-14.
+5. Zielordner: ein neuer Ordner unter `Translated-Ads/<market_code>/`, benannt nach
+   `drive.day_folder_name_pattern`, also **`<YYYY-MM-DD> - <Name aus Spalte G>`**
+   (z. B. `2026-10-14 - GlowTan`).
+   **Das Datum gehoert zwingend davor.** Am 2026-10-14 wurden die Ordner zuerst nur
+   `GlowTan` und `Dentalis` genannt — das bricht die Konvention, nach der alle anderen
+   Lieferordner heissen, und `fillFunnelSheet()` erkennt solche Ordner nicht, weil es
+   `^\d{4}-\d{2}-\d{2}\s*-\s*(.+)$` verlangt. Danach korrigiert.
 
 **Form (b) hat keine ablaufenden Links** — die 8-Minuten-Regel aus `CLAUDE.md` 3b gilt nur
 fuer die fbcdn-URLs aus Form (a). Ein Drive-Ordner kann jederzeit gelesen werden.
