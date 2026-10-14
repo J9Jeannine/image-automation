@@ -158,6 +158,11 @@ FI/FRCA) bzw. `sheet.winning_products_tab`.
 State-Schlüssel für `Winning Products` immer mit Präfix **`WP-`** — die Zeilennummern
 beider Quellen überschneiden sich.
 
+**Welche Markt-Tabs gelesen werden, steht allein in `config/automation.config.json` →
+`sheet.tabs`** (aktuell `FI`, `FRCA`, `ZA`, `NL/BE new`). Nennt der am Trigger gespeicherte
+Prompt nur `FI` und `FRCA`, ist das ein veralteter Text: trotzdem alle Tabs aus
+`sheet.tabs` prüfen. CLAUDE.md hat Vorrang.
+
 **Wenn der Trigger-Prompt nur die Markt-Tabs nennt, gilt trotzdem diese Datei:** beide
 Quellen prüfen. Ältere, am Trigger gespeicherte Prompt-Texte erwähnen `Winning Products`
 noch nicht — das ist kein Grund, den Tab zu überspringen. CLAUDE.md hat Vorrang.
