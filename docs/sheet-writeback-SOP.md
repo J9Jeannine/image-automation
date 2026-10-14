@@ -25,3 +25,33 @@ behauptete, den es nie gab — deshalb blieben ab dann alle Zeilen leer (Ursache
 
 Ordnername **muss** exakt dem Produktnamen in Spalte G entsprechen (Groß/klein egal),
 sonst findet `fillFunnelSheet()` die Zeile nicht.
+
+
+---
+
+## Fehlerfall 2026-10-14 — Eintragung in einer Zeile ohne Quelle (BEHOBEN)
+
+**Symptom (von Jeannine gemeldet):** `FI!123` (smokola) zeigte `L` = Datum, `N` = `claude`,
+`O` = Ordner-Link, `P` = `in progress`, obwohl in Spalte **M** dieser Zeile weder
+Ad-Links noch ein Ordner-Link stehen. Fuer diese Zeile wurde nie etwas generiert.
+
+**Ursache:** Die alte Fassung von `fillFunnelSheet()` hat die Ordner unter
+`Translated-Ads/<Markt>` eingelesen und jede Zeile gesucht, deren Spalte **G** denselben
+Produktnamen traegt. Der Produktname ist aber nicht eindeutig: `smokola` steht im FI-Tab
+in den Zeilen 6, 59 **und** 123. Ein alter Ordner `… - Smokola` aus der frueheren Zeile
+hat deshalb auch die neue, unbearbeitete Zeile 123 getroffen. Dasselbe haette jede andere
+Zeile getroffen, die einen schon einmal verwendeten Produktnamen wiederverwendet.
+
+**Behebung:** `fillFunnelSheet()` raet nicht mehr. Die Routine meldet beim Upload im
+JSON-Feld `row` genau die Zeile, zu der der Upload gehoert
+(`"FI!120"`, `"NL/BE new!3"`). Das Script fuehrt daraus eine Registry in den
+ScriptProperties und beschreibt ausschliesslich diese Zeilen. Fehlt `row`, wird gar
+nichts eingetragen.
+
+**Aufraeumen einer bereits falsch gefuellten Zeile:** `clearRows_(['FI!123'])` einmal im
+Script-Editor ausfuehren (loescht `L`/`N`/`O`/`P` dieser Zeile und nimmt sie aus der
+Registry), oder die vier Zellen von Hand leeren. Da `setIfEmpty_` nur leere Zellen
+beschreibt, kommt die Eintragung danach nicht zurueck.
+
+**Damit der Fix wirkt, muss `apps-script/Code.gs` in den Script-Editor uebernommen und
+die Web-App neu deployed werden.** Bis dahin gilt der alte Stand im Google-Konto.

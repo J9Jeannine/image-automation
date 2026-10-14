@@ -179,3 +179,24 @@ that. Uploading the files is the last write this routine performs. See
 | Base folder | `image creation` = `176EIFPlxj5hvsVJ8O_AaQSlIoL25IzJD` (6th char is capital **I**, not lowercase l) |
 | Day folder name | `<YYYY-MM-DD> - <product_name>` (e.g. `2026-07-25 - itzora`) |
 | File name | `<N>_<Productname>_<countrycode>` (product image: `<product>_<market>_produktbild.jpg`) |
+
+
+---
+
+## Pflichtfeld `row` (seit 2026-10-14)
+
+Jeder Upload-Call meldet zusaetzlich, zu **welcher Sheet-Zeile** das Bild gehoert:
+
+```bash
+curl -sS -L "$ENDPOINT" -H "Content-Type: application/json" \
+  -d '{"folderId":"<Ordner-ID>","name":"<Dateiname>","url":"<Bild-URL>","row":"FI!120"}'
+```
+
+`row` ist `<Tabname>!<Zeilennummer>` genau wie im Sheet, z. B. `FI!120`,
+`FRCA!56` oder `NL/BE new!3`.
+
+**Warum:** Ohne dieses Feld hat `fillFunnelSheet()` die Zeile ueber den Produktnamen in
+Spalte G geraten und dadurch auch Zeilen als fertig markiert, fuer die nie etwas
+generiert wurde (gemeldet an `FI!123` smokola am 2026-10-14, siehe `CLAUDE.md` 4d und
+`docs/sheet-writeback-SOP.md`). Fehlt `row`, traegt das Script **nichts** ein — das ist
+gewollt: lieber keine Eintragung als eine falsche.

@@ -181,6 +181,41 @@ Ad. Das Ergebnis (ein Bild) wird in Schritt 5 für alle Ads dieser Zeile wiederv
    Schritt 5. Bei mehreren Ads derselben Zeile wird dieses eine Bild wiederverwendet,
    nicht neu erzeugt.
 
+## Schritt 3a — Spalte M: ZWEI moegliche Formen, beide gueltig
+
+**Spalte M (`Competitor Ad Link/Drive Link`) kann zweierlei enthalten — in jedem Lauf
+beide Formen pruefen, nie nur eine annehmen:**
+
+| Form | Wie es aussieht | Woher die Ads kommen |
+|---|---|---|
+| **(a) Ad-Links** | Kommentar-Thread an der M-Zelle (Head-Post + Replies) mit `facebook.com/ads/library/...`- oder direkten `scontent….fbcdn.net`-URLs. Der Zellwert selbst ist leer oder nur ein Label. | Die Links aus dem Kommentar-Thread, wie in Schritt 2/4. |
+| **(b) Drive-Ordner-Link** | Der **Zellwert** ist ein Hyperlink (oft mit Anzeigetext wie `Set 1`) auf `drive.google.com/drive/folders/...`. | Der komplette Inhalt dieses Ordners. |
+
+Beides kann in derselben Spalte vorkommen, je nach Zeile und je nach Tab. Neue Tabs wie
+`NL/BE new` arbeiten bisher ausschliesslich mit Form (b); `FI`/`FRCA` bisher mit Form (a).
+**Das ist keine Eigenschaft des Tabs, sondern der einzelnen Zeile** — eine Zeile mit
+Ordner-Link und eine Zeile mit Kommentar-Links koennen im selben Tab nebeneinander stehen.
+
+**Ablauf bei Form (b) — Ordner-Link:**
+
+1. Ordner-ID aus der URL ziehen und den Ordner auflisten (`Google_Drive.search_files`
+   mit `parentId = '<ID>'`, Paginierung beachten — die Suche liefert nur ~5 Treffer pro Seite).
+2. **Bilder** (`image/*`): wie eine Quell-Ad behandeln. Der sichtbare Text bleibt, wie er
+   ist; ausgetauscht wird nur, was die Zeile vorgibt — in der Regel der Produktname aus
+   Spalte **G**. Steht in einer Datei gar kein Produktname, gibt es nichts zu aendern:
+   Datei **unveraendert uebernehmen, nicht neu rendern** (Anhang A.5).
+3. **Videos** (`video/*`): **unveraendert kopieren**, nie neu erzeugen
+   (`Google_Drive.copy_file` mit `parentId` = Zielordner — serverseitig, kein Download).
+4. Sind die Quell-Ads bereits in der Zielsprache des Marktes, ist das **keine
+   Uebersetzung**, sondern nur ein Namenstausch. Dann wird kein Wort neu formuliert; der
+   LOCKED STRING ist der Originaltext mit ausgetauschtem Namen (siehe
+   `docs/language-rules.md` Abschnitt 1 und die Ersatzpruefung dort).
+5. Zielordner: ein neuer Ordner mit dem **Namen aus Spalte G** unter
+   `Translated-Ads/<market_code>/`. Vorgabe von Jeannine am 2026-10-14.
+
+**Form (b) hat keine ablaufenden Links** — die 8-Minuten-Regel aus `CLAUDE.md` 3b gilt nur
+fuer die fbcdn-URLs aus Form (a). Ein Drive-Ordner kann jederzeit gelesen werden.
+
 ## Schritt 4 — Ad-Links öffnen
 
 Für jeden in Schritt 2 gesammelten Ad-Library-Permalink (Anzahl variiert pro Zeile — so

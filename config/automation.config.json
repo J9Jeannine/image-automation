@@ -11,7 +11,8 @@
       "note": "Spaltenbelegung verifiziert an BEIDEN Tabs (FRCA per Drive-Kommentar-API, FI per XLSX-Export/openpyxl, da das Drive-Tool nur den FRCA-Tab zurueckgab): D = 'Competitor URL / Content', G = 'new PR NAME' = unser Produktname, J = 'Bundle/deal offer' = Preisstufen (EUR fuer FI, CAD fuer FRCA), M = 'Competitor Ad Link/Drive Link' -- die eigentlichen Meta-Ad-Library-Links haengen als Kommentar-Thread an der M-Zelle, inkl. Antworten anderer Teammitglieder. FI-Tab bestaetigt strukturell identisch zu FRCA (getestet an Zeile 52: variclex -> vanix).",
       "gilt_nur_fuer": "ACHTUNG: Diese Spaltenbelegung gilt AUSSCHLIESSLICH fuer die Markt-Tabs FI und FRCA (siehe sheet.tabs). Der Tab 'Winning Products' hat voellig andere Spaltenbuchstaben -- siehe sheet.winning_products_tab. Die beiden NIEMALS vermischen.",
       "kein_rueckschreiben": "Die Routine schreibt NICHTS in das Funnel Sheet -- weder Datum noch Bearbeiter, Ordner-Link oder Status. Das uebernimmt ein Trigger im Google-Konto des Nutzers. Fuer die Routine ist das Sheet REIN LESEND (Kommentar-Threads auf M, Produktname aus G, Preis aus J, Competitor-URL aus D). Frueher wurden L/N/O/P per Sheets API geschrieben -- das ist ersatzlos gestrichen, samt dem dafuer benutzten Service-Account und dem Scope .../auth/spreadsheets.",
-      "vom_nutzer_trigger_gefuellt": "Nur zur Orientierung, NICHT von der Routine zu beschreiben: L = Lauf-Datum, N = Bearbeiter, O = Ordner-Link, P = Status."
+      "vom_nutzer_trigger_gefuellt": "Nur zur Orientierung, NICHT von der Routine zu beschreiben: L = Lauf-Datum, N = Bearbeiter, O = Ordner-Link, P = Status.",
+      "ad_links_column_zwei_formen": "Spalte M kann ZWEI Formen haben, beide in jedem Lauf pruefen: (a) Ad-Links als KOMMENTAR-Thread an der M-Zelle (Head-Post + Replies), (b) ein Hyperlink im ZELLWERT auf einen ganzen Drive-Ordner (Anzeigetext oft 'Set 1') - dann sind die Quell-Ads der Inhalt dieses Ordners. Welche Form vorliegt, haengt an der einzelnen Zeile, nicht am Tab. Ablauf fuer (b): docs/workflow.md Schritt 3a."
     },
     "tabs": {
       "FI": {
@@ -25,6 +26,19 @@
         "language": "fr-CA",
         "language_name": "Quebec-Franzoesisch (fr-CA), NICHT Frankreich-Franzoesisch",
         "market_code": "FRCA"
+      },
+      "NL/BE new": {
+        "start_row": 3,
+        "language": "nl-BE",
+        "language_name": "Niederlaendisch (NL/BE)",
+        "market_code": "NLBE",
+        "tab_name_exakt": "NL/BE new",
+        "hinweis_tabname": "Im Sheet heisst der Tab 'NL/BE new' mit Schraegstrich und Leerzeichen. Der XLSX-Export nennt ihn 'NLBE new'. Nicht mit dem aelteren Tab 'NLBE' verwechseln - das sind zwei verschiedene Tabs mit ueberschneidenden Zeilennummern.",
+        "spalten": "Wie die Markt-Tabs: A=Markt, C=Competitor-Produkt, D=Competitor URL, G=new PR NAME (Zielname), J=Preis, M=Competitor Ad Link/Drive Link.",
+        "m_form": "Bisher ausschliesslich Form (b): Drive-Ordner-Link als Zellwert. KEINE Zell-Kommentare auf diesem Tab - wer nur die Kommentar-API abfragt, sieht hier nichts.",
+        "zielordner": "Translated-Ads/NLBE/<Name aus Spalte G>, Vorgabe von Jeannine 2026-10-14.",
+        "state_ordner": "Translated-Ads/NLBE/State/",
+        "state_praefix": "NLBEnew- fuer row_locks/processed_comments, weil sich die Zeilennummern mit dem alten Tab 'NLBE' ueberschneiden."
       }
     },
     "winning_products_tab": {
@@ -92,7 +106,8 @@
     "translated_ads_folder_id": "1JWHztpl2Z6mE9WtcRTObRgwBRp1OsHCb",
     "translated_ads_subfolders": {
       "FI": "1Ey4aVRrpzrzolETnzKVxVCZQGZjm0P5K",
-      "FRCA": "1ZeW7nKHrCMNOBH6jIKZrzNYjJWXPvQDW"
+      "FRCA": "1ZeW7nKHrCMNOBH6jIKZrzNYjJWXPvQDW",
+      "NLBE": "1GO1rGgSkUDMlsVhu06ACxkr4WJzrg-Mp"
     },
     "day_folder_name_pattern": "<Lauf-Datum YYYY-MM-DD> - <product_name aus Spalte G>",
     "day_folder_parent_pattern": "Translated-Ads/<market_code>/",
@@ -112,7 +127,8 @@
     "body_fields": {
       "folderId": "Drive-ID des Zielordners (Tages-/Produkt-Ordner bzw. Set-Ordner). Unveraendert wie bisher, siehe drive.*.",
       "name": "Dateiname nach drive.file_name_pattern, also '<laufende Nummer>_<Productname>_<countrycode>' (z. B. '1_Pawox_FI'), Produktbild '<product>_<market>_produktbild.jpg'. Namensschema unveraendert.",
-      "url": "Direkte Bild-URL, aus der das Script die Bytes zieht -- in der Regel die Higgsfield-CDN-URL des gerenderten Bildes. Muss ohne Login erreichbar sein."
+      "url": "Direkte Bild-URL, aus der das Script die Bytes zieht -- in der Regel die Higgsfield-CDN-URL des gerenderten Bildes. Muss ohne Login erreichbar sein.",
+      "row": "PFLICHT seit 2026-10-14: die Sheet-Zeile, zu der dieser Upload gehoert, als '<Tabname>!<Zeile>' (z. B. 'FI!120' oder 'NL/BE new!3'). Nur gemeldete Zeilen werden vom Apps Script in L/N/O/P eingetragen. Fehlt das Feld, wird NICHTS eingetragen - frueher hat das Script ueber den Produktnamen geraten und dadurch fremde Zeilen gefuellt (siehe CLAUDE.md 4d)."
     },
     "no_x_post": "NIEMALS '-X POST' verwenden. 'curl -d' setzt POST bereits selbst; '-X POST' wuerde beim 302-Redirect von script.google.com nach googleusercontent.com erneut als POST folgen und den Aufruf brechen. '-L' ist Pflicht, weil dieser Redirect immer kommt.",
     "steps": [

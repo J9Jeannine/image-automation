@@ -104,3 +104,24 @@ If, after reading this, something genuinely fails (e.g. the endpoint answers wit
 `Exception` that names the folder id, meaning the folder is wrong or the deployment was
 replaced), report the **specific** error to the user — do not downgrade to a links
 workaround and do not claim the whole approach is impossible.
+
+
+---
+
+## Pflichtfeld `row` (seit 2026-10-14)
+
+Jeder Upload-Call meldet zusaetzlich, zu **welcher Sheet-Zeile** das Bild gehoert:
+
+```bash
+curl -sS -L "$ENDPOINT" -H "Content-Type: application/json" \
+  -d '{"folderId":"<Ordner-ID>","name":"<Dateiname>","url":"<Bild-URL>","row":"FI!120"}'
+```
+
+`row` ist `<Tabname>!<Zeilennummer>` genau wie im Sheet, z. B. `FI!120`,
+`FRCA!56` oder `NL/BE new!3`.
+
+**Warum:** Ohne dieses Feld hat `fillFunnelSheet()` die Zeile ueber den Produktnamen in
+Spalte G geraten und dadurch auch Zeilen als fertig markiert, fuer die nie etwas
+generiert wurde (gemeldet an `FI!123` smokola am 2026-10-14, siehe `CLAUDE.md` 4d und
+`docs/sheet-writeback-SOP.md`). Fehlt `row`, traegt das Script **nichts** ein — das ist
+gewollt: lieber keine Eintragung als eine falsche.

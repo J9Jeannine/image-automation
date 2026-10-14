@@ -3,16 +3,43 @@
 // 1) doPost: laedt ein Bild per URL in einen Drive-Ordner (Upload der Routine).
 // 2) Nach JEDEM Upload: fillFunnelSheet() traegt L/N/O/P im Funnel Sheet ein.
 // 3) Zusaetzlich stuendlicher Zeit-Trigger als Netz (einmalig installTrigger() ausfuehren).
+//
+// WICHTIG, Fehlerbehebung 2026-10-14 (von Jeannine gemeldet):
+// Die alte Fassung hat die Zeilen ALLEIN ueber den Produktnamen in Spalte G gesucht.
+// Dadurch bekam JEDE Zeile mit demselben Namen den Ordner-Link, auch eine Zeile, die
+// nie bearbeitet wurde und in Spalte M gar keine Quelle stehen hat. Beobachtet an
+// FI!123 (smokola): die Zeile hat kein M, trotzdem standen dort L/N/O/P aus einem
+// alten "Smokola"-Ordner einer frueheren Zeile. Siehe docs/sheet-writeback-SOP.md.
+//
+// Neue Regel: Eine Zeile wird NUR noch beschrieben, wenn die Routine fuer genau diese
+// Zeile hochgeladen hat. Die Routine meldet die Zeile beim Upload im Feld "row"
+// (z. B. "FI!120" oder "NL/BE new!3"). Es wird nie mehr ueber den Namen geraten.
 
 const SHEET_ID = '1SkD7jrC-othtbwTYyz1VCK1HPIkEKHxc_hSAvRp2iL8';
-const MARKETS = {
-  FI:   '1Ey4aVRrpzrzolETnzKVxVCZQGZjm0P5K', // Translated-Ads/FI
-  FRCA: '1ZeW7nKHrCMNOBH6jIKZrzNYjJWXPvQDW'  // Translated-Ads/FRCA
-};
+const REGISTRY_KEY = 'claude_row_registry_v1';
 
 function json_(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+function registry_() {
+  const raw = PropertiesService.getScriptProperties().getProperty(REGISTRY_KEY);
+  if (!raw) return {};
+  try { return JSON.parse(raw); } catch (err) { return {}; }
+}
+
+function registryPut_(rowRef, folderId) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const reg = registry_();
+    reg[rowRef] = { folderId: folderId, ts: new Date().toISOString() };
+    PropertiesService.getScriptProperties()
+      .setProperty(REGISTRY_KEY, JSON.stringify(reg));
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function doPost(e) {
@@ -23,6 +50,11 @@ function doPost(e) {
   const folder = DriveApp.getFolderById(req.folderId);
   const blob = UrlFetchApp.fetch(req.url).getBlob().setName(req.name);
   const file = folder.createFile(blob);
+  // Die Routine meldet hier, zu WELCHER Sheet-Zeile dieser Upload gehoert.
+  // Ohne "row" wird nichts ins Sheet geschrieben - lieber keine Eintragung als eine falsche.
+  if (req.row) {
+    try { registryPut_(String(req.row), req.folderId); } catch (err) {}
+  }
   let sheet;
   try { sheet = fillFunnelSheet(); } catch (err) { sheet = 'ERROR: ' + err; }
   return json_({
@@ -39,49 +71,59 @@ function setIfEmpty_(sh, a1, value, isFormula) {
   return true;
 }
 
-// Liest alle Ordner "<YYYY-MM-DD> - <Produkt>" unter Translated-Ads/<Markt> und traegt
-// fuer jede Zeile, deren Spalte G den Produktnamen hat, L/N/O/P ein -- nur leere Zellen.
+// Traegt L/N/O/P NUR fuer die Zeilen ein, die die Routine beim Upload gemeldet hat.
+// Kein Raten ueber den Produktnamen mehr - siehe Kopfkommentar.
 function fillFunnelSheet() {
   const lock = LockService.getScriptLock();
   lock.waitLock(30000);
   try {
     const ss = SpreadsheetApp.openById(SHEET_ID);
+    const reg = registry_();
     const written = [];
-    Object.keys(MARKETS).forEach(function (tab) {
-      const sh = ss.getSheetByName(tab);
-      if (!sh) return;
-      const folders = {};
-      const it = DriveApp.getFolderById(MARKETS[tab]).getFolders();
-      while (it.hasNext()) {
-        const f = it.next();
-        const m = f.getName().match(/^(\d{4})-(\d{2})-(\d{2})\s*-\s*(.+)$/);
-        if (!m) continue;
-        const key = m[4].trim().toLowerCase();
-        const iso = m[1] + m[2] + m[3];
-        if (folders[key] && folders[key].iso > iso) continue; // neuester Ordner gewinnt
-        folders[key] = { id: f.getId(), iso: iso,
-          date: new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) };
-      }
-      const last = sh.getLastRow();
-      const names = sh.getRange('G1:G' + last).getValues();
-      for (let i = 1; i < last; i++) { // Zeile 1 = Kopfzeile
-        const name = String(names[i][0] || '').trim();
-        if (!name) continue;
-        const hit = folders[name.toLowerCase()];
-        if (!hit) continue;
-        const r = i + 1;
-        const o = setIfEmpty_(sh, 'O' + r,
-          '=HYPERLINK("https://drive.google.com/drive/folders/' + hit.id + '";"' + name + '")', true);
-        setIfEmpty_(sh, 'L' + r, hit.date, false);
-        setIfEmpty_(sh, 'N' + r, 'claude', false);
-        setIfEmpty_(sh, 'P' + r, 'in progress', false);
-        if (o) written.push(tab + '!' + r + ' ' + name);
-      }
+    const skipped = [];
+    Object.keys(reg).forEach(function (rowRef) {
+      const m = String(rowRef).match(/^(.+)!(\d+)$/);
+      if (!m) { skipped.push(rowRef + ' (Format)'); return; }
+      const sh = ss.getSheetByName(m[1]);
+      if (!sh) { skipped.push(rowRef + ' (Tab fehlt)'); return; }
+      const r = Number(m[2]);
+      if (r < 2 || r > sh.getMaxRows()) { skipped.push(rowRef + ' (Zeile)'); return; }
+      const name = String(sh.getRange('G' + r).getValue() || '').trim();
+      if (!name) { skipped.push(rowRef + ' (G leer)'); return; }
+      const hit = reg[rowRef];
+      const o = setIfEmpty_(sh, 'O' + r,
+        '=HYPERLINK("https://drive.google.com/drive/folders/' + hit.folderId + '";"' + name + '")', true);
+      setIfEmpty_(sh, 'L' + r, new Date(hit.ts), false);
+      setIfEmpty_(sh, 'N' + r, 'claude', false);
+      setIfEmpty_(sh, 'P' + r, 'in progress', false);
+      if (o) written.push(rowRef + ' ' + name);
     });
-    return written.length ? 'ok: ' + written.join(', ') : 'ok: nichts Neues';
+    let out = written.length ? 'ok: ' + written.join(', ') : 'ok: nichts Neues';
+    if (skipped.length) out += ' | uebersprungen: ' + skipped.join(', ');
+    return out;
   } finally {
     lock.releaseLock();
   }
+}
+
+// EINMAL im Editor ausfuehren, wenn eine falsche Eintragung entfernt werden soll.
+// Loescht L/N/O/P in genau den angegebenen Zeilen und nimmt sie aus der Registry.
+// Beispiel: clearRows_(['FI!123']);
+function clearRows_(rowRefs) {
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const reg = registry_();
+  rowRefs.forEach(function (rowRef) {
+    const m = String(rowRef).match(/^(.+)!(\d+)$/);
+    if (!m) return;
+    const sh = ss.getSheetByName(m[1]);
+    if (!sh) return;
+    ['L', 'N', 'O', 'P'].forEach(function (col) {
+      sh.getRange(col + m[2]).clearContent();
+    });
+    delete reg[rowRef];
+  });
+  PropertiesService.getScriptProperties()
+    .setProperty(REGISTRY_KEY, JSON.stringify(reg));
 }
 
 // EINMAL im Editor ausfuehren: legt einen stuendlichen Trigger fuer fillFunnelSheet an.

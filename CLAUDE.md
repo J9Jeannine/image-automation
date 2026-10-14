@@ -156,6 +156,41 @@ beider Quellen überschneiden sich.
 Quellen prüfen. Ältere, am Trigger gespeicherte Prompt-Texte erwähnen `Winning Products`
 noch nicht — das ist kein Grund, den Tab zu überspringen. CLAUDE.md hat Vorrang.
 
+## 4c. Spalte M kann ZWEI Dinge sein — Ad-Links ODER ein Drive-Ordner
+
+Vorgabe von Jeannine am 2026-10-14. Gilt fuer **jede** Zeile in **jedem** Tab.
+
+Die Spalte mit den Quell-Ads (`M` in den Markt-Tabs und in `NL/BE new`, `D` in
+`Winning Products`) enthaelt entweder
+
+- **(a) Ad-Links** als Kommentar-Thread an der Zelle (Head-Post + alle Replies), oder
+- **(b) einen Hyperlink auf einen ganzen Drive-Ordner** als **Zellwert** (Anzeigetext
+  oft `Set 1`). Dann sind die Quell-Ads der Inhalt dieses Ordners.
+
+**Nie nur eine der beiden Formen annehmen** — in jedem Lauf beide pruefen. Welche Form
+vorliegt, haengt an der einzelnen Zeile, nicht am Tab.
+
+Bei (b): Bilder wie Quell-Ads behandeln und nur das aendern, was die Zeile vorgibt
+(in der Regel der Produktname aus Spalte G); **Videos unveraendert kopieren**, nie neu
+erzeugen; Dateien ohne Produktnamen unveraendert uebernehmen. Zielordner ist ein neuer
+Ordner mit dem Namen aus Spalte G. Vollstaendig: `docs/workflow.md` Schritt 3a.
+
+## 4d. Eine Zeile ohne Quelle in M wird NIE als fertig eingetragen
+
+Gemeldet von Jeannine am 2026-10-14 an `FI!123` (smokola): die Zeile hatte **keine**
+Ad-Links und **keinen** Ordner-Link in M, trotzdem standen dort `L`/`N`/`O`/`P` mit
+`claude` und einem Ordner-Link — es sah aus, als waeren Ads fertig, die es nie gab.
+
+**Ursache:** `fillFunnelSheet()` in `apps-script/Code.gs` hat die Zeilen allein ueber den
+Produktnamen in Spalte **G** gesucht. Ein alter Ordner `… - Smokola` aus einer frueheren
+Zeile passte auf den Namen der neuen Zeile, und die Eintragung ging in **jede** Zeile mit
+diesem Namen.
+
+**Behoben:** Das Script raet nicht mehr ueber den Namen. Die Routine meldet beim Upload
+im Feld `row` genau die Zeile (`"FI!120"`, `"NL/BE new!3"`), und nur gemeldete Zeilen
+werden beschrieben. Ohne `row` wird **nichts** eingetragen — lieber keine Eintragung als
+eine falsche. Details: `docs/sheet-writeback-SOP.md`.
+
 ## 4b. Bild-Upload — ein `curl`-Call, keine Zugangsdaten
 
 Bilder kommen per **einem `curl`-Call pro Bild** in Drive, gegen den Apps-Script-Endpunkt in
