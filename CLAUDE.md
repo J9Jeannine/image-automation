@@ -33,13 +33,19 @@ Zielvarianten:
 
 - **FRCA** = Québec-Französisch (wie in Québec geschrieben/gesprochen), **nicht**
   Frankreich-Französisch. Anrede immer **tu**, nie *vous*.
+- **NLBE** = EIN neutrales Niederländisch für Niederlande UND Flandern, keine
+  Länder-Marker. Anrede immer **je / jouw**, nie *u / uw*. Preis `€ 29,95`, `50%`.
+  Regel: `docs/language-rules.md` 4.3.
+- **ZA** = südafrikanisches Englisch, britische Schreibweise (`-ise`, `colour`), Ton wie
+  in der Quell-Ad. Preis `R299.99`, `50%`, `FREE DELIVERY`. Regel: `docs/language-rules.md` 4.4.
 - **FI** = natürliches Finnisch eines Muttersprachlers. Keine maschinell
   zusammengesetzten Komposita, keine erfundenen Wörter.
 
 5. **FREIGABE VOR DEM RENDERN — blockierend.** Vor dem ersten `generate_image`-Call
    jeder Ad muss `python3 scripts/check_locked_string.py <MARKET_CODE> <locked_strings.md>`
    mit Exit-Code 0 durchlaufen sein, und in der `locked_strings.md` muss pro Textelement eine
-   `FREIGABE 4.1(A):`-Zeile stehen. Exit 1 oder fehlender Block = **nicht rendern**.
+   `FREIGABE 4.x(A):`-Zeile stehen (4.1 FRCA, 4.3 NLBE, 4.4 ZA). Exit 1 oder fehlender
+   Block = **nicht rendern**.
    Vollständige Regel: `docs/language-rules.md` Abschnitt 4a.
    Der Grund: die QA in Abschnitt 5 vergleicht das Bild mit dem LOCKED STRING und kann
    deshalb nie finden, dass der LOCKED STRING selbst schon Frankreich-Französisch war.

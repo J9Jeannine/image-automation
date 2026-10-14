@@ -56,8 +56,8 @@
       },
       "kein_rueckschreiben": "Auch hier schreibt die Routine NICHTS ins Sheet. Die frueher von der Routine gesetzten Zellen G (Bearbeiter), H (Set-Ordner-Link) und I (Lauf-Datum) fuellt jetzt der Trigger im Google-Konto des Nutzers. Dieser Tab wird nur gelesen (Kommentare auf D, Produktname aus C, Markt aus A). Nichts anfassen -- keine Spalte, auch nicht J.",
       "state_keys": "Die Zeilennummern dieses Tabs ueberschneiden sich mit denen von FI/FRCA. Deshalb in State/processed_comments.json und State/row_locks.json IMMER mit Praefix arbeiten: 'WP-<Zeile>' fuer processed_comments, 'WP-<market_code>!<Zeile>' fuer row_locks (z. B. WP-87, WP-FI!87). Ohne Praefix wird die gleichnamige FI-Zeile ueberschrieben.",
-      "state_ordner": "State-Dateien liegen im Baum des Marktes aus Spalte A: Translated-Ads/<market_code>/State/. Fuer FI = 1NSKjesH5A5r5lvWyb-mPvt390NLuhSSj, fuer FRCA = 13na2DEsCTitRK1kdh0OpSxSYRz-PDc1S.",
-      "sprachregeln": "Es gelten dieselben blockierenden Sprachregeln wie sonst (CLAUDE.md Regel 1, docs/language-rules.md) -- mit dem Markt aus Spalte A. Hat dieser Markt in docs/language-rules.md KEINEN eigenen Abschnitt 4.x (aktuell existieren nur 4.1 FRCA und 4.2 FI), wird fuer die Zeile NICHT generiert: Zeile ueberspringen und im Bericht vermerken, dass der Markt-Abschnitt fehlt. Das betrifft insbesondere die vielen NLBE-Zeilen dieses Tabs sowie SE und UK.",
+      "state_ordner": "State-Dateien liegen im Baum des Marktes aus Spalte A: Translated-Ads/<market_code>/State/. Fuer FI = 1NSKjesH5A5r5lvWyb-mPvt390NLuhSSj, fuer FRCA = 13na2DEsCTitRK1kdh0OpSxSYRz-PDc1S, fuer NLBE = 1winAhE5g4pecfsMfSOZVaZAUevNw52fJ, fuer ZA = 1jWMZPcnlMx-KVitmb15_TiPvqV48wUJZ.",
+      "sprachregeln": "Es gelten dieselben blockierenden Sprachregeln wie sonst (CLAUDE.md Regel 1, docs/language-rules.md) -- mit dem Markt aus Spalte A. Angelegt sind 4.1 FRCA, 4.2 FI, 4.3 NLBE, 4.4 ZA. Hat ein Markt KEINEN eigenen Abschnitt 4.x (z. B. SE, UK), wird fuer die Zeile NICHT generiert: Zeile ueberspringen und im Bericht vermerken, dass der Markt-Abschnitt fehlt.",
       "textlose_ads": "Zeigt eine Quell-Ad weder Text noch Produkt (reine Illustration, Foto, MRT, Selfie), gibt es nichts zu uebersetzen: die Datei unveraendert uebernehmen und NICHT neu rendern. Ein Neurender erzeugt ein anderes Motiv und waere eine Variante statt einer Uebersetzung -- unzulaessig und verbrannte Credits. Im Bericht als 'unveraendert uebernommen' ausweisen.",
       "ablauf": "Vollstaendiger Ablauf: docs/workflow.md Anhang A."
     }
@@ -92,7 +92,9 @@
     "translated_ads_folder_id": "1JWHztpl2Z6mE9WtcRTObRgwBRp1OsHCb",
     "translated_ads_subfolders": {
       "FI": "1Ey4aVRrpzrzolETnzKVxVCZQGZjm0P5K",
-      "FRCA": "1ZeW7nKHrCMNOBH6jIKZrzNYjJWXPvQDW"
+      "FRCA": "1ZeW7nKHrCMNOBH6jIKZrzNYjJWXPvQDW",
+      "NLBE": "1GO1rGgSkUDMlsVhu06ACxkr4WJzrg-Mp",
+      "ZA": "1XyBfLC5DwBBROzwwfiO25WmsyuJxRJ6f"
     },
     "day_folder_name_pattern": "<Lauf-Datum YYYY-MM-DD> - <product_name aus Spalte G>",
     "day_folder_parent_pattern": "Translated-Ads/<market_code>/",
@@ -298,8 +300,97 @@
       "price_format": "49,99 EUR-Zeichen nach der Zahl mit Leerzeichen (49,99 <euro>)",
       "percent_format": "50 % (mit Leerzeichen)"
     },
+    "NLBE": {
+      "variant": "nl, EIN neutrales Niederlaendisch fuer Niederlande UND Flandern gemeinsam (docs/language-rules.md 4.3)",
+      "address_form": "je / jouw (niemals u / uw) -- Jeannine 2026-10-14",
+      "forbidden": [
+        "u",
+        "uw",
+        "uzelf",
+        "uitverkoop",
+        "koopjes",
+        "solden",
+        "hartstikke",
+        "gezellig",
+        "superhandig",
+        "lekker slapen",
+        "drogist",
+        "fysiotherapeut",
+        "kinesist",
+        "confituur",
+        "pinnen",
+        "pinpas",
+        "iDEAL",
+        "zetel",
+        "frigo",
+        "microgolf",
+        "kleedje",
+        "gij",
+        "ge",
+        "$",
+        ",-"
+      ],
+      "required_replacements": {
+        "solden/uitverkoop/koopjes": "KORTING / ACTIE",
+        "drogist": "apotheek",
+        "lekker slapen": "goed slapen",
+        "u/uw": "je/jouw"
+      },
+      "price_format": "Der BETRAG kommt IMMER aus Spalte J. Nur das FORMAT: Eurozeichen VOR dem Betrag, Leerzeichen, Dezimalkomma, immer 2 Dezimalen -> '€ 29,95', '€ 24,00'. Falsch: '29,95 €', '€29,95', '€ 24,-'.",
+      "percent_format": "50% (OHNE Leerzeichen, anders als FRCA/FI)",
+      "safe_building_blocks": [
+        "BESTEL NU",
+        "GRATIS LEVERING",
+        "50% KORTING",
+        "ACTIE",
+        "OP VOORRAAD",
+        "30 DAGEN RETOURRECHT",
+        "BEPERKTE VOORRAAD",
+        "ALLEEN VANDAAG"
+      ],
+      "freigabe_line": "FREIGABE 4.3(A)"
+    },
+    "ZA": {
+      "variant": "en-ZA, suedafrikanisches Englisch, britische Schreibweise mit -ise (docs/language-rules.md 4.4)",
+      "tone": "wie in der Quell-Ad (Jeannine 2026-10-14); lokalisiert werden nur Schreibweise, Woerter, Einheiten, Waehrung, Format. Kein eingebauter SA-Slang.",
+      "forbidden": [
+        "US-Schreibweise (color, favorite, center, organize, moisturizer ...)",
+        "free shipping",
+        "shipping",
+        "cell phone",
+        "drugstore",
+        "zip code",
+        "lbs",
+        "pounds",
+        "inches",
+        "°F",
+        "$",
+        "€",
+        "ZAR"
+      ],
+      "required_replacements": {
+        "free shipping": "FREE DELIVERY",
+        "cell phone / mobile phone": "cellphone",
+        "drugstore": "pharmacy",
+        "lbs/oz/inches/°F": "kg/g/cm/°C",
+        "October 14": "14 October"
+      },
+      "price_format": "Der BETRAG kommt IMMER aus Spalte J. Nur das FORMAT: 'R' direkt vor dem Betrag, KEIN Leerzeichen, Dezimalpunkt -> 'R299.99', 'R499'. Falsch: 'R 299,99', 'ZAR 299', '$29.99'. Gemessen 2026-10-14: Clicks 'R299.99', Dis-Chem 'R 249.99' (Punkt).",
+      "percent_format": "50% (ohne Leerzeichen, GCIS)",
+      "seasons": "Suedhalbkugel: Oktober-Maerz Sommer. Saisonale Aussagen aus EU/US-Quell-Ads nicht uebernehmen.",
+      "safe_building_blocks": [
+        "ORDER NOW",
+        "FREE DELIVERY",
+        "SAVE 50%",
+        "LIMITED STOCK",
+        "TODAY ONLY",
+        "30-DAY MONEY-BACK GUARANTEE",
+        "3 FOR 2"
+      ],
+      "freigabe_line": "FREIGABE 4.4(A)"
+    },
     "verification": "Vor jedem Upload jedes Bild einzeln mit dem Read-Tool ansehen, jedes sichtbare Wort abtippen und Zeichen fuer Zeichen gegen den LOCKED STRING diffen. Ein Prompt-Hinweis ist kein Nachweis. Transkription in der State-Datei protokollieren.",
-    "new_markets": "Fuer jeden weiteren Markt mit eigener Landesvariante vor dem ersten Lauf einen eigenen Abschnitt in docs/language-rules.md anlegen. Ohne diesen Abschnitt wird fuer den Markt nicht generiert.",
+    "new_markets": "Fuer jeden weiteren Markt mit eigener Landesvariante vor dem ersten Lauf einen eigenen Abschnitt in docs/language-rules.md anlegen, eine Pruefung in scripts/check_locked_string.py, einen Eintrag hier unter language_rules und einen Drive-Ordner unter drive.translated_ads_subfolders. Ohne das wird fuer den Markt nicht generiert. Angelegt: FRCA, FI, NLBE, ZA.",
     "applies_to": "ALLE Sprachen/Maerkte, aktuell und zukuenftig, nicht nur FRCA/FI",
     "universal_word_authenticity_rule": "Jedes Wort im LOCKED STRING muss ein echtes, belegtes Wort der Zielsprache sein - kein Wort, das nur plausibel aussieht. Gilt besonders fuer Verpackungs-/Etikettentext, Preisschilder, Badges. Keine mechanisch zusammengebauten Komposita, keine falschen Kasus-/Flexionsendungen, korrekte Diakritika. Siehe docs/language-rules.md Abschnitt 1a - gilt fuer jede Sprache automatisch, auch fuer neue Maerkte, sobald deren Abschnitt 4.x angelegt ist."
   },

@@ -55,7 +55,7 @@ Führe den image-automation Workflow aus dem Repo `j9jeannine/image-automation`,
    nach `docs/language-rules.md` schreiben** (fertiger Zieltext, max. 6 Wörter pro
    Textelement), **dann die Freigabe nach Abschnitt 4a durchlaufen — blockierend:**
    `python3 scripts/check_locked_string.py <MARKET_CODE> <locked_strings.md>` muss Exit 0
-   liefern, und in der `locked_strings.md` muss pro Textelement eine `FREIGABE 4.1(A):`-Zeile
+   liefern, und in der `locked_strings.md` muss pro Textelement eine `FREIGABE 4.x(A):`-Zeile (4.1 FRCA / 4.3 NLBE / 4.4 ZA)
    stehen. Exit 1 oder fehlender Block = nicht rendern, LOCKED STRING korrigieren.
    Erst danach rendern. Ad erst versuchen zu öffnen. Ist
    `facebook.com` blockiert (bekannte Einschränkung dieser Sandbox, siehe

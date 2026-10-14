@@ -5,6 +5,8 @@ Mechanische Freigabepruefung fuer LOCKED STRINGS, vor dem Rendern.
 Aufruf:
     python3 scripts/check_locked_string.py FRCA <datei_mit_locked_strings>
     python3 scripts/check_locked_string.py FI   <datei>
+    python3 scripts/check_locked_string.py NLBE <datei>
+    python3 scripts/check_locked_string.py ZA   <datei>
     echo "Dis adieu!" | python3 scripts/check_locked_string.py FRCA -
 
 Exit 0 = freigegeben. Exit 1 = BLOCKIERT, nicht rendern.
@@ -80,6 +82,48 @@ FI_UMLAUT = {
 PREIS_FI_OK = re.compile(r'\b\d{1,3}(?: \d{3})*,\d{2} €')
 
 
+# --- NLBE ---------------------------------------------------------------
+# docs/language-rules.md 4.3. Anrede je/jouw (Jeannine, 2026-10-14).
+
+U_NLBE = re.compile(r'\b(u|uw|uzelf)\b', re.I)
+
+# Laender-Marker: fallen im jeweils anderen Land auf (4.3 C).
+VERBOTEN_NLBE = {
+    'uitverkoop': 'KORTING / ACTIE', 'koopjes': 'KORTING / ACTIE',
+    'solden': 'KORTING / ACTIE', 'hartstikke': 'streichen',
+    'gezellig': 'streichen', 'superhandig': 'streichen',
+    'lekker slapen': 'goed slapen', 'drogist': 'apotheek',
+    'fysiotherapeut': 'umschreiben', 'kinesist': 'umschreiben',
+    'confituur': '-', 'pinnen': 'streichen', 'pinpas': 'streichen',
+    'ideal': 'streichen (iDEAL gibt es in Belgien nicht)',
+    'zetel': 'bank', 'frigo': 'koelkast', 'microgolf': 'magnetron',
+    'kleedje': 'jurk', 'gij': 'je', 'ge': 'je',
+    'ontgrendel': 'Floskel streichen', 'zeg vaarwel': 'Floskel streichen',
+    'binnen 24 uur': 'Levering in 1 tot 3 werkdagen',
+}
+PREIS_NLBE_OK = re.compile(r'€ \d{1,3}(?:\.\d{3})*,\d{2}(?!\d)')
+
+# --- ZA -----------------------------------------------------------------
+# docs/language-rules.md 4.4. Britische Schreibweise (GCIS), Preis R299.99.
+
+US_SPELLING = {
+    'color': 'colour', 'colors': 'colours', 'favorite': 'favourite',
+    'flavor': 'flavour', 'odor': 'odour', 'behavior': 'behaviour',
+    'center': 'centre', 'liter': 'litre', 'liters': 'litres', 'meter': 'metre',
+    'organize': 'organise', 'realize': 'realise', 'minimize': 'minimise',
+    'optimize': 'optimise', 'moisturizer': 'moisturiser', 'moisturize': 'moisturise',
+    'moisturizing': 'moisturising', 'analyze': 'analyse', 'gray': 'grey',
+}
+VERBOTEN_ZA = {
+    'free shipping': 'FREE DELIVERY', 'shipping': 'delivery',
+    'cell phone': 'cellphone', 'mobile phone': 'cellphone',
+    'drugstore': 'pharmacy', 'zip code': 'postal code', 'vacation': 'holiday',
+    'lbs': 'kg', 'pounds': 'kg', 'inches': 'cm', 'fahrenheit': '°C', '°f': '°C',
+    'zar': "'R' vor dem Betrag",
+}
+PREIS_ZA_OK = re.compile(r'(?<![\w])R\d{1,4}(?:\.\d{2})?(?![\d,])')
+
+
 def pruefe_frca(text):
     err, warn = [], []
     for m in re.finditer(r'\s+([!?;])', text):
@@ -126,6 +170,64 @@ def pruefe_fi(text):
     return err, warn
 
 
+def _woerter_pro_element(text, warn):
+    for el in [l for l in text.splitlines() if l.strip()]:
+        n = len(re.findall(r"[\wÀ-ÿ'’-]+", el))
+        if n > 6:
+            warn.append(f"{n} Wörter in einem Textelement (max. 6): {el.strip()[:60]}")
+
+
+def _verbotsliste(text, liste, err, markt):
+    low = text.lower()
+    for bad, good in liste.items():
+        if re.search(r'(?<![\wÀ-ÿ])' + re.escape(bad) + r'(?![\wÀ-ÿ])', low):
+            err.append(f"'{bad}' ist in {markt} verboten — stattdessen: {good}")
+
+
+def pruefe_nlbe(text):
+    err, warn = [], []
+    for m in U_NLBE.finditer(text):
+        err.append(f"'{m.group(0)}' als Leseransprache — NLBE duzt: je / jouw / jezelf.")
+    _verbotsliste(text, VERBOTEN_NLBE, err, 'NLBE')
+    if '$' in text:
+        err.append("'$' in NLBE — Währung ist Euro: '€ 29,95'.")
+    if re.search(r'\d,-', text):
+        err.append("',-' ist nur in NL üblich — ganze Beträge als '€ 24,00'.")
+    if re.search(r'\d\s?€', text) or re.search(r'€\d', text) or re.search(r'€ ?\d+\.\d{2}(?!\d)', text):
+        err.append("Preisformat falsch — NLBE ist '€ <Betrag>' mit Leerzeichen und Dezimalkomma, z. B. € 29,95.")
+    elif '€' in text and not PREIS_NLBE_OK.search(text):
+        err.append("Preisformat falsch — NLBE ist '€ 29,95' (Zeichen vorne, Leerzeichen, Komma, 2 Dezimalen).")
+    if re.search(r'\d %', text):
+        err.append("Leerzeichen vor '%' — NLBE schreibt '50%'.")
+    if re.search(r'\s[!?:]', text):
+        err.append("Leerzeichen vor '!' '?' ':' — im Niederländischen kein Leerzeichen.")
+    _woerter_pro_element(text, warn)
+    return err, warn
+
+
+def pruefe_za(text):
+    err, warn = [], []
+    low = text.lower()
+    for w in re.findall(r"[a-z]+", low):
+        if w in US_SPELLING:
+            err.append(f"'{w}' ist US-Schreibweise — ZA: {US_SPELLING[w]}.")
+    _verbotsliste(text, VERBOTEN_ZA, err, 'ZA')
+    if '$' in text or '€' in text:
+        err.append("'$'/'€' in ZA — Währung ist Rand: 'R299.99'.")
+    if re.search(r'\bR\s\d', text):
+        err.append("Leerzeichen nach 'R' — ZA: 'R299.99' ohne Leerzeichen.")
+    if re.search(r'\bR\d+,\d{2}\b', text):
+        err.append("Dezimalkomma im Preis — ZA-Shops schreiben Punkt: 'R299.99'.")
+    if re.search(r'\d %', text):
+        err.append("Leerzeichen vor '%' — ZA schreibt '50%'.")
+    if re.search(r'\s[!?:]', text):
+        err.append("Leerzeichen vor '!' '?' ':' — im Englischen kein Leerzeichen.")
+    if re.search(r'\b(January|February|March|April|May|June|July|August|September|October|November|December) \d{1,2}\b', text):
+        err.append("US-Datum — ZA schreibt '14 October', nicht 'October 14'.")
+    _woerter_pro_element(text, warn)
+    return err, warn
+
+
 def main():
     if len(sys.argv) != 3:
         print(__doc__); sys.exit(2)
@@ -135,6 +237,10 @@ def main():
         err, warn = pruefe_frca(text)
     elif markt == 'FI':
         err, warn = pruefe_fi(text)
+    elif markt == 'NLBE':
+        err, warn = pruefe_nlbe(text)
+    elif markt == 'ZA':
+        err, warn = pruefe_za(text)
     else:
         print(f"Unbekannter Markt '{markt}'. Vor dem ersten Lauf einen Abschnitt 4.x in "
               f"docs/language-rules.md UND eine Pruefung hier anlegen (Abschnitt 6/G).")
@@ -149,8 +255,9 @@ def main():
               "docs/language-rules.md Abschnitt 4.")
         sys.exit(1)
     print(f"OK — mechanische Pruefung {markt} bestanden ({len(warn)} Warnung(en)).")
+    abschnitt = {'FRCA': '4.1 (A)', 'FI': '4.2', 'NLBE': '4.3 (A)', 'ZA': '4.4 (A)'}[markt]
     print("ACHTUNG: das prueft nur bekannte Marker. Register und Idiomatik sind damit "
-          "NICHT geprueft — dafuer gilt der Test in docs/language-rules.md 4.1 (A).")
+          f"NICHT geprueft — dafuer gilt der Test in docs/language-rules.md {abschnitt}.")
     sys.exit(0)
 
 if __name__ == '__main__':

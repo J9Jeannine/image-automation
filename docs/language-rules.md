@@ -1,4 +1,4 @@
-# Sprachregeln für generierte Bilder (alle Märkte — aktuell FRCA / FI)
+# Sprachregeln für generierte Bilder (alle Märkte — aktuell FRCA / FI / NLBE / ZA)
 
 **Status: blockierend.** Kein Bild wird generiert, bevor diese Regeln erfüllt sind, und
 kein Bild wird hochgeladen, bevor Abschnitt 5 bestanden ist. Diese Regeln greifen **bei
@@ -264,6 +264,191 @@ Ziel: natürliches Finnisch, wie es ein finnischer Muttersprachler in Werbung sc
 Bewährte kurze Bausteine: `OSTA NYT`, `ILMAINEN TOIMITUS`, `SÄÄSTÄ 50 %`, `TARJOUS`,
 `RAJOITETTU ERÄ`, `VAIN NYT`.
 
+### 4.3 NLBE — Niederländisch für Niederlande UND Belgien (Flandern) gemeinsam
+
+Angelegt 2026-10-14. Grundlage: Creative-Research-Master-Doc, Abschnitt
+„NETHERLANDS + BELGIUM (NL+BE) — treated as one market" (Google Drive), Taaladvies
+der Flämischen Regierung (Eurozeichen, Prozentzeichen), Anrede-Entscheidung von
+Jeannine am 2026-10-14.
+
+Ziel: **ein** neutrales Standard-Niederländisch, das in den Niederlanden UND in
+Flandern natürlich klingt. Nicht Holland-Niederländisch, nicht Flämisch. Eine Ad läuft
+in beiden Ländern, deshalb ist jedes Wort, das nur in einem der beiden Länder üblich
+ist, ein Fehler — genau wie Frankreich-Französisch bei FRCA. Der Fehler ist unsichtbar,
+weil beide Varianten gültiges Niederländisch sind. Deshalb gilt 4a (Freigabe) auch hier.
+
+> Die Tabellen sind **Beispiele des Prinzips, keine abschließenden Listen.**
+> Verbindlich ist der Test unter (A), für jedes Produkt und jede Kategorie.
+
+#### (A) Der Test — gilt für jedes Wort, jedes Produkt, jede Kategorie
+
+> Würde eine Frau aus Gent diesen Ausdruck genauso schreiben wie eine Frau aus Utrecht —
+> und würde keine der beiden ihn als „typisch Holland" oder „typisch Flämisch" lesen?
+
+Fällt ein Ausdruck nur in einem der beiden Länder auf, wird er durch das neutrale Wort
+ersetzt (Spalte rechts in (C)). Gibt es kein neutrales Wort: Satz umbauen.
+
+#### (B) Anrede: immer `je / jouw`, nie `u / uw` — produktunabhängig
+
+Festgelegt von Jeannine am 2026-10-14 (entspricht den bestehenden NLBE-Ads, z. B.
+`2_GlowTan_NLBE`: „geeft je … terwijl je slaapt").
+
+| verboten | erforderlich |
+|---|---|
+| u, uw, uzelf (als Leseransprache) | je, jij, jouw, jezelf |
+| Bestelt u / Probeert u / Ontdekt u | Bestel / Probeer / Ontdek (Imperativ = Verbstamm) |
+| uw huid, uw gewrichten, uw hond | je huid, je gewrichten, je hond |
+
+**Häufigster Fehler: Mischung.** Headline mit `je`, CTA mit `u` liest sich sofort wie
+eine Übersetzung. Eine Ad, eine Anredeform.
+
+#### (C) Länder-Marker — verboten, weil sie im jeweils anderen Land auffallen
+
+| nur Niederlande (fällt in Flandern auf) | nur Flandern (fällt in NL auf) | neutral, erforderlich |
+|---|---|---|
+| uitverkoop, koopjes | solden | KORTING, ACTIE |
+| lekker (außer für Essen), lekker slapen | — | goed slapen |
+| gezellig, hartstikke, superhandig, top! | — | streichen, sagen was es tut |
+| drogist | — | apotheek |
+| fysiotherapeut | kinesist | streichen oder umschreiben |
+| jam | confituur | — |
+| pinnen, pinpas, iDEAL | — | streichen (kein Zahlungsmittel im Bild) |
+| — | zetel, frigo, microgolf, kleedje | bank, koelkast, magnetron, jurk |
+| — | gij, ge | je |
+| Namen/Städte nur NL (Amsterdam, Kees, Sanne) | Namen/Städte nur BE | ein Name aus jedem Land über das Set verteilt (z. B. „Rita, 61, uit Gent" / „Marja, 58, uit Zwolle") |
+
+Kategorie-Vokabular, das in beiden Ländern passt: `apotheek` · `voedingssupplement` ·
+`gratis levering` · `bestellen` · `winkelmandje` · `gewrichten` · `huid`.
+
+#### (D) Übersetzungs-Artefakte — die sichtbarsten Fehler in Bild-Ads
+
+- **Komposita zusammenschreiben:** `gewrichts ondersteuning` → `gewrichtsondersteuning`.
+  Der häufigste Fehler in Bild-Ads. Zusätzlich gilt 1a: nur Komposita, die als Ganzes
+  belegt sind.
+- **Kein englischer Title Case:** `Natuurlijke Ondersteuning Voor Je Gewrichten` ist falsch.
+  Richtig: `Natuurlijke ondersteuning voor je gewrichten` — oder komplett in Großbuchstaben.
+- **Adjektivendung prüfen:** `een natuurlijk supplement` (het-Wort) ✓ ·
+  `een natuurlijke supplement` ✗.
+- **Wörtlich übersetzte Werbefloskeln streichen:** `Ontgrendel de kracht van…`,
+  `Zeg vaarwel tegen…`, `Het geheim dat artsen niet willen dat je weet`.
+- **Zeitangaben explizit:** nicht `binnen 24 uur` (in Flandern = „frühestens nach 24 h"),
+  sondern `Levering in 1 tot 3 werkdagen`.
+- **Englischer Text aus der Quell-Ad** (`DIT BESPAARDE MIJ $900`, `FRESH BREATH`) wird
+  nicht übernommen — Regel 2. Kein `$` in NLBE.
+
+#### (E) Typografie und Zahlen — produktunabhängig
+
+- **Preis:** Der Betrag kommt **immer aus Spalte J** — nur das Format steht hier.
+  Eurozeichen **vor** dem Betrag, Leerzeichen, Dezimal**komma**: `€ 29,95` · `€ 49,00`.
+  Falsch: `29,95 €` · `€29,95` · `€ 29.95` · `€ 24,-`.
+  Ganze Beträge immer mit `,00` — `€ 24,-` ist nur in NL üblich, in Belgien unüblich
+  (Taaladvies), `,00` ist in beiden korrekt.
+- **Prozent ohne Leerzeichen:** `50%` (anders als FRCA/FI!). In der Praxis wird Zahl und
+  `%` zusammengeschrieben (Taaladvies).
+- **Kein Leerzeichen vor `!` `?` `:`** → `Bestel nu!`
+- **Datum:** Monat ausschreiben — `14 oktober` (BE schreibt 14/10, NL 14-10; ausgeschrieben
+  ist in beiden eindeutig).
+- **Akzente:** `één` (betont), `creëert`, `geïrriteerd` — Trema und Akzente sind Pflicht,
+  auch in Großbuchstaben: `ÉÉN`.
+
+#### (F) Claims — Gesundheit / Gewicht (aus dem Master-Doc, NL+BE)
+
+Die belgische Werbeselbstkontrolle JEP stoppt auch Facebook-Ads. Im Bild **verboten**:
+Kilo-, Zentimeter- oder Zeitangaben zum Abnehmen (`4 kg in 30 dagen`, `2 maten kleiner`),
+Vorher/Nachher bei Gewicht und Körperform, Arzt-Empfehlungen, Krankheitsnamen,
+Prozentzahlen aus eigenen „Studien". Steht so etwas in der Quell-Ad: weglassen, nicht
+übersetzen.
+
+#### (G) Bewährte kurze Bausteine
+
+`BESTEL NU` · `GRATIS LEVERING` · `50% KORTING` · `ACTIE` · `OP VOORRAAD` ·
+`30 DAGEN RETOURRECHT` · `BEPERKTE VOORRAAD` · `ALLEEN VANDAAG`
+
+#### (H) Neue Produktkategorie
+
+Wie 4.1 (G): Kategorie-Wörter vor dem Schreiben gegen (A) prüfen, gefundene Länder-Paare
+als neue Zeile in (C) nachtragen.
+
+### 4.4 ZA — Südafrikanisches Englisch
+
+Angelegt 2026-10-14. Grundlage: GCIS Editorial Style Guide (Regierung Südafrika),
+Oxford University Press Southern Africa (SA-Wortbedeutungen), Preis-Schreibweise
+gemessen am 2026-10-14 auf clicks.co.za und dischem.co.za, Ton-Entscheidung von
+Jeannine am 2026-10-14.
+
+Ziel: Englisch, wie es in Südafrika geschrieben wird. **Nicht** US-Englisch. Der Fehler
+ist unsichtbar wie bei FRCA — US-Englisch ist gültiges Englisch —, deshalb gilt 4a
+(Freigabe) auch hier.
+
+**Ton:** wie in der Quell-Ad (Jeannine, 2026-10-14). Lokalisiert werden Rechtschreibung,
+Wörter, Einheiten, Währung und Format — nicht der Stil. Ausnahme: Kein südafrikanischer
+Slang (`lekker`, `howzit`, `eish`, `jol`), der nicht inhaltlich gebraucht wird — eingebauter
+Slang wirkt in einer Shop-Ad aufgesetzt.
+
+#### (A) Der Test — gilt für jedes Wort
+
+> Würde ein südafrikanischer Shop (Clicks, Dis-Chem, Takealot) dieses Wort, diese
+> Schreibweise, diese Einheit genau so verwenden?
+
+#### (B) Rechtschreibung: britisch, `-ise` — nie amerikanisch
+
+Laut GCIS Editorial Style Guide: britische Schreibweise, `-ise` statt `-ize`.
+
+| verboten (US) | erforderlich (ZA) |
+|---|---|
+| color, favorite, flavor, odor, behavior | colour, favourite, flavour, odour, behaviour |
+| center, liter, meter | centre, litre, metre |
+| organize, realize, minimize, optimize | organise, realise, minimise, optimise |
+| moisturizer, moisturize | moisturiser, moisturise |
+| analyze, paralyze | analyse, paralyse |
+| gray | grey |
+| program (außer Computer) | programme |
+
+#### (C) Wörter und Einheiten
+
+| US / UK | ZA |
+|---|---|
+| free shipping | FREE DELIVERY |
+| shipping | delivery |
+| cell phone, mobile phone | cellphone |
+| drugstore | pharmacy |
+| zip code | postal code |
+| vacation | holiday |
+| fall (Jahreszeit) | autumn |
+| lbs, pounds, oz, inches, feet, °F | kg, g, ml, cm, m, °C |
+
+**Wörter mit anderer Bedeutung in Südafrika — nicht im US-Sinn verwenden:**
+`robot` = Ampel · `packet` = Plastiktüte · `just now` = gleich/später · `bond` = Hypothek ·
+`café` = Kiosk/Eckladen (Oxford SA).
+
+**Jahreszeiten:** Südhalbkugel. Oktober–März ist Sommer. `SUMMER SALE` im Juli ist
+falsch; saisonale Aussagen aus einer europäischen/US-Quell-Ad nicht übernehmen.
+
+#### (D) Typografie und Zahlen
+
+- **Preis:** Der Betrag kommt **immer aus Spalte J** — nur das Format steht hier.
+  `R` direkt vor dem Betrag, **kein Leerzeichen**, Dezimal**punkt**: `R299.99` · `R499`.
+  Falsch: `R 299,99` · `ZAR 299` · `299 R` · `$29.99`.
+  Begründung: Die Regierung schreibt offiziell `R300,45` (Komma), die großen Händler
+  aber Punkt — gemessen am 2026-10-14: Clicks `R299.99`, Dis-Chem `R 249.99`. Für
+  Shop-Ads gilt, was die Käuferin im Shop sieht: Punkt. Kein Leerzeichen nach `R`
+  (GCIS: „R500"). Kein Tausendertrenner bei Beträgen unter R10 000.
+- **Prozent ohne Leerzeichen:** `50%` (GCIS).
+- **Datum:** `14 October` / `14 October 2026` — nie `October 14`.
+- **Kein Leerzeichen vor `!` `?` `:`**.
+
+#### (E) Bewährte kurze Bausteine
+
+`ORDER NOW` · `FREE DELIVERY` · `SAVE 50%` · `LIMITED STOCK` · `TODAY ONLY` ·
+`30-DAY MONEY-BACK GUARANTEE` · `3 FOR 2`
+
+#### (F) Offene Lücke
+
+Südafrikanische Werberegeln für Gesundheits-Claims (Advertising Regulatory Board,
+SAHPRA) sind **noch nicht recherchiert**. Bis dahin gilt für ZA dieselbe Vorsicht wie
+4.3 (F): keine Kilo-/Zeitangaben zum Abnehmen, keine Krankheitsnamen, keine
+Arzt-Empfehlungen im Bild.
+
 ---
 
 ## 4a. FREIGABE VOR DEM RENDERN — blockierend
@@ -277,7 +462,9 @@ Frankreich-Satz bestand jede bisherige Kontrolle.
 Der Unterschied zu FI ist genau hier: finnischer Text ist erkennbar finnisch oder gar
 nicht. Frankreich-Französisch dagegen **ist** gültiges Französisch — der Fehler ist
 unsichtbar, solange niemand gezielt danach sucht. Deshalb braucht FRCA eine eigene
-Freigabe, FI nicht.
+Freigabe, FI nicht. **Dasselbe gilt für NLBE und ZA:** Holland- oder Flandern-Niederländisch
+ist gültiges Niederländisch, US-Englisch ist gültiges Englisch — beide brauchen die
+Freigabe (2) genauso wie FRCA.
 
 **Vor dem ERSTEN `generate_image`-Call einer Ad sind beide Schritte Pflicht:**
 
@@ -288,7 +475,7 @@ python3 scripts/check_locked_string.py <MARKET_CODE> <pfad_zur_locked_strings.md
 ```
 
 Exit-Code 1 = **nicht rendern.** LOCKED STRING korrigieren, erneut laufen lassen.
-Erst bei Exit 0 darf gerendert werden. Das Skript prüft mechanisch:
+Erst bei Exit 0 darf gerendert werden. Das Skript prüft mechanisch (je nach Markt):
 Leerzeichen vor `!` `?` `;` · fehlendes Leerzeichen vor `:` `%` · `vous/votre/vos` ·
 2.-Person-Plural-Verbformen · Wörter aus den Verbotslisten in Abschnitt 4 ·
 fehlende Akzente in Großbuchstaben · falsches Preisformat · Textelemente über 6 Wörter.
@@ -300,6 +487,13 @@ Das Skript kann Register und Idiomatik **nicht** prüfen. Deshalb zusätzlich, i
 
 ```
 FREIGABE 4.1(A): "<Textelement>" — existiert im Québec-Französisch eigenständig? JA, weil <Begründung in einem Halbsatz>
+```
+
+Für NLBE und ZA mit dem Test ihres eigenen Abschnitts:
+
+```
+FREIGABE 4.3(A): "<Textelement>" — in NL UND Flandern neutral, Anrede je? JA, weil <Begründung in einem Halbsatz>
+FREIGABE 4.4(A): "<Textelement>" — so in einem südafrikanischen Shop, britische Schreibweise? JA, weil <Begründung in einem Halbsatz>
 ```
 
 **Fehlt dieser Block in der locked_strings.md, ist die Ad nicht freigegeben und darf nicht
@@ -329,9 +523,13 @@ Ein Hinweis im Prompt ist **kein** Nachweis. Nur die Transkription zählt.
 
 ## 6. Neue Märkte
 
-Bei jedem weiteren Markt mit eigener Landesvariante (NL/BE, UK/US, DE/AT/CH …) vor dem
+Bei jedem weiteren Markt mit eigener Landesvariante (SE, UK/US, DE/AT/CH …) vor dem
 ersten Lauf einen eigenen Abschnitt 4.x mit Anrede, Verbots-/Pflichtliste und
 Zahlenformat anlegen. Ohne diesen Abschnitt wird für den Markt nicht generiert.
+Zusätzlich braucht der Markt eine Prüffunktion in `scripts/check_locked_string.py`,
+einen Eintrag unter `language_rules` und einen Drive-Ordner unter
+`drive.translated_ads_subfolders` in `config/automation.config.json`.
+Bereits angelegt: 4.1 FRCA, 4.2 FI, 4.3 NLBE, 4.4 ZA.
 
 Abschnitt 1a (echte Wörter) gilt dabei automatisch mit — sie muss nicht pro Markt neu
 festgelegt werden, sondern ist Teil der Grundregeln dieser Datei für jede Sprache.

@@ -249,6 +249,8 @@ Für **jede einzelne Ad** aus Schritt 4 (nicht gebündelt):
 
    Zusätzlich in die `State/<product>_<market>_locked_strings.md`, eine Zeile **pro Textelement**:
    `FREIGABE 4.1(A): "<Text>" — eigenständig im Québec-Französisch? JA, weil <Grund>`
+   Für NLBE `FREIGABE 4.3(A): …` und für ZA `FREIGABE 4.4(A): …` — Wortlaut in
+   `docs/language-rules.md` Abschnitt 4a.
    Fehlt der Block, ist die Ad nicht freigegeben. „Alles geprüft" zählt nicht.
 
    Grund für diesen Schritt: die Sprach-QA in Schritt 8.5 läuft **nach** dem Rendern
@@ -528,8 +530,8 @@ Sprachregeln, Drive-Zielbaum und den Ländercode im Dateinamen.
 
 **Blockierend:** Hat dieser Markt in `docs/language-rules.md` keinen eigenen
 Abschnitt 4.x, wird für die Zeile **nicht generiert** (Regel aus Abschnitt 6 dort).
-Aktuell existieren nur **4.1 FRCA** und **4.2 FI**. Zeilen mit `NLBE`, `SE` oder `UK` in
-Spalte A werden deshalb übersprungen und im Abschlussbericht mit dem Grund „Markt-
+Aktuell existieren **4.1 FRCA**, **4.2 FI**, **4.3 NLBE** und **4.4 ZA**. Zeilen mit
+`SE` oder `UK` in Spalte A werden deshalb übersprungen und im Abschlussbericht mit dem Grund „Markt-
 Abschnitt in language-rules.md fehlt" ausgewiesen.
 
 ## A.3 Preis nachschlagen
