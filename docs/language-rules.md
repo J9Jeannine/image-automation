@@ -427,7 +427,9 @@ falsch; saisonale Aussagen aus einer europäischen/US-Quell-Ad nicht übernehmen
 #### (D) Typografie und Zahlen
 
 - **Preis:** Der Betrag kommt **immer aus Spalte J** — nur das Format steht hier.
-  `R` direkt vor dem Betrag, **kein Leerzeichen**, Dezimal**punkt**: `R299.99` · `R499`.
+  `R` direkt vor dem Betrag, **kein Leerzeichen**, Dezimal**punkt**: `R299.99`.
+  Spalte J im Tab ZA steht ohne Währungszeichen mit Punkt (`599.00`) — so übernehmen und
+  nur `R` davorsetzen: `599.00` → `R599.00`.
   Falsch: `R 299,99` · `ZAR 299` · `299 R` · `$29.99`.
   Begründung: Die Regierung schreibt offiziell `R300,45` (Komma), die großen Händler
   aber Punkt — gemessen am 2026-10-14: Clicks `R299.99`, Dis-Chem `R 249.99`. Für

@@ -76,7 +76,7 @@ laut `config/automation.config.json` → `cadence` (Default: täglich).
 Datenquelle ist **kein** freies Ad-Library-Suchergebnis, sondern das bestehende
 `config/automation.config.json` → `sheet.id` ("Funnel Sheet").
 
-1. Für jeden Tab in `sheet.tabs` (`FI`, `FRCA`):
+1. Für jeden Tab in `sheet.tabs` (`FI`, `FRCA`, `ZA`):
    a. `Google_Drive.read_file_content` mit `includeComments: true` auf `sheet.id`
       aufrufen (bzw. den entsprechenden Tab, falls das Tool Tab-Auswahl unterstützt).
    b. Zeilen ab `tabs.<TAB>.start_row` bis zur letzten befüllten Zeile durchgehen.

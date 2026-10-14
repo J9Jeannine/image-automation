@@ -9,7 +9,7 @@
       "ad_library_links_comment_column": "M",
       "price_column": "J",
       "note": "Spaltenbelegung verifiziert an BEIDEN Tabs (FRCA per Drive-Kommentar-API, FI per XLSX-Export/openpyxl, da das Drive-Tool nur den FRCA-Tab zurueckgab): D = 'Competitor URL / Content', G = 'new PR NAME' = unser Produktname, J = 'Bundle/deal offer' = Preisstufen (EUR fuer FI, CAD fuer FRCA), M = 'Competitor Ad Link/Drive Link' -- die eigentlichen Meta-Ad-Library-Links haengen als Kommentar-Thread an der M-Zelle, inkl. Antworten anderer Teammitglieder. FI-Tab bestaetigt strukturell identisch zu FRCA (getestet an Zeile 52: variclex -> vanix).",
-      "gilt_nur_fuer": "ACHTUNG: Diese Spaltenbelegung gilt AUSSCHLIESSLICH fuer die Markt-Tabs FI und FRCA (siehe sheet.tabs). Der Tab 'Winning Products' hat voellig andere Spaltenbuchstaben -- siehe sheet.winning_products_tab. Die beiden NIEMALS vermischen.",
+      "gilt_nur_fuer": "ACHTUNG: Diese Spaltenbelegung gilt AUSSCHLIESSLICH fuer die Markt-Tabs FI, FRCA und ZA (siehe sheet.tabs). ZA am 2026-10-14 per Screenshot von Jeannine bestaetigt: D = Competitor URL, G = new PR NAME, J = Bundle/deal offer in ZAR (z. B. 599.00), M = Competitor Ad Link/Drive Link, erste Produktzeile = 3. Der Tab 'Winning Products' hat voellig andere Spaltenbuchstaben -- siehe sheet.winning_products_tab. Die beiden NIEMALS vermischen.",
       "kein_rueckschreiben": "Die Routine schreibt NICHTS in das Funnel Sheet -- weder Datum noch Bearbeiter, Ordner-Link oder Status. Das uebernimmt ein Trigger im Google-Konto des Nutzers. Fuer die Routine ist das Sheet REIN LESEND (Kommentar-Threads auf M, Produktname aus G, Preis aus J, Competitor-URL aus D). Frueher wurden L/N/O/P per Sheets API geschrieben -- das ist ersatzlos gestrichen, samt dem dafuer benutzten Service-Account und dem Scope .../auth/spreadsheets.",
       "vom_nutzer_trigger_gefuellt": "Nur zur Orientierung, NICHT von der Routine zu beschreiben: L = Lauf-Datum, N = Bearbeiter, O = Ordner-Link, P = Status."
     },
@@ -25,6 +25,12 @@
         "language": "fr-CA",
         "language_name": "Quebec-Franzoesisch (fr-CA), NICHT Frankreich-Franzoesisch",
         "market_code": "FRCA"
+      },
+      "ZA": {
+        "start_row": 3,
+        "language": "en-ZA",
+        "language_name": "Suedafrikanisches Englisch (en-ZA), britische Schreibweise, NICHT US-Englisch",
+        "market_code": "ZA"
       }
     },
     "winning_products_tab": {
@@ -46,7 +52,7 @@
         "launching_comment_column": "N"
       },
       "ad_links_source": "Die Bild-/Video-URLs der zu uebersetzenden Ads haengen als KOMMENTAR-THREAD an der D-Zelle der Zeile (Head-Post + alle Replies), genau wie bei FI/FRCA an der M-Zelle. Der Zellwert von D selbst ist nur ein Ordner-/Textlabel und wird ignoriert. Anker aufloesen: Drive-Kommentar-API liefert nur eine opake workbook-range-ID; die Zuordnung Kommentar-ID -> 'Winning Products!D<Zeile>' steht in der Mapping-Liste am Ende von Google_Drive.read_file_content(fileId=<Sheet>, includeComments=true).",
-      "preis_quelle": "Dieser Tab hat KEINE Preisspalte. Den Preis im Markt-Tab aus Spalte A nachschlagen: im Tab FI bzw. FRCA die Zeile finden, deren Spalte G (new PR NAME) dem Produktnamen aus Spalte C entspricht (alternativ ueber den Code in Spalte B), und deren Spalte J nehmen. Niemals einen Preis aus der Quell-Ad oder aus dieser Config uebernehmen.",
+      "preis_quelle": "Dieser Tab hat KEINE Preisspalte. Den Preis im Markt-Tab aus Spalte A nachschlagen: im Tab FI, FRCA bzw. ZA die Zeile finden, deren Spalte G (new PR NAME) dem Produktnamen aus Spalte C entspricht (alternativ ueber den Code in Spalte B), und deren Spalte J nehmen. Niemals einen Preis aus der Quell-Ad oder aus dieser Config uebernehmen.",
       "set_ordner": {
         "name_pattern": "<Productname> Set <N>",
         "beispiel": "lumifirm Set 2, Nervora Set 2, Pawox Set 2",
@@ -375,7 +381,7 @@
         "lbs/oz/inches/°F": "kg/g/cm/°C",
         "October 14": "14 October"
       },
-      "price_format": "Der BETRAG kommt IMMER aus Spalte J. Nur das FORMAT: 'R' direkt vor dem Betrag, KEIN Leerzeichen, Dezimalpunkt -> 'R299.99', 'R499'. Falsch: 'R 299,99', 'ZAR 299', '$29.99'. Gemessen 2026-10-14: Clicks 'R299.99', Dis-Chem 'R 249.99' (Punkt).",
+      "price_format": "Der BETRAG kommt IMMER aus Spalte J des Tabs ZA (dort ohne Waehrungszeichen mit Punkt, z. B. '599.00'). Nur das FORMAT: 'R' direkt davor, KEIN Leerzeichen, Betrag wie in J -> '599.00' wird 'R599.00'. Falsch: 'R 599,00', 'ZAR 599', '$599'. Gemessen 2026-10-14: Clicks 'R299.99', Dis-Chem 'R 249.99' (Punkt).",
       "percent_format": "50% (ohne Leerzeichen, GCIS)",
       "seasons": "Suedhalbkugel: Oktober-Maerz Sommer. Saisonale Aussagen aus EU/US-Quell-Ads nicht uebernehmen.",
       "safe_building_blocks": [
