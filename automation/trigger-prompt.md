@@ -20,7 +20,8 @@ Führe den image-automation Workflow aus dem Repo `j9jeannine/image-automation`,
    verlangt, aber die zugehörigen Foundation-Dokumente fehlen.
 3. Führe Schritte 1-8 aus `docs/workflow.md` der Reihe nach aus. **In JEDEM Lauf
    ZWEI Quellen prüfen — sie haben verschiedene Spaltenbuchstaben:**
-   - **(a) Markt-Tabs** `FI` (ab Zeile 52) und `FRCA` (ab Zeile 33): neue/geänderte
+   - **(a) Markt-Tabs** `FI` (ab Zeile 52), `FRCA` (ab Zeile 33), `ZA` (ab Zeile 3) und
+     `NL/BE new` (ab Zeile 5, Markt `NLBE`): neue/geänderte
      Kommentar-Threads auf **Spalte M**. Ablauf: `docs/workflow.md` Schritt 2-8.
      State-Schlüssel ohne Präfix (`52`, `87`, …).
    - **(b) Tab `Winning Products`** (ab Zeile 3): neue/geänderte Kommentar-Threads auf
