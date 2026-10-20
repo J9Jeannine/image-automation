@@ -84,6 +84,26 @@ Datenquelle ist **kein** freies Ad-Library-Suchergebnis, sondern das bestehende
       (M) ein Kommentar-Thread? Falls ja: **Head-Post-Inhalt UND alle Replies** als
       Ad-Library-Permalinks sammeln (mehrere Team-Mitglieder posten oft in derselben
       Zelle nacheinander — nichts davon verwerfen).
+1b. **ZWEITE QUELLENART in derselben Spalte M: ein Drive-Ordnername als ZELLWERT.**
+   Die Spalte heisst nicht umsonst „Competitor Ad Link/**Drive Link**". Neben
+   Kommentar-Threads kann in **M als normaler Zellwert** der Name eines bestehenden
+   Tages-/Produktordners stehen, z. B. `Noxera` oder `2026-10-08 - Ocularia`. Dann sind
+   die Quell-Ads die **bereits uebersetzten Bilder** aus
+   `Translated-Ads/<Quellmarkt>/<dieser Ordner>/` — typischerweise ein FI-Set, das in
+   einen anderen Markt weiteruebersetzt wird (FI → ZA usw.).
+   - Diese Zeilen haben **keinen** Kommentar-Thread. Wer nur Kommentare prueft,
+     uebersieht sie komplett. Beobachteter Fehler am 2026-10-20: `ZA!4` (Noxera →
+     Livion™) wurde im Trigger-Lauf uebersehen, weil der Tab ZA ueberhaupt keine
+     Kommentare hat.
+   - Erkennungsregel: Spalte **G** ist gefuellt, Spalte **M** enthaelt einen Text ohne
+     `http`, und **N/O/P sind leer** (= noch nicht verarbeitet). Den Ordner per
+     `Google_Drive.search_files` ueber seinen Namen suchen.
+   - Ablauf danach identisch mit Schritt 5: ein eigener Prompt pro Quell-Ad, LOCKED
+     STRING in der Zielsprache des **Tabs**, Produktname aus **G**, Preis aus **J**.
+     Der Produktname auf Verpackung und Pflaster wird mit uebersetzt.
+   - Fingerprint fuer `processed_comments.json`: der Zellwert von M plus die Liste der
+     Dateinamen im Quellordner.
+   - Vorbild: `ZA!3` (M = `2026-10-08 - Ocularia` → `Translated-Ads/ZA/2026-10-15 - Luminary`).
 2. Gegen `<Projektordner>/<market_code>/State/processed_comments.json` in Drive
    abgleichen: pro Zeile einen Hash/Fingerprint des kompletten Kommentar-Threads
    (Head-Post + alle Reply-Inhalte) speichern. Nur Zeilen mit einem **neuen oder
@@ -366,6 +386,18 @@ Die eigentliche Higgsfield-Generierung passiert bereits in Schritt 5 (ein Call p
    `mimeType: application/vnd.google-apps.folder`, `parentId` = `drive.translated_ads_subfolders.<market_code>`
    aus der Config). Der Produktname MUSS im Ordnernamen stehen (nicht nur das Datum), damit
    mehrere Produkte am selben Tag unterscheidbar sind.
+
+   **Der Produktname im Ordnernamen muss ZEICHENGLEICH mit Spalte G sein — inklusive
+   ® und ™.** Das ist keine Kosmetik: `apps-script/Code.gs` → `fillFunnelSheet()`
+   vergleicht den Produktteil des Ordnernamens per `toLowerCase()` exakt mit Spalte G.
+   Weicht auch nur ein Zeichen ab, findet das Script die Zeile nicht und `L`/`N`/`O`/`P`
+   bleiben leer — der Lauf sieht trotzdem erfolgreich aus, weil alle Bilder hochgeladen
+   sind. Beobachteter Fehler am 2026-10-20: Spalte G war `Livion™`, der Ordner hiess
+   `2026-10-20 - Livion`, und `{"action":"fill"}` antwortete `ok: nichts Neues`, obwohl
+   acht Dateien im Ordner lagen. Erst nach dem Umbenennen auf `2026-10-20 - Livion™`
+   kam `ok: ZA!4 Livion™`.
+   **Die Dateinamen in dem Ordner bleiben davon unberuehrt** — dort gilt weiter
+   `<N>_<Productname>_<countrycode>` ohne ®/™ (z. B. `1_Livion_ZA`).
 
 3. **Bild-Upload — ZWINGEND diese Methode, kein Markdown-Links-Workaround.**
    Der Upload ist **ein einziger `curl`-Call pro Bild** gegen den Apps-Script-Endpunkt im
