@@ -1,0 +1,3 @@
+# Python-Bytecode, den die Guard-Skripte beim Import erzeugen
+__pycache__/
+*.pyc
