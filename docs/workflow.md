@@ -239,6 +239,47 @@ Session einmal nicht geladen ist.
 
 Für **jede einzelne Ad** aus Schritt 4 (nicht gebündelt):
 
+> **BLOCKIEREND — DIE VISUALS BLEIBEN UNVERÄNDERT. Nur der Text wird getauscht.**
+> Vorgabe von Jeannine am 2026-10-20. Eine Übersetzung ist ein **Text-Austausch im
+> bestehenden Bild**, kein Nachbauen der Ad. Menschen, Gesichter, Posen, Kleidung,
+> Fotos, Illustrationen, Ausschnitt, Farben, Grafikelemente (Kreise, Balken, Buttons,
+> Icons) und Schriftarten bleiben **identisch** mit der Quell-Ad. Geändert werden
+> ausschließlich die Buchstaben.
+>
+> **Das hängt am Prompt-Wortlaut.** Ein Prompt, der mit *„Copy the layout of the
+> reference image: a woman …"* beginnt, lässt das Modell die Szene **neu erfinden** —
+> andere Frau, anderes Foto, andere Komposition. Genau das ist am 2026-10-20 bei 15 Ads
+> passiert und musste komplett neu gemacht werden. Der Prompt muss stattdessen so
+> aufgebaut sein:
+>
+> ```
+> Edit the attached image. This is a TEXT-ONLY edit.
+>
+> Keep the attached image exactly as it is: the same photographs, the same people,
+> their faces, hair, clothing, poses and expressions, the same crop, the same graphic
+> elements and the same typefaces, sizes, colours and positions of every line.
+> Do NOT redraw, replace or re-pose any person. Do NOT change, move or recompose any
+> photo or graphic element. Every pixel that is not lettering stays as it is.
+>
+> Change ONLY the words. Replace the existing <Quellsprache> lettering with exactly
+> these <Zielsprache> strings, each in the place of the line it replaces:
+> <LOCKED STRING, Zeile für Zeile mit ihrer Rolle>
+> ```
+>
+> Danach der Pflichtblock aus Punkt 2. Zusätzlich im Prompt: *„Keep every word whole —
+> never split a word across a line break or insert a space inside a word"* (am
+> 2026-10-20 kam sonst „aur ingossa" statt „auringossa" heraus) und *„EVERY line of
+> <Quellsprache> must be replaced — no <Quellsprache> word may remain anywhere,
+> including small footnotes"* (sonst blieb „*Basierend auf klinischen Studien" stehen).
+>
+> **Kontrolle:** Quell-Ad und Render nebeneinanderlegen (`convert a.png b.png +append`)
+> und vergleichen. Unterscheidet sich etwas anderes als die Buchstaben — anderes
+> Gesicht, anderer Bildausschnitt, andere Pose —, ist der Render abzulehnen.
+>
+> **Das Produktbild aus Schritt 3 wird dabei NICHT als zweite Referenz in die Ad
+> gelegt.** Die Flasche/Packung steckt schon in der Quell-Ad; ihr Aufdruck wird im
+> selben Text-Austausch mit umbenannt. Das Produktbild ist eine eigene Lieferdatei.
+
 > **VORGESCHALTET UND BLOCKIEREND — Sprachregeln:** `docs/language-rules.md` ist vor
 > diesem Schritt zu lesen, in **jedem** Lauf. Kein Higgsfield-Call ohne LOCKED STRING.
 > Kurzfassung: der komplette sichtbare Bildtext wird **vorher** in der Zielsprache
@@ -439,6 +480,18 @@ Die eigentliche Higgsfield-Generierung passiert bereits in Schritt 5 (ein Call p
    - Das alte Schema `<product>_<market>_ad<N>.jpg` ist **ungültig** und darf nicht
      mehr verwendet werden.
    - Ausnahme Produktbild: bleibt `<product_name>_<market_code>_produktbild.jpg`.
+
+   **Der Endpunkt ÜBERSCHREIBT NICHT.** `folder.createFile(...)` legt bei jedem Call eine
+   **neue** Datei an, auch wenn im Ordner schon eine mit demselben Namen liegt. Wird ein
+   Bild nach einer QA-Ablehnung oder einer Korrektur erneut hochgeladen, stehen danach
+   **zwei** Dateien gleichen Namens im Lieferordner, und im Drive-Raster sieht Jeannine
+   dasselbe Motiv doppelt. Deshalb: **vor** dem Ersatz-Upload die alte Datei-ID merken und
+   **nach** erfolgreichem Upload und bestandener QA die alte Datei in den Papierkorb
+   verschieben (`Google_Drive.trash_file`). Reihenfolge nie umdrehen — erst der neue
+   Upload, dann das Wegräumen, damit nie eine Lücke entsteht.
+   Beobachteter Fehler am 2026-10-20: nach dem Umstellen auf reine Text-Austausche lagen
+   `1_Tanmax_FI` bis `4_Tanmax_FI`, `3_Pawino_FI`, `4_Pawino_FI` und sieben
+   `*_Livion_ZA` jeweils doppelt im Ordner.
 
 4. **Verifizieren:** Der Endpunkt antwortet **auch im Fehlerfall mit HTTP 200** — ein Fehler
    kommt als HTML-Seite mit `Exception: …` zurück (z. B. `Invalid file or folder ID: …`).
