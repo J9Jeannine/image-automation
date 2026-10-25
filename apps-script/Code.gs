@@ -1,7 +1,8 @@
 // Apps-Script-Web-App in Jeannines Google-Konto ("Unbenanntes Projekt").
 // Diese Datei ist die Quelle der Wahrheit fuer den Code im Script-Editor.
 // 1) doPost: laedt ein Bild per URL in einen Drive-Ordner (Upload der Routine).
-// 2) Nach JEDEM Upload: fillFunnelSheet() traegt L/N/O/P im Funnel Sheet ein.
+// 2) Nach JEDEM Upload: fillFunnelSheet() traegt L/N/O/P in den Markt-Tabs und
+//    G/H/I im Tab 'Winning Products' ein.
 // 3) Zusaetzlich stuendlicher Zeit-Trigger als Netz (einmalig installTrigger() ausfuehren).
 
 const SHEET_ID = '1SkD7jrC-othtbwTYyz1VCK1HPIkEKHxc_hSAvRp2iL8';
@@ -80,6 +81,77 @@ function fillFunnelSheet() {
         if (o) written.push(tab + '!' + r + ' ' + name);
       }
     });
+
+    // --- Tab "Winning Products" -------------------------------------------
+    // Eigene Spalten (NICHT die der Markt-Tabs): C = Produkt, G = Bearbeiter,
+    // H = Link auf den Set-Ordner, I = Lauf-Datum. Erste Datenzeile = 3.
+    // Die Set-Ordner liegen eine Ebene tiefer als die Tagesordner:
+    //   Translated-Ads/<Markt>/<YYYY-MM-DD> - <Produkt>/<Produkt> Set <N>
+    // Spalte A (Markt) wird bewusst NICHT gebraucht: gesucht wird ueber den
+    // Produktnamen in allen Markt-Baeumen. Damit funktioniert die Zeile auch,
+    // wenn A noch leer ist.
+    const wp = ss.getSheetByName('Winning Products');
+    if (wp && wp.getLastRow() >= 3) {
+      const wpLast = wp.getLastRow();
+      const wpRows = wp.getRange('A3:I' + wpLast).getValues();
+
+      // Schon verlinkte Set-Ordner einsammeln, damit kein Ordner zweimal
+      // in verschiedenen Zeilen landet.
+      const used = {};
+      const wpH = wp.getRange('H3:H' + wpLast).getFormulas();
+      for (let i = 0; i < wpH.length; i++) {
+        const m = String(wpH[i][0] || '').match(/folders\/([-\w]+)/);
+        if (m) used[m[1]] = true;
+      }
+
+      // Alle Set-Ordner je Produkt aus allen Markt-Baeumen sammeln.
+      const sets = {};
+      Object.keys(MARKETS).forEach(function (tab) {
+        const days = DriveApp.getFolderById(MARKETS[tab]).getFolders();
+        while (days.hasNext()) {
+          const day = days.next();
+          const dm = day.getName().match(/^(\d{4})-(\d{2})-(\d{2})\s*-\s*(.+)$/);
+          if (!dm) continue;
+          const prod = dm[4].trim().toLowerCase();
+          const subs = day.getFolders();
+          while (subs.hasNext()) {
+            const s = subs.next();
+            const sm = s.getName().match(/^(.+?)\s+Set\s+(\d+)$/i);
+            if (!sm) continue;
+            (sets[prod] = sets[prod] || []).push({
+              id: s.getId(),
+              n: Number(sm[2]),
+              date: new Date(Number(dm[1]), Number(dm[2]) - 1, Number(dm[3]))
+            });
+          }
+        }
+      });
+      Object.keys(sets).forEach(function (k) {
+        sets[k].sort(function (a, b) { return a.n - b.n; });
+      });
+
+      for (let i = 0; i < wpRows.length; i++) {
+        const prod = String(wpRows[i][2] || '').trim(); // Spalte C
+        if (!prod) continue;
+        const cand = sets[prod.toLowerCase()];
+        if (!cand) continue;
+        let pick = null;
+        for (let j = 0; j < cand.length; j++) {
+          if (!used[cand[j].id]) { pick = cand[j]; break; }
+        }
+        if (!pick) continue;
+        const r = i + 3;
+        const ok = setIfEmpty_(wp, 'H' + r,
+          '=HYPERLINK("https://drive.google.com/drive/folders/' + pick.id +
+          '";"' + prod + ' Set ' + pick.n + '")', true);
+        if (!ok) continue;
+        used[pick.id] = true;
+        setIfEmpty_(wp, 'G' + r, 'claude', false);
+        setIfEmpty_(wp, 'I' + r, pick.date, false);
+        written.push('Winning Products!' + r + ' ' + prod + ' Set ' + pick.n);
+      }
+    }
+
     return written.length ? 'ok: ' + written.join(', ') : 'ok: nichts Neues';
   } finally {
     lock.releaseLock();
