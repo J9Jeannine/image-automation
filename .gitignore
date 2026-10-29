@@ -1,0 +1,5 @@
+# Python-Bytecode der Guard-Skripte in scripts/.
+# Entsteht bei jedem Lauf, sobald check_image_size.py importiert statt
+# als Programm aufgerufen wird (Messung der Quell-Ad-Maße in Schritt 4/7.1a).
+__pycache__/
+*.py[cod]
