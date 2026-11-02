@@ -34,6 +34,10 @@ function doPost(e) {
   });
 }
 
+// Bearbeiter-Name fuer Spalte N. Vorgabe von Jeannine am 2026-11-02:
+// in die Zeile gehoert IMMER "Jeannine", nie "claude".
+const BEARBEITER = 'Jeannine';
+
 function setIfEmpty_(sh, a1, value, isFormula) {
   const cell = sh.getRange(a1);
   if (String(cell.getValue() || '').trim() || cell.getFormula()) return false;
@@ -75,7 +79,7 @@ function fillFunnelSheet() {
         const o = setIfEmpty_(sh, 'O' + r,
           '=HYPERLINK("https://drive.google.com/drive/folders/' + hit.id + '";"' + name + '")', true);
         setIfEmpty_(sh, 'L' + r, hit.date, false);
-        setIfEmpty_(sh, 'N' + r, 'claude', false);
+        setIfEmpty_(sh, 'N' + r, BEARBEITER, false);
         setIfEmpty_(sh, 'P' + r, 'in progress', false);
         if (o) written.push(tab + '!' + r + ' ' + name);
       }
