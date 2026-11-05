@@ -120,6 +120,16 @@ Datenquelle ist **kein** freies Ad-Library-Suchergebnis, sondern das bestehende
    - `<Projektordner>/<market_code>/State/flagged_for_regeneration.json` lesen
      (existiert die Datei nicht, als `{}` behandeln). Schlüssel:
      `<market_code>!<Zeilennummer>!ad<N>` (Produktbild: `...!produktbild`).
+   - **Diese Datei wird im State-Ordner JEDES Marktes aus `sheet.tabs` einzeln
+     gelesen — FI, FRCA, NLBE und ZA —, auch für Märkte, die in diesem Lauf gar
+     keinen neuen oder geänderten Kommentar-Thread haben.** Ein geflaggtes Bild ist
+     unabhängig davon nachzuholen, ob die Zeile neu ist. Dass die Datei für einen
+     Markt fehlt, muss pro Markt geprüft und nicht angenommen werden.
+     Grund: die Läufe vom 2026-10-27 bis 2026-11-04 haben nur FI und ZA geprüft und
+     protokolliert, für FRCA und NLBE existiere keine Datei. Die NLBE-Datei existierte
+     aber und enthielt seit dem 2026-10-14 den offenen Eintrag
+     `NLBEnew-NLBE!4!ad10` (`10_Dentalis_NLBE`). Das Bild fehlte dadurch drei Wochen
+     im Lieferordner, obwohl jeder Lauf „nichts Neues" gemeldet hat.
    - Existiert `<N>_<Productname>_<countrycode>` (bzw. `_produktbild.jpg`)
      bereits im Zielordner **und** ihr Schlüssel steht **nicht** in
      `flagged_for_regeneration.json`: **nicht neu generieren.** Datei unangetastet
