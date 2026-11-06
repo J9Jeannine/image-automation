@@ -75,7 +75,7 @@ function fillFunnelSheet() {
         const o = setIfEmpty_(sh, 'O' + r,
           '=HYPERLINK("https://drive.google.com/drive/folders/' + hit.id + '";"' + name + '")', true);
         setIfEmpty_(sh, 'L' + r, hit.date, false);
-        setIfEmpty_(sh, 'N' + r, 'claude', false);
+        setIfEmpty_(sh, 'N' + r, 'Jeannine', false);
         setIfEmpty_(sh, 'P' + r, 'in progress', false);
         if (o) written.push(tab + '!' + r + ' ' + name);
       }
