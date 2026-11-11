@@ -4,6 +4,9 @@
 // 2) Nach JEDEM Upload: fillFunnelSheet() traegt L/N/O/P im Funnel Sheet ein.
 // 3) Zusaetzlich stuendlicher Zeit-Trigger als Netz (einmalig installTrigger() ausfuehren).
 
+// Name, der in Spalte N (Bearbeiter) eingetragen wird. Vorgabe von Jeannine am 2026-11-11:
+// NICHT mehr 'claude', sondern 'Jeannine'.
+const BEARBEITER = 'Jeannine';
 const SHEET_ID = '1SkD7jrC-othtbwTYyz1VCK1HPIkEKHxc_hSAvRp2iL8';
 const MARKETS = {
   FI:   '1Ey4aVRrpzrzolETnzKVxVCZQGZjm0P5K', // Translated-Ads/FI
@@ -75,7 +78,7 @@ function fillFunnelSheet() {
         const o = setIfEmpty_(sh, 'O' + r,
           '=HYPERLINK("https://drive.google.com/drive/folders/' + hit.id + '";"' + name + '")', true);
         setIfEmpty_(sh, 'L' + r, hit.date, false);
-        setIfEmpty_(sh, 'N' + r, 'claude', false);
+        setIfEmpty_(sh, 'N' + r, BEARBEITER, false);
         setIfEmpty_(sh, 'P' + r, 'in progress', false);
         if (o) written.push(tab + '!' + r + ' ' + name);
       }
