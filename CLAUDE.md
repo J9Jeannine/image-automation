@@ -22,6 +22,15 @@ Die drei Kernsätze:
 3. **Kein Wort im gerenderten Bild darf fehlen im LOCKED STRING.** Erscheint im Render
    irgendein Wort, das nicht im LOCKED STRING steht — auch auf Verpackung, Etikett,
    Preisschild, Hintergrundschild — ist das Bild abgelehnt und wird neu generiert.
+3a. **Nichts weglassen, Visual nicht verändern.** Vorgabe von Jeannine am 2026-11-12.
+   Jedes sichtbare Textelement der Quell-Ad erscheint übersetzt im Zielbild — auch
+   Arzt-Zuschreibungen, Befundnamen, Prozentzahlen und Zeitangaben. Der Wortlaut wird
+   übersetzt, nicht gekürzt oder umformuliert. Das Visual bleibt identisch: gleiche
+   Elemente, gleiche Badges, gleiche Anordnung. Hält die Routine eine Stelle für heikel,
+   wird sie trotzdem geliefert und im Abschlussbericht benannt — die Entscheidung trifft
+   Jeannine. Vollständige Regel: `docs/language-rules.md` Abschnitt 2a; sie sticht die
+   6-Wörter-Empfehlung in Abschnitt 3 und die Claim-Vorsicht in 4.4 (F).
+
 4. **Jedes Wort im LOCKED STRING selbst muss ein echtes, existierendes Wort der
    Zielsprache sein — für JEDE Sprache, nicht nur FRCA/FI.** Keine erfundenen oder nur
    plausibel klingenden Wörter, keine mechanisch zusammengebauten Komposita, keine

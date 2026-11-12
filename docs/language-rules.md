@@ -87,11 +87,38 @@ Die Quell-Anzeige ist **ausschließlich** Referenz für Layout, Bildaufbau, Farb
 Seitenverhältnis und Produktdarstellung. Kein Wort daraus geht in den Prompt — auch dann
 nicht, wenn es schon "französisch" aussieht.
 
+## 2a. Vollständigkeit — nichts weglassen, Visual nicht verändern
+
+Vorgabe von Jeannine am 2026-11-12, nachdem ein Lauf bei ZA Textstellen weggelassen und
+ein Badge entfernt hatte. **Diese Regel sticht jede Vorsichtsregel in Abschnitt 4,
+insbesondere 4.4 (F).**
+
+Eine Übersetzung ist eine Übersetzung, keine Bearbeitung. Verbindlich:
+
+1. **Jedes sichtbare Textelement der Quell-Ad erscheint auch im Zielbild** — Headline,
+   Badge, Kopfzeile, Label an einer Illustration, Fußzeile, Kleingedrucktes. Nichts wird
+   stillschweigend gestrichen, auch nicht, wenn es inhaltlich heikel wirkt (Arzt- oder
+   Fachzuschreibungen, Befund- und Krankheitsnamen, Prozentzahlen, Zeitangaben).
+2. **Der Wortlaut wird übersetzt, nicht umformuliert und nicht gekürzt.** Steht in der
+   Quelle ein ganzer Satz, steht im Zielbild derselbe Satz — nicht seine Kurzfassung.
+3. **Das Visual bleibt unverändert.** Gleiche Bildelemente, gleiche Anzahl Badges und
+   Bänder, gleiche Anordnung, gleiche Schriftgrößenhierarchie, gleiches Seitenverhältnis.
+   Kein Element entfernen, keins hinzufügen, keine Fläche leer lassen, die in der Quelle
+   gefüllt ist.
+4. **Hält die Routine eine Stelle für rechtlich oder inhaltlich problematisch:** trotzdem
+   vollständig übersetzen, liefern und die Stelle im Abschlussbericht benennen. Die
+   Entscheidung, etwas wegzulassen, trifft Jeannine, nicht die Routine.
+
 ## 3. Textlänge
 
-Maximal **6 Wörter pro Textelement** im Bild. Lange Strings sind genau die Stelle, an der
+Richtwert **6 Wörter pro Textelement** im Bild. Lange Strings sind genau die Stelle, an der
 das Modell anfängt, Buchstaben und Wörter zu erfinden. Längere Claims gehören in die
 Ad-Copy (Primary Text / Headline im Anzeigentext), nicht ins Bild.
+
+**Der Richtwert bricht nie Abschnitt 2a.** Steht in der Quell-Ad ein längerer Satz, wird er
+vollständig übersetzt und vollständig gesetzt — notfalls kleiner, auf mehr Zeilen. Gekürzt
+wird nur dort, wo die Quelle selbst kurz ist. Erfindet das Modell bei einem langen String
+Wörter, ist das ein Grund für einen neuen Render, nicht für eine Kürzung des Textes.
 
 ---
 
@@ -446,12 +473,28 @@ falsch; saisonale Aussagen aus einer europäischen/US-Quell-Ad nicht übernehmen
 `ORDER NOW` · `FREE DELIVERY` · `SAVE 50%` · `LIMITED STOCK` · `TODAY ONLY` ·
 `30-DAY MONEY-BACK GUARANTEE` · `3 FOR 2`
 
-#### (F) Offene Lücke
+#### (F) Claims — vollständig übersetzen
 
-Südafrikanische Werberegeln für Gesundheits-Claims (Advertising Regulatory Board,
-SAHPRA) sind **noch nicht recherchiert**. Bis dahin gilt für ZA dieselbe Vorsicht wie
-4.3 (F): keine Kilo-/Zeitangaben zum Abnehmen, keine Krankheitsnamen, keine
-Arzt-Empfehlungen im Bild.
+**Geändert am 2026-11-12 auf ausdrückliche Vorgabe von Jeannine.** Die frühere Fassung
+verlangte, Krankheitsnamen, Arzt-Empfehlungen und Prozentzahlen im Bild wegzulassen. Das
+hat am 2026-11-12 bei Urinova und Magneora dazu geführt, dass Badges, Kopfzeilen und eine
+Fußzeile aus den Ads verschwunden sind — und musste komplett neu gerendert werden.
+
+Für ZA gilt jetzt **Abschnitt 2a**: steht es in der Quell-Ad, steht es übersetzt im
+Zielbild. Das schließt ausdrücklich ein:
+
+- Arzt-, Urologen- und Fachzuschreibungen (`A urologist confirms:`, `Doctors were surprised:`)
+- Namen von Befunden und Beschwerden (`Prostatitis`, `an enlarged prostate`)
+- Prozentzahlen und Statistikzeilen (`50% of men over 50 …`)
+- Zeitangaben zur Wirkung (`in five days`, `in 14 days`)
+
+Südafrikanische Werberegeln (Advertising Regulatory Board, SAHPRA) sind weiterhin **nicht
+recherchiert**. Die Abwägung, ob eine Aussage laufen darf, trifft Jeannine vor dem
+Launch — nicht die Routine beim Rendern. Fällt der Routine eine Stelle auf, kommt sie in
+den Abschlussbericht, nicht in den Papierkorb.
+
+**4.3 (F) für NLBE bleibt unverändert** — dort steht die belgische JEP-Selbstkontrolle
+dahinter, das ist eine eigene Entscheidung und keine Analogie zu ZA.
 
 ---
 
