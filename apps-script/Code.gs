@@ -41,8 +41,23 @@ function setIfEmpty_(sh, a1, value, isFormula) {
   return true;
 }
 
+// Spaltenbelegung je Tab. Jeannine fuegt im Sheet jederzeit Spalten ein.
+// Am 2026-11-14 kam im Tab ZA die Spalte "SKU EUR Price" als neues K dazu -- dadurch ist
+// alles ab dem alten K eine Spalte nach rechts gerutscht. Ohne diese Tabelle schreibt das
+// Script den Ordner-Link in die Bearbeiter-Spalte und laeuft in einen
+// Datenvalidierungsfehler ("Die in Zelle O18 eingegebenen Daten verstossen ...").
+// Beim naechsten Spalteneinschub hier nachziehen -- und in
+// config/automation.config.json -> sheet.tabs.<TAB>.columns.
+var COLS = {
+  _default: { date: 'L', editor: 'N', link: 'O', status: 'P' },
+  ZA:       { date: 'M', editor: 'O', link: 'P', status: 'Q' }
+};
+
+function colsFor_(tab) { return COLS[tab] || COLS._default; }
+
 // Liest alle Ordner "<YYYY-MM-DD> - <Produkt>" unter Translated-Ads/<Markt> und traegt
-// fuer jede Zeile, deren Spalte G den Produktnamen hat, L/N/O/P ein -- nur leere Zellen.
+// fuer jede Zeile, deren Spalte G den Produktnamen hat, Datum/Bearbeiter/Link/Status ein
+// -- nur leere Zellen, mit den Buchstaben aus COLS fuer diesen Tab.
 function fillFunnelSheet() {
   const lock = LockService.getScriptLock();
   lock.waitLock(30000);
@@ -72,11 +87,12 @@ function fillFunnelSheet() {
         const hit = folders[name.toLowerCase()];
         if (!hit) continue;
         const r = i + 1;
-        const o = setIfEmpty_(sh, 'O' + r,
+        const c = colsFor_(tab);
+        const o = setIfEmpty_(sh, c.link + r,
           '=HYPERLINK("https://drive.google.com/drive/folders/' + hit.id + '";"' + name + '")', true);
-        setIfEmpty_(sh, 'L' + r, hit.date, false);
-        setIfEmpty_(sh, 'N' + r, 'claude', false);
-        setIfEmpty_(sh, 'P' + r, 'in progress', false);
+        setIfEmpty_(sh, c.date + r, hit.date, false);
+        setIfEmpty_(sh, c.editor + r, 'claude', false);
+        setIfEmpty_(sh, c.status + r, 'in progress', false);
         if (o) written.push(tab + '!' + r + ' ' + name);
       }
     });
