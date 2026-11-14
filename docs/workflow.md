@@ -99,11 +99,30 @@ Die Buchstaben unten sind ab hier nur noch der **Erwartungswert** für `FI` / `F
 ### Schritt 2 — ZA: Drive-Link statt Kommentar-Thread
 
 Im Tab `ZA` steht in der Ad-Link-Spalte in der Regel **kein** Kommentar-Thread, sondern
-als Zellwert ein `=HYPERLINK(...)` auf den fertigen **FI-Winner-Ordner** in Drive. Dessen
-Ad-Bilder sind die Quelle der ZA-Übersetzung. **Eine ZA-Zeile ist neu, wenn dort ein
-Drive-Link steht und die Ordner-Link-Spalte noch leer ist** — der Fingerprint-Abgleich
-aus Punkt 2 greift für diese Zeilen nicht und darf nicht als „nichts Neues" gewertet
-werden. Ablauf danach wie gehabt: Zeilen-Sperre (2a), Resume (2b), Schritt 3 ff.
+ein Link auf den fertigen **FI-Winner-Ordner** in Drive. Dessen Ad-Bilder sind die Quelle
+der ZA-Übersetzung. **Eine ZA-Zeile ist neu, wenn dort ein Drive-Link steht und die
+Ordner-Link-Spalte noch leer ist** — der Fingerprint-Abgleich aus Punkt 2 greift für diese
+Zeilen nicht und darf nicht als „nichts Neues" gewertet werden. Ablauf danach wie gehabt:
+Zeilen-Sperre (2a), Resume (2b), Schritt 3 ff.
+
+**Ein Link kommt in DREI Formen vor, und alle drei zählen:**
+
+| | Form | Was in der Zelle steht |
+|---|---|---|
+| a | Formel | Zellwert `=HYPERLINK("https://…";"Text")` |
+| b | **Zell-Hyperlink** | Zellwert ist nur sichtbarer Text, z. B. `Set 1-Dens`; der Link hängt als `cell.hyperlink` an der Zelle |
+| c | blanke URL | Zellwert beginnt mit `http://` oder `https://` |
+
+Form (b) hat am 2026-11-14 die Zeile `ZA!17` (Jointiva) durchrutschen lassen, weil nur
+nach `=HYPERLINK(` gesucht wurde. **Deshalb nie von Hand suchen, sondern immer**
+
+```
+python3 scripts/resolve_columns.py <funnel.xlsx> --offen
+```
+
+aufrufen: das Skript prüft alle drei Formen und listet pro Tab genau die Zeilen, die
+dieser Lauf abzuarbeiten hat (Link vorhanden, Ordner-Link-Spalte leer). Steht dort
+`OFFEN  keine`, ist in diesem Tab wirklich nichts zu tun.
 
 1. Für jeden Tab in `sheet.tabs` (`FI`, `FRCA`, `ZA`, `NL/BE new` → Marktcode `NLBE`):
    a. `Google_Drive.read_file_content` mit `includeComments: true` auf `sheet.id`

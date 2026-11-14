@@ -14,6 +14,19 @@ Aufruf (nach dem XLSX-Export des Funnel Sheets):
     python3 scripts/resolve_columns.py <funnel.xlsx>            # alle Markt-Tabs
     python3 scripts/resolve_columns.py <funnel.xlsx> ZA         # nur ein Tab
     python3 scripts/resolve_columns.py <funnel.xlsx> --json     # maschinenlesbar
+    python3 scripts/resolve_columns.py <funnel.xlsx> --offen    # offene Zeilen listen
+
+`--offen` listet je Tab die Zeilen, in denen die Ad-/Drive-Link-Spalte einen Link traegt
+und die Ordner-Link-Spalte noch leer ist -- also die Zeilen, die dieser Lauf abarbeiten
+muss. Ein Link zaehlt in DREI Formen, und alle drei muessen geprueft werden:
+
+  a) Zellwert `=HYPERLINK("https://...";"Text")`  -- Formel
+  b) an den Zelltext gehaengter Hyperlink        -- `cell.hyperlink`, der Zellwert ist
+     dann nur sichtbarer Text wie "Set 1-Dens"
+  c) blanke URL als Zellwert
+
+Form (b) hat am 2026-11-14 ZA!17 (Jointiva) durchrutschen lassen: die Zelle sah leer von
+Links aus, weil nur nach `=HYPERLINK(` gesucht wurde. Deshalb jetzt alle drei Formen.
 
 Exit 0 = fuer jeden geprueften Tab wurden alle Pflichtspalten gefunden.
 Exit 1 = mindestens eine Pflichtspalte nicht gefunden -> NICHT weiterarbeiten,
@@ -104,6 +117,57 @@ def aufloesen(ws, spalten):
     return gefunden
 
 
+def zell_link(cell):
+    """Link einer Zelle in allen drei Formen, sonst None.
+
+    (a) `=HYPERLINK("...";"...")` als Zellwert, (b) an den Zelltext gehaengter
+    Hyperlink (`cell.hyperlink`), (c) blanke URL als Zellwert. Wer nur (a) prueft,
+    uebersieht Zeilen -- siehe Modulkopf."""
+    ziel = getattr(cell, "hyperlink", None)
+    if ziel is not None:
+        ziel = getattr(ziel, "target", None) or str(ziel)
+        if ziel:
+            return ziel
+    wert = cell.value
+    if not isinstance(wert, str):
+        return None
+    treffer = re.search(r'HYPERLINK\s*\(\s*"([^"]+)"', wert, re.IGNORECASE)
+    if treffer:
+        return treffer.group(1)
+    if wert.strip().lower().startswith(("http://", "https://")):
+        return wert.strip()
+    return None
+
+
+def zelle_leer(cell):
+    if zell_link(cell):
+        return False
+    return not str(cell.value or "").strip()
+
+
+def offene_zeilen(ws, gefunden, ab_zeile=2):
+    """Zeilen mit Link in der Ad-/Drive-Link-Spalte und noch leerer Ordner-Link-Spalte."""
+    quelle = gefunden.get("ad_links")
+    ziel = gefunden.get("ordner_link")
+    name = gefunden.get("product_name")
+    if not quelle or not ziel:
+        return []
+    offen = []
+    for r in range(ab_zeile, ws.max_row + 1):
+        link = zell_link(ws[quelle + str(r)])
+        if not link:
+            continue
+        if not zelle_leer(ws[ziel + str(r)]):
+            continue
+        offen.append({
+            "zeile": r,
+            "produkt": str(ws[name + str(r)].value or "").strip() if name else "",
+            "quelle": link,
+            "quelle_text": str(ws[quelle + str(r)].value or "").strip(),
+        })
+    return offen
+
+
 def pruefe_tab(wb, tab):
     ws = wb[tab]
     spalten = WINNING_PRODUCTS_SPALTEN if tab == "Winning Products" else MARKT_TAB_SPALTEN
@@ -118,6 +182,7 @@ def main():
         sys.exit(2)
     pfad = sys.argv[1]
     als_json = "--json" in sys.argv[2:]
+    zeige_offen = "--offen" in sys.argv[2:]
     gewuenscht = [a for a in sys.argv[2:] if not a.startswith("--")]
 
     wb = openpyxl.load_workbook(pfad, read_only=False)
@@ -130,7 +195,10 @@ def main():
             fehler = True
             continue
         gefunden, fehlend = pruefe_tab(wb, tab)
-        ergebnis[tab] = gefunden
+        ergebnis[tab] = dict(gefunden)
+        if zeige_offen:
+            offen = offene_zeilen(wb[tab], gefunden)
+            ergebnis[tab] = {"spalten": gefunden, "offene_zeilen": offen}
         if fehlend:
             fehler = True
         if not als_json:
@@ -142,6 +210,15 @@ def main():
                     print(f"    {name:16s} -> Spalte {gefunden[name]}")
             for name in fehlend:
                 print(f"    {name:16s} -> NICHT GEFUNDEN")
+            if zeige_offen:
+                offen = ergebnis[tab]["offene_zeilen"]
+                if offen:
+                    for eintrag in offen:
+                        print(f"    OFFEN  Zeile {eintrag['zeile']:>3}  "
+                              f"{eintrag['produkt'] or '(ohne Produktnamen)'}  "
+                              f"<- {eintrag['quelle_text'] or eintrag['quelle']}")
+                else:
+                    print("    OFFEN  keine")
 
     if als_json:
         print(json.dumps(ergebnis, indent=2, ensure_ascii=False))

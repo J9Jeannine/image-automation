@@ -173,13 +173,20 @@ Deshalb, **blockierend, in jedem Lauf vor Schritt 2**:
 
 ### 4a-2. Im Tab `ZA` ist die Quelle meist ein Drive-Link, kein Kommentar-Thread
 
-In `ZA` steht in der Spalte `Competitor Ad Link/Drive Link` (seit 2026-11-14 **N**) als
-**Zellwert** ein `=HYPERLINK(...)` auf den fertigen **FI-Winner-Ordner** in Drive. Dessen
-Ad-Bilder sind die Quelle der ZA-Übersetzung — nicht eine fbcdn-URL aus einem Kommentar.
+In `ZA` steht in der Spalte `Competitor Ad Link/Drive Link` (seit 2026-11-14 **N**) ein
+Link auf den fertigen **FI-Winner-Ordner** in Drive. Dessen Ad-Bilder sind die Quelle der
+ZA-Übersetzung — nicht eine fbcdn-URL aus einem Kommentar.
 
 **Eine ZA-Zeile ist neu, wenn in dieser Spalte ein Drive-Link steht und die
 Ordner-Link-Spalte (seit 2026-11-14 **P**) noch leer ist.** Der Fingerprint-Abgleich über
 Kommentar-Threads greift hier nicht und darf nicht als „nichts Neues" gewertet werden.
+
+**Der Link kommt in drei Formen vor und wird nie von Hand gesucht:** (a) Zellwert
+`=HYPERLINK(...)`, (b) ein an den sichtbaren Zelltext gehängter Zell-Hyperlink (so stand
+`Set 1-Dens` in `ZA!N17`), (c) blanke URL. Form (b) hat am 2026-11-14 eine Zeile
+durchrutschen lassen. Verbindlich ist deshalb
+`python3 scripts/resolve_columns.py <funnel.xlsx> --offen` — es prüft alle drei Formen und
+listet pro Tab die abzuarbeitenden Zeilen.
 
 **Das Sheet wird von der Routine nur gelesen.** Den Eintrag `L`/`N`/`O`/`P` (Datum, claude,
 Ordner-Link, Status) macht die Apps-Script-Web-App selbst: nach **jedem** Bild-Upload ruft
