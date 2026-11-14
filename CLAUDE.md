@@ -142,12 +142,44 @@ Ist ein Link beim Laden schon tot: im Bericht die Post-Nummer nennen, nicht stil
 
 Die Routine prüft in **jedem** Lauf **zwei** Quellen im selben Funnel Sheet:
 
-| | Markt-Tabs `FI` / `FRCA` / `ZA` / `NL/BE new` | Tab `Winning Products` |
-|---|---|---|
-| Markt | = Tab-Name (Ausnahme: Tab `NL/BE new` = Markt `NLBE`) | **Spalte A** (pro Zeile) |
-| Ad-Links als Kommentar auf | Spalte **M** | Spalte **D** |
-| Produktname | Spalte **G** | Spalte **C** |
-| Preis | Spalte **J** | gibt es nicht — im Markt-Tab nachschlagen |
+| | `FI` / `FRCA` / `NL/BE new` | **`ZA`** (eigene Buchstaben!) | Tab `Winning Products` |
+|---|---|---|---|
+| Markt | = Tab-Name (Ausnahme: `NL/BE new` = `NLBE`) | = `ZA` | **Spalte A** (pro Zeile) |
+| Ad-Links / Drive-Link | Spalte **M** | Spalte **N** | Spalte **D** |
+| Produktname | Spalte **G** | Spalte **G** | Spalte **C** |
+| Preis | Spalte **J** | Spalte **J** | gibt es nicht — im Markt-Tab nachschlagen |
+| Bearbeiter / Ordner-Link / Status | **N** / **O** / **P** | **O** / **P** / **Q** | **G** / **H** / **I** |
+
+### 4a-1. Spalten werden über die ÜBERSCHRIFT gefunden, nie über feste Buchstaben
+
+**Vorgabe von Jeannine am 2026-11-14.** An diesem Tag kam im Tab `ZA` die Spalte
+**`SKU € Price` als neues `K`** dazu. Dadurch ist alles ab dem alten `K` eine Spalte nach
+rechts gerutscht: die Ad-/Drive-Link-Spalte liegt dort jetzt auf **N statt M**. Eine
+Routine, die feste Buchstaben annimmt, liest danach die falsche Zelle und übersieht neue
+Zeilen — genau das ist am 2026-11-14 passiert.
+
+Deshalb, **blockierend, in jedem Lauf vor Schritt 2**:
+
+1. Funnel Sheet per `Google_Drive.download_file_content` als **XLSX** exportieren
+   (`exportMimeType: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`).
+   Nur der XLSX-Export liefert echte Zellwerte **inklusive `=HYPERLINK(...)`** und die
+   Überschriften — der Drive-Connector gibt pro Tab nur Beispieldaten und löst
+   Zell-Hyperlinks nicht auf.
+2. `python3 scripts/resolve_columns.py <funnel.xlsx>` laufen lassen. **Exit 1 =
+   nicht weiterarbeiten.**
+3. Die Buchstaben in dieser Datei und in `config/automation.config.json` sind nur ein
+   **Erwartungswert**. Weicht das Skript ab, **gilt das Skript** — und beide Dateien
+   werden im selben Lauf nachgezogen und die Abweichung im Abschlussbericht genannt.
+
+### 4a-2. Im Tab `ZA` ist die Quelle meist ein Drive-Link, kein Kommentar-Thread
+
+In `ZA` steht in der Spalte `Competitor Ad Link/Drive Link` (seit 2026-11-14 **N**) als
+**Zellwert** ein `=HYPERLINK(...)` auf den fertigen **FI-Winner-Ordner** in Drive. Dessen
+Ad-Bilder sind die Quelle der ZA-Übersetzung — nicht eine fbcdn-URL aus einem Kommentar.
+
+**Eine ZA-Zeile ist neu, wenn in dieser Spalte ein Drive-Link steht und die
+Ordner-Link-Spalte (seit 2026-11-14 **P**) noch leer ist.** Der Fingerprint-Abgleich über
+Kommentar-Threads greift hier nicht und darf nicht als „nichts Neues" gewertet werden.
 
 **Das Sheet wird von der Routine nur gelesen.** Den Eintrag `L`/`N`/`O`/`P` (Datum, claude,
 Ordner-Link, Status) macht die Apps-Script-Web-App selbst: nach **jedem** Bild-Upload ruft

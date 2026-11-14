@@ -76,6 +76,35 @@ laut `config/automation.config.json` → `cadence` (Default: täglich).
 Datenquelle ist **kein** freies Ad-Library-Suchergebnis, sondern das bestehende
 `config/automation.config.json` → `sheet.id` ("Funnel Sheet").
 
+### Schritt 2 vorweg — Spalten auflösen (BLOCKIEREND, seit 2026-11-14)
+
+Jeannine fügt im Sheet jederzeit Spalten ein. Am 2026-11-14 kam im Tab `ZA` die Spalte
+`SKU € Price` als neues `K` dazu — seitdem liegt die Ad-/Drive-Link-Spalte dort auf **N
+statt M**. Ein Lauf mit fest verdrahteten Buchstaben hat den neuen Drive-Link deshalb
+übersehen. Darum **vor** Punkt 1:
+
+1. Funnel Sheet per `Google_Drive.download_file_content` als **XLSX** exportieren
+   (`exportMimeType: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`).
+   Das ist auch der einzige Weg, an `=HYPERLINK(...)`-Zellwerte zu kommen — der
+   Drive-Connector gibt pro Tab nur Beispieldaten zurück und löst Hyperlinks nicht auf.
+2. `python3 scripts/resolve_columns.py <funnel.xlsx>` ausführen. **Exit 1 = abbrechen**,
+   nichts generieren, Tab von Hand ansehen.
+3. Mit `config/automation.config.json` abgleichen. Weicht ein Buchstabe ab, gilt das
+   Skript; Config und `CLAUDE.md` im selben Lauf nachziehen und die Abweichung in
+   Schritt 8 melden.
+
+Die Buchstaben unten sind ab hier nur noch der **Erwartungswert** für `FI` / `FRCA` /
+`NL/BE new`. Für `ZA` gelten `sheet.tabs.ZA.columns` (D / G / J / **N** / O / **P** / Q).
+
+### Schritt 2 — ZA: Drive-Link statt Kommentar-Thread
+
+Im Tab `ZA` steht in der Ad-Link-Spalte in der Regel **kein** Kommentar-Thread, sondern
+als Zellwert ein `=HYPERLINK(...)` auf den fertigen **FI-Winner-Ordner** in Drive. Dessen
+Ad-Bilder sind die Quelle der ZA-Übersetzung. **Eine ZA-Zeile ist neu, wenn dort ein
+Drive-Link steht und die Ordner-Link-Spalte noch leer ist** — der Fingerprint-Abgleich
+aus Punkt 2 greift für diese Zeilen nicht und darf nicht als „nichts Neues" gewertet
+werden. Ablauf danach wie gehabt: Zeilen-Sperre (2a), Resume (2b), Schritt 3 ff.
+
 1. Für jeden Tab in `sheet.tabs` (`FI`, `FRCA`, `ZA`, `NL/BE new` → Marktcode `NLBE`):
    a. `Google_Drive.read_file_content` mit `includeComments: true` auf `sheet.id`
       aufrufen (bzw. den entsprechenden Tab, falls das Tool Tab-Auswahl unterstützt).

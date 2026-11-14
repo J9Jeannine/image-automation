@@ -9,9 +9,19 @@
       "ad_library_links_comment_column": "M",
       "price_column": "J",
       "note": "Spaltenbelegung verifiziert an BEIDEN Tabs (FRCA per Drive-Kommentar-API, FI per XLSX-Export/openpyxl, da das Drive-Tool nur den FRCA-Tab zurueckgab): D = 'Competitor URL / Content', G = 'new PR NAME' = unser Produktname, J = 'Bundle/deal offer' = Preisstufen (EUR fuer FI, CAD fuer FRCA), M = 'Competitor Ad Link/Drive Link' -- die eigentlichen Meta-Ad-Library-Links haengen als Kommentar-Thread an der M-Zelle, inkl. Antworten anderer Teammitglieder. FI-Tab bestaetigt strukturell identisch zu FRCA (getestet an Zeile 52: variclex -> vanix).",
-      "gilt_nur_fuer": "ACHTUNG: Diese Spaltenbelegung gilt AUSSCHLIESSLICH fuer die Markt-Tabs FI, FRCA, ZA und 'NL/BE new' (siehe sheet.tabs). ZA am 2026-10-14 per Screenshot von Jeannine bestaetigt: D = Competitor URL, G = new PR NAME, J = Bundle/deal offer in ZAR (z. B. 599.00), M = Competitor Ad Link/Drive Link, erste Produktzeile = 3. 'NL/BE new' ebenso am 2026-10-14 per Screenshot bestaetigt (J = Euro, z. B. 39.95). Der Tab 'Winning Products' hat voellig andere Spaltenbuchstaben -- siehe sheet.winning_products_tab. Die beiden NIEMALS vermischen.",
+      "gilt_nur_fuer": "ACHTUNG: Diese Buchstaben gelten fuer die Markt-Tabs FI, FRCA und 'NL/BE new'. DER TAB ZA HAT SEIT 2026-11-14 EIGENE BUCHSTABEN -- siehe sheet.tabs.ZA.columns. Nie die Buchstaben der einen Quelle auf die andere anwenden; 'Winning Products' hat ohnehin eigene (sheet.winning_products_tab.columns).",
       "kein_rueckschreiben": "Die Routine schreibt NICHTS in das Funnel Sheet -- weder Datum noch Bearbeiter, Ordner-Link oder Status. Das uebernimmt ein Trigger im Google-Konto des Nutzers. Fuer die Routine ist das Sheet REIN LESEND (Kommentar-Threads auf M, Produktname aus G, Preis aus J, Competitor-URL aus D). Frueher wurden L/N/O/P per Sheets API geschrieben -- das ist ersatzlos gestrichen, samt dem dafuer benutzten Service-Account und dem Scope .../auth/spreadsheets.",
-      "vom_nutzer_trigger_gefuellt": "Nur zur Orientierung, NICHT von der Routine zu beschreiben: L = Lauf-Datum, N = Bearbeiter, O = Ordner-Link, P = Status."
+      "vom_nutzer_trigger_gefuellt": "Nur zur Orientierung, NICHT von der Routine zu beschreiben: L = Lauf-Datum, N = Bearbeiter, O = Ordner-Link, P = Status.",
+      "_WARNUNG_SPALTEN_VERSCHIEBEN_SICH": "Jeannine fuegt im Sheet jederzeit Spalten ein. Am 2026-11-14 kam im Tab ZA die Spalte 'SKU EUR Price' als K dazu -- dadurch ist alles ab dem alten K eine Spalte nach rechts gerutscht und die Ad-Link-Spalte liegt dort jetzt auf N statt M. DIE BUCHSTABEN HIER SIND NUR EIN ERWARTUNGSWERT. Verbindlich ist die UEBERSCHRIFT in Zeile 1/2. In JEDEM Lauf vor Schritt 2 'python3 scripts/resolve_columns.py <funnel.xlsx>' ausfuehren (XLSX-Export per Google_Drive.download_file_content, exportMimeType xlsx) und mit den Werten dieser Datei abgleichen. Weichen sie ab, gilt das Skript -- und diese Datei wird im selben Lauf nachgezogen. Exit 1 = nicht weiterarbeiten.",
+      "_ueberschriften": {
+        "competitor_url": "Competitor URL / Content",
+        "product_name": "new PR NAME",
+        "price_column": "Bundle/deal offer",
+        "ad_library_links_comment_column": "Competitor Ad Link/Drive Link",
+        "bearbeiter": "Link to Videos /Images (erste Spalte)",
+        "ordner_link": "Link to Videos /Images (zweite, verbundene Spalte)",
+        "status": "Video/Images Comments"
+      }
     },
     "tabs": {
       "FI": {
@@ -31,7 +41,24 @@
         "language": "en-ZA",
         "language_name": "Suedafrikanisches Englisch (en-ZA), britische Schreibweise, NICHT US-Englisch",
         "market_code": "ZA",
-        "note": "Tab-Name 'ZA'. Preise in J stehen ohne Waehrung mit Punkt ('599.00') -> im Bild 'R599.00'."
+        "note": "Tab-Name 'ZA'. Preise in J stehen ohne Waehrung mit Punkt ('599.00') -> im Bild 'R599.00'. SPALTENVERSCHIEBUNG 2026-11-14: neue Spalte K 'SKU EUR Price'; die Ad-Link-/Drive-Link-Spalte liegt seitdem auf N, nicht mehr auf M. Siehe tabs.ZA.columns.",
+        "columns": {
+          "_stand": "2026-11-14, nach Einfuegen der Spalte K 'SKU EUR Price' durch Jeannine. Vorher lagen Ad-Link auf M, Bearbeiter auf N, Ordner-Link auf O, Status auf P.",
+          "competitor_url": "D",
+          "product_name": "G",
+          "price_column": "J",
+          "sku_eur_price": "K",
+          "date_completed": "M",
+          "ad_library_links_comment_column": "N",
+          "bearbeiter": "O",
+          "ordner_link": "P",
+          "status": "Q",
+          "ad_copy": "R",
+          "ad_account": "T",
+          "page": "U",
+          "_pruefen": "Vor jedem Lauf mit scripts/resolve_columns.py gegen die Ueberschrift pruefen."
+        },
+        "ad_links_koennen_drive_links_sein": "Die Spalte 'Competitor Ad Link/Drive Link' (ZA: N) traegt im Tab ZA in der Regel KEINEN Kommentar-Thread, sondern als ZELLWERT einen =HYPERLINK(...) auf den fertigen FI-Winner-Ordner in Drive. Dessen Ad-Bilder sind die Quelle der ZA-Uebersetzung. Eine Zeile ist neu, wenn in dieser Spalte ein Drive-Link steht und die Ordner-Link-Spalte (ZA: P) noch leer ist. Der Fingerprint-Abgleich ueber Kommentar-Threads greift hier nicht."
       },
       "NL/BE new": {
         "start_row": 5,
@@ -74,6 +101,14 @@
       "sprachregeln": "Es gelten dieselben blockierenden Sprachregeln wie sonst (CLAUDE.md Regel 1, docs/language-rules.md) -- mit dem Markt aus Spalte A. Angelegt sind 4.1 FRCA, 4.2 FI, 4.3 NLBE, 4.4 ZA. Hat ein Markt KEINEN eigenen Abschnitt 4.x (z. B. SE, UK), wird fuer die Zeile NICHT generiert: Zeile ueberspringen und im Bericht vermerken, dass der Markt-Abschnitt fehlt.",
       "textlose_ads": "Zeigt eine Quell-Ad weder Text noch Produkt (reine Illustration, Foto, MRT, Selfie), gibt es nichts zu uebersetzen: die Datei unveraendert uebernehmen und NICHT neu rendern. Ein Neurender erzeugt ein anderes Motiv und waere eine Variante statt einer Uebersetzung -- unzulaessig und verbrannte Credits. Im Bericht als 'unveraendert uebernommen' ausweisen.",
       "ablauf": "Vollstaendiger Ablauf: docs/workflow.md Anhang A."
+    },
+    "column_resolution": {
+      "mandatory": true,
+      "script": "scripts/resolve_columns.py",
+      "wann": "In JEDEM Lauf vor Schritt 2, fuer jeden Tab aus sheet.tabs und fuer 'Winning Products'.",
+      "wie": "Funnel Sheet per Google_Drive.download_file_content als XLSX exportieren (exportMimeType application/vnd.openxmlformats-officedocument.spreadsheetml.sheet), dann 'python3 scripts/resolve_columns.py <datei.xlsx>'. Exit 1 = nicht weiterarbeiten.",
+      "warum": "Der Drive-Connector liefert pro Tab nur Beispieldaten und loest Zell-HYPERLINKS nicht auf. Der XLSX-Export liefert beides: echte Zellwerte inklusive =HYPERLINK(...) und die Ueberschriften, an denen die Spalten erkannt werden.",
+      "regel": "Weicht ein Buchstabe von dieser Config ab, gilt das Skript. Die Config wird im selben Lauf nachgezogen und der Unterschied im Abschlussbericht genannt."
     }
   },
   "product_image_source": {
