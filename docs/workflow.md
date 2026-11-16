@@ -76,12 +76,22 @@ laut `config/automation.config.json` → `cadence` (Default: täglich).
 Datenquelle ist **kein** freies Ad-Library-Suchergebnis, sondern das bestehende
 `config/automation.config.json` → `sheet.id` ("Funnel Sheet").
 
+> **Die Spalte mit den Ad-Links ist PRO TAB verschieden — `sheet.tabs.<TAB>.ad_links_comment_column`.**
+> Verbindlich ist immer die Spalte, deren **Kopfzeile `Competitor Ad Link/Drive Link`** heißt:
+> `FI` = **M**, `FRCA` = **M**, `NL/BE new` = **M**, **`ZA` = `N`**. `ZA` hat eine Spalte mehr
+> (`K` = `SKU/ € Price`, `L` = unbenannt), dadurch ist dort alles ab `M` um eins verschoben:
+> `M` = `Date Completed`, `N` = `Competitor Ad Link/Drive Link`. Am 2026-11-16 am Live-Sheet
+> gemessen. **Wer in `ZA` auf `M` schaut, findet null Threads und überspringt den Tab
+> stillschweigend** — das ist kein „nichts Neues", sondern ein übersehener Markt. Im Zweifel
+> die Kopfzeile des Tabs lesen, nicht den Buchstaben aus dem Gedächtnis nehmen.
+
 1. Für jeden Tab in `sheet.tabs` (`FI`, `FRCA`, `ZA`, `NL/BE new` → Marktcode `NLBE`):
    a. `Google_Drive.read_file_content` mit `includeComments: true` auf `sheet.id`
       aufrufen (bzw. den entsprechenden Tab, falls das Tool Tab-Auswahl unterstützt).
    b. Zeilen ab `tabs.<TAB>.start_row` bis zur letzten befüllten Zeile durchgehen.
-   c. Pro Zeile: existiert an der Zelle in Spalte `sheet.columns.ad_library_links_comment_column`
-      (M) ein Kommentar-Thread? Falls ja: **Head-Post-Inhalt UND alle Replies** als
+   c. Pro Zeile: existiert an der Zelle in Spalte
+      `sheet.tabs.<TAB>.ad_links_comment_column` (M für `FI`/`FRCA`/`NL/BE new`,
+      **N für `ZA`**) ein Kommentar-Thread? Falls ja: **Head-Post-Inhalt UND alle Replies** als
       Ad-Library-Permalinks sammeln (mehrere Team-Mitglieder posten oft in derselben
       Zelle nacheinander — nichts davon verwerfen).
 2. Gegen `<Projektordner>/<market_code>/State/processed_comments.json` in Drive

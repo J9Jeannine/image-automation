@@ -18,19 +18,23 @@
         "start_row": 52,
         "language": "fi",
         "language_name": "Finnisch",
-        "market_code": "FI"
+        "market_code": "FI",
+        "ad_links_comment_column": "M"
       },
       "FRCA": {
         "start_row": 33,
         "language": "fr-CA",
         "language_name": "Quebec-Franzoesisch (fr-CA), NICHT Frankreich-Franzoesisch",
-        "market_code": "FRCA"
+        "market_code": "FRCA",
+        "ad_links_comment_column": "M"
       },
       "ZA": {
         "start_row": 3,
         "language": "en-ZA",
         "language_name": "Suedafrikanisches Englisch (en-ZA), britische Schreibweise, NICHT US-Englisch",
         "market_code": "ZA",
+        "ad_links_comment_column": "N",
+        "ad_links_comment_column_warnung": "ACHTUNG, ABWEICHUNG: Im ZA-Tab liegt 'Competitor Ad Link/Drive Link' auf Spalte N, NICHT auf M wie bei FI/FRCA/'NL/BE new'. ZA hat eine Spalte mehr (K = 'SKU/ EUR Price', L = unbenannt), dadurch ist alles ab M um eins verschoben: M = 'Date Completed', N = 'Competitor Ad Link/Drive Link'. Am 2026-11-16 am Live-Sheet gemessen und vierfach belegt: (1) Kopfzeile N1, (2) die realen Kommentar-Anker liegen auf ZA!N19 und ZA!N20, (3) das Protokoll des Laufs vom 2026-11-15 nennt ausdruecklich 'Kommentar-Thread auf ZA!N19', (4) ZA!M19 und ZA!M20 tragen ein Datum, keinen Link. Wer hier stur M liest, findet in ZA NULL Threads und ueberspringt den Tab stillschweigend. Die Angabe 'M, per Screenshot 2026-10-14 bestaetigt' in sheet.columns.gilt_nur_fuer ist damit fuer ZA ueberholt.",
         "note": "Tab-Name 'ZA'. Preise in J stehen ohne Waehrung mit Punkt ('599.00') -> im Bild 'R599.00'."
       },
       "NL/BE new": {
@@ -38,6 +42,7 @@
         "language": "nl",
         "language_name": "Neutrales Niederlaendisch fuer NL UND Flandern (docs/language-rules.md 4.3), Anrede je/jouw",
         "market_code": "NLBE",
+        "ad_links_comment_column": "M",
         "note": "Tab-Name ist 'NL/BE new' (NICHT der alte Tab 'NLBE'). Zeilen 3 (TanLux/GlowTan) und 4 (Pootfris/Dentalis) sind am 2026-10-14 schon erledigt (Set 1 in M) -> Start ab Zeile 5, damit keine Ad doppelt entsteht. Preise in J stehen mit Punkt ('39.95') -> im Bild '€ 39,95'."
       }
     },

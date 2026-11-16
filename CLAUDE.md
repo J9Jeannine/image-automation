@@ -145,7 +145,7 @@ Die Routine prüft in **jedem** Lauf **zwei** Quellen im selben Funnel Sheet:
 | | Markt-Tabs `FI` / `FRCA` / `ZA` / `NL/BE new` | Tab `Winning Products` |
 |---|---|---|
 | Markt | = Tab-Name (Ausnahme: Tab `NL/BE new` = Markt `NLBE`) | **Spalte A** (pro Zeile) |
-| Ad-Links als Kommentar auf | Spalte **M** | Spalte **D** |
+| Ad-Links als Kommentar auf | Spalte **M** — **Ausnahme `ZA`: Spalte `N`** | Spalte **D** |
 | Produktname | Spalte **G** | Spalte **C** |
 | Preis | Spalte **J** | gibt es nicht — im Markt-Tab nachschlagen |
 
@@ -158,6 +158,16 @@ schicken und die Antwort (`sheet: ok: …` bzw. `ERROR: …`) wörtlich in den A
 übernehmen. Steht dort `ERROR` oder fehlt das Feld `sheet`, ist der Sheet-Eintrag
 **nicht** passiert — das muss im Bericht stehen, nie „erledigt“ behaupten.
 Siehe `docs/sheet-writeback-SOP.md`.
+
+**`ZA` liegt auf `N`, nicht auf `M` — blockierend.** Der `ZA`-Tab hat eine Spalte mehr als
+`FI`/`FRCA`/`NL/BE new` (`K` = `SKU/ € Price`, `L` = unbenannt), dadurch ist dort alles ab `M`
+um eins verschoben: `M` = `Date Completed`, **`N` = `Competitor Ad Link/Drive Link`**.
+Maßgeblich ist immer die Spalte mit der Kopfzeile `Competitor Ad Link/Drive Link`, nicht der
+Buchstabe aus dem Gedächtnis — nachgeschlagen in `config/automation.config.json` →
+`sheet.tabs.<TAB>.ad_links_comment_column`. Wer in `ZA` auf `M` schaut, findet **null**
+Threads und überspringt den Markt stillschweigend; das sieht im Bericht wie „nichts Neues"
+aus und ist keins. Am 2026-11-16 am Live-Sheet gemessen (Kopfzeile `N1`, Kommentar-Anker auf
+`ZA!N19`/`ZA!N20`).
 
 **Die Buchstaben der einen Quelle gelten nie für die andere.** Ablauf für die Markt-Tabs:
 `docs/workflow.md` Schritt 2–8. Ablauf für `Winning Products`: `docs/workflow.md`
