@@ -81,7 +81,14 @@ Datenquelle ist **kein** freies Ad-Library-Suchergebnis, sondern das bestehende
       aufrufen (bzw. den entsprechenden Tab, falls das Tool Tab-Auswahl unterstützt).
    b. Zeilen ab `tabs.<TAB>.start_row` bis zur letzten befüllten Zeile durchgehen.
    c. Pro Zeile: existiert an der Zelle in Spalte `sheet.columns.ad_library_links_comment_column`
-      (M) ein Kommentar-Thread? Falls ja: **Head-Post-Inhalt UND alle Replies** als
+      (M) ein Kommentar-Thread? **Ausnahme ZA: dort ist es Spalte `N`, nicht `M`** — steht in
+      `sheet.tabs.<TAB>.ad_links_comment_column` ein Buchstabe, hat dieser Vorrang vor dem
+      globalen `M`. Der Tab `ZA` ist gegenüber `FI` um eine Spalte nach rechts verschoben
+      (`M` = Date Completed, `N` = Competitor Ad Link/Drive Link). Wer für `ZA` Spalte `M`
+      liest, findet keinen einzigen Thread und meldet fälschlich „nichts Neues".
+      Gegenprobe in jedem Lauf: die Anker-Liste am Ende von `fileContent` zeigt die echten
+      Zellen (`ZA!N19`, `FI!M152`, `Winning Products!D105`) — danach richten, nicht nach dem
+      Gedächtnis. Falls ja: **Head-Post-Inhalt UND alle Replies** als
       Ad-Library-Permalinks sammeln (mehrere Team-Mitglieder posten oft in derselben
       Zelle nacheinander — nichts davon verwerfen).
 2. Gegen `<Projektordner>/<market_code>/State/processed_comments.json` in Drive
@@ -135,6 +142,14 @@ Datenquelle ist **kein** freies Ad-Library-Suchergebnis, sondern das bestehende
    - Das gilt unabhängig von Schritt 2a: eine durch Zeilen-Sperre übersprungene Zeile
      wird beim nächsten Lauf ganz normal nach dieser Resume-Logik behandelt (nicht
      alles neu, nur was fehlt).
+2c. **Bekannte Lücke — Quelle ohne Kommentar-Thread (offen, nicht automatisch verarbeiten).**
+   Am 2026-11-20 war die Quelle der Ad-Bilder für `ZA!23` (Lumevia) **kein** Kommentar-Thread,
+   sondern ein **Drive-Ordner-Link als Zellwert** in `ZA!N23` (Jeannine hat das in dem Lauf
+   im Chat als Quelle bestätigt). Schritt 2 sucht nur Kommentar-Threads — eine solche Zeile
+   findet der Tagestrigger daher nie. Bis Jeannine entscheidet, ob dieser Eingang regulär
+   werden soll, gilt: **nicht von sich aus generieren** (das wären ungefragte Credits), aber
+   solche Zeilen auch nicht verschweigen — im Abschlussbericht/als Hinweis nennen.
+
 3. Pro zu verarbeitender Zeile zusätzlich lesen:
    - Spalte `sheet.columns.competitor_url` (D) — Competitor-Funnel-/Artikel-Link.
    - Spalte `sheet.columns.product_name` (G) — unser Produktname ("new PR NAME"),

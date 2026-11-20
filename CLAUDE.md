@@ -145,7 +145,7 @@ Die Routine prüft in **jedem** Lauf **zwei** Quellen im selben Funnel Sheet:
 | | Markt-Tabs `FI` / `FRCA` / `ZA` / `NL/BE new` | Tab `Winning Products` |
 |---|---|---|
 | Markt | = Tab-Name (Ausnahme: Tab `NL/BE new` = Markt `NLBE`) | **Spalte A** (pro Zeile) |
-| Ad-Links als Kommentar auf | Spalte **M** | Spalte **D** |
+| Ad-Links als Kommentar auf | Spalte **M** — **Ausnahme Tab `ZA`: Spalte `N`** | Spalte **D** |
 | Produktname | Spalte **G** | Spalte **C** |
 | Preis | Spalte **J** | gibt es nicht — im Markt-Tab nachschlagen |
 
@@ -158,6 +158,12 @@ schicken und die Antwort (`sheet: ok: …` bzw. `ERROR: …`) wörtlich in den A
 übernehmen. Steht dort `ERROR` oder fehlt das Feld `sheet`, ist der Sheet-Eintrag
 **nicht** passiert — das muss im Bericht stehen, nie „erledigt“ behaupten.
 Siehe `docs/sheet-writeback-SOP.md`.
+
+**Der Tab `ZA` ist um eine Spalte nach rechts verschoben** (`M` = Date Completed,
+`N` = Competitor Ad Link/Drive Link). Verifiziert am 2026-11-20 an den Kopfzeilen und an den
+echten Kommentar-Ankern des Sheets. Wer für `ZA` Spalte `M` liest, findet keinen einzigen
+Thread und meldet fälschlich „nichts Neues". Maßgeblich ist
+`config/automation.config.json` → `sheet.tabs.ZA.ad_links_comment_column`.
 
 **Die Buchstaben der einen Quelle gelten nie für die andere.** Ablauf für die Markt-Tabs:
 `docs/workflow.md` Schritt 2–8. Ablauf für `Winning Products`: `docs/workflow.md`

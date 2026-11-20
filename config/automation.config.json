@@ -7,9 +7,10 @@
       "competitor_url": "D",
       "product_name": "G",
       "ad_library_links_comment_column": "M",
+      "ad_library_links_comment_column_pro_tab_vorrang": "ACHTUNG: 'M' gilt NICHT fuer jeden Markt-Tab. Steht in sheet.tabs.<TAB> ein Feld 'ad_links_comment_column', hat DIESES Vorrang. Verifiziert am 2026-11-20 an den Kopfzeilen des Funnel Sheets: FI M1 = 'Competitor Ad Link/Drive Link', FRCA M1 = dito, 'NL/BE new' M1 = dito -- aber ZA M1 = 'Date Completed' und ZA N1 = 'Competitor Ad Link/Drive Link'. Der Tab ZA ist gegenueber FI um eine Spalte nach rechts verschoben (ZA: M = Date Completed, N = Competitor Ad Link/Drive Link, O = Link to Videos/Images, P = Ordner-Link, Q = Status). Wer fuer ZA Spalte M liest, findet KEINEN einzigen Kommentar-Thread und meldet faelschlich 'nichts Neues' -- erstmals aufgefallen im manuellen Lauf vom 2026-11-20 (Addendum processed_comments_addendum_2026-11-20_ZA23_Lumevia_drivelink_quelle.json im ZA-State-Ordner).",
       "price_column": "J",
       "note": "Spaltenbelegung verifiziert an BEIDEN Tabs (FRCA per Drive-Kommentar-API, FI per XLSX-Export/openpyxl, da das Drive-Tool nur den FRCA-Tab zurueckgab): D = 'Competitor URL / Content', G = 'new PR NAME' = unser Produktname, J = 'Bundle/deal offer' = Preisstufen (EUR fuer FI, CAD fuer FRCA), M = 'Competitor Ad Link/Drive Link' -- die eigentlichen Meta-Ad-Library-Links haengen als Kommentar-Thread an der M-Zelle, inkl. Antworten anderer Teammitglieder. FI-Tab bestaetigt strukturell identisch zu FRCA (getestet an Zeile 52: variclex -> vanix).",
-      "gilt_nur_fuer": "ACHTUNG: Diese Spaltenbelegung gilt AUSSCHLIESSLICH fuer die Markt-Tabs FI, FRCA, ZA und 'NL/BE new' (siehe sheet.tabs). ZA am 2026-10-14 per Screenshot von Jeannine bestaetigt: D = Competitor URL, G = new PR NAME, J = Bundle/deal offer in ZAR (z. B. 599.00), M = Competitor Ad Link/Drive Link, erste Produktzeile = 3. 'NL/BE new' ebenso am 2026-10-14 per Screenshot bestaetigt (J = Euro, z. B. 39.95). Der Tab 'Winning Products' hat voellig andere Spaltenbuchstaben -- siehe sheet.winning_products_tab. Die beiden NIEMALS vermischen.",
+      "gilt_nur_fuer": "ACHTUNG: Diese Spaltenbelegung gilt AUSSCHLIESSLICH fuer die Markt-Tabs FI, FRCA, ZA und 'NL/BE new' (siehe sheet.tabs). ZA am 2026-10-14 per Screenshot von Jeannine bestaetigt: D = Competitor URL, G = new PR NAME, J = Bundle/deal offer in ZAR (z. B. 599.00), erste Produktzeile = 3. KORREKTUR 2026-11-20: die Ad-Link-Spalte im Tab ZA ist **N**, nicht M (M = Date Completed) -- siehe sheet.tabs.ZA.ad_links_comment_column und ad_library_links_comment_column_pro_tab_vorrang. 'NL/BE new' ebenso am 2026-10-14 per Screenshot bestaetigt (J = Euro, z. B. 39.95). Der Tab 'Winning Products' hat voellig andere Spaltenbuchstaben -- siehe sheet.winning_products_tab. Die beiden NIEMALS vermischen.",
       "kein_rueckschreiben": "Die Routine schreibt NICHTS in das Funnel Sheet -- weder Datum noch Bearbeiter, Ordner-Link oder Status. Das uebernimmt ein Trigger im Google-Konto des Nutzers. Fuer die Routine ist das Sheet REIN LESEND (Kommentar-Threads auf M, Produktname aus G, Preis aus J, Competitor-URL aus D). Frueher wurden L/N/O/P per Sheets API geschrieben -- das ist ersatzlos gestrichen, samt dem dafuer benutzten Service-Account und dem Scope .../auth/spreadsheets.",
       "vom_nutzer_trigger_gefuellt": "Nur zur Orientierung, NICHT von der Routine zu beschreiben: L = Lauf-Datum, N = Bearbeiter, O = Ordner-Link, P = Status."
     },
@@ -31,7 +32,9 @@
         "language": "en-ZA",
         "language_name": "Suedafrikanisches Englisch (en-ZA), britische Schreibweise, NICHT US-Englisch",
         "market_code": "ZA",
-        "note": "Tab-Name 'ZA'. Preise in J stehen ohne Waehrung mit Punkt ('599.00') -> im Bild 'R599.00'."
+        "ad_links_comment_column": "N",
+        "ad_links_comment_column_note": "NUR fuer diesen Tab: die Kommentar-Threads mit den Ad-Links haengen an Spalte N, nicht an M. Verifiziert 2026-11-20 an der Kopfzeile (ZA N1 = 'Competitor Ad Link/Drive Link', ZA M1 = 'Date Completed') und an den tatsaechlichen Kommentar-Ankern des Sheets (ZA!N19, ZA!N20). Dieses Feld hat Vorrang vor sheet.columns.ad_library_links_comment_column.",
+        "note": "Tab-Name 'ZA'. Preise in J stehen ohne Waehrung mit Punkt ('599.00') -> im Bild 'R599.00'. Weitere ZA-Spalten (eine nach rechts verschoben gegenueber FI): M = Date Completed, N = Competitor Ad Link/Drive Link, O = Link to Videos/Images, P = Ordner-Link der fertigen Ads, Q = Status."
       },
       "NL/BE new": {
         "start_row": 5,
